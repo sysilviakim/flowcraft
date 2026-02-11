@@ -233,14 +233,9 @@ const UI = (() => {
     ]);
     toolbar.appendChild(toolGroup);
 
-    // Alignment
+    // Alignment (single dropdown)
     const alignGroup = makeToolbarGroup([
-      { id: 'btn-align-left', icon: iconAlignLeft, title: 'Align Left', action: () => Tools.alignShapes('left') },
-      { id: 'btn-align-center', icon: iconAlignCenterH, title: 'Align Center', action: () => Tools.alignShapes('center-h') },
-      { id: 'btn-align-right', icon: iconAlignRight, title: 'Align Right', action: () => Tools.alignShapes('right') },
-      { id: 'btn-align-top', icon: iconAlignTop, title: 'Align Top', action: () => Tools.alignShapes('top') },
-      { id: 'btn-align-middle', icon: iconAlignCenterV, title: 'Align Middle', action: () => Tools.alignShapes('center-v') },
-      { id: 'btn-align-bottom', icon: iconAlignBottom, title: 'Align Bottom', action: () => Tools.alignShapes('bottom') },
+      { id: 'btn-align', icon: iconAlignLeft, title: 'Align & Distribute (select 2+ shapes)', action: (e) => showAlignDropdown(e.currentTarget) },
     ]);
     toolbar.appendChild(alignGroup);
 
@@ -1305,6 +1300,64 @@ const UI = (() => {
     dropdown.style.borderRadius = '8px';
     dropdown.style.padding = '4px';
     dropdown.style.minWidth = '170px';
+    dropdown.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)';
+    dropdown.style.zIndex = '10000';
+    document.body.appendChild(dropdown);
+
+    const closeDropdown = (e) => {
+      if (!dropdown.contains(e.target) && e.target !== anchorEl) {
+        dropdown.remove();
+        document.removeEventListener('click', closeDropdown);
+      }
+    };
+    setTimeout(() => document.addEventListener('click', closeDropdown), 0);
+  }
+
+  function showAlignDropdown(anchorEl) {
+    const existing = document.querySelector('.align-dropdown');
+    if (existing) { existing.remove(); return; }
+
+    const dropdown = document.createElement('div');
+    dropdown.className = 'align-dropdown';
+
+    const iconDistH = '<svg viewBox="0 0 24 24"><line x1="4" y1="4" x2="4" y2="20"/><line x1="20" y1="4" x2="20" y2="20"/><rect x="7" y="8" width="4" height="8"/><rect x="13" y="6" width="4" height="12"/></svg>';
+    const iconDistV = '<svg viewBox="0 0 24 24"><line x1="4" y1="4" x2="20" y2="4"/><line x1="4" y1="20" x2="20" y2="20"/><rect x="8" y="7" width="8" height="4"/><rect x="6" y="13" width="12" height="4"/></svg>';
+
+    const items = [
+      { label: 'Align left edges', icon: iconAlignLeft, action: () => Tools.alignShapes('left') },
+      { label: 'Center horizontally', icon: iconAlignCenterH, action: () => Tools.alignShapes('center-h') },
+      { label: 'Align right edges', icon: iconAlignRight, action: () => Tools.alignShapes('right') },
+      { label: 'Align top edges', icon: iconAlignTop, action: () => Tools.alignShapes('top') },
+      { label: 'Center vertically', icon: iconAlignCenterV, action: () => Tools.alignShapes('center-v') },
+      { label: 'Align bottom edges', icon: iconAlignBottom, action: () => Tools.alignShapes('bottom') },
+      { type: 'separator' },
+      { label: 'Distribute horizontally', icon: iconDistH, action: () => Tools.distributeShapes('horizontal') },
+      { label: 'Distribute vertically', icon: iconDistV, action: () => Tools.distributeShapes('vertical') },
+    ];
+
+    items.forEach(item => {
+      if (item.type === 'separator') {
+        const sep = document.createElement('div');
+        sep.style.cssText = 'height:1px;background:var(--border-color);margin:4px 0';
+        dropdown.appendChild(sep);
+        return;
+      }
+      const el = document.createElement('div');
+      el.className = 'context-menu-item';
+      el.innerHTML = `<span style="width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">${item.icon}</span> ${item.label}`;
+      el.addEventListener('click', () => { item.action(); dropdown.remove(); });
+      dropdown.appendChild(el);
+    });
+
+    const rect = anchorEl.getBoundingClientRect();
+    dropdown.style.position = 'fixed';
+    dropdown.style.top = rect.bottom + 4 + 'px';
+    dropdown.style.left = rect.left + 'px';
+    dropdown.style.background = 'var(--bg-secondary)';
+    dropdown.style.border = '1px solid var(--border-color)';
+    dropdown.style.borderRadius = '8px';
+    dropdown.style.padding = '4px';
+    dropdown.style.minWidth = '200px';
     dropdown.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)';
     dropdown.style.zIndex = '10000';
     document.body.appendChild(dropdown);
