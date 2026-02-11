@@ -455,6 +455,10 @@ const Shapes = (() => {
     category: 'Flowchart', type: 'flowchart:timeline', label: 'Timeline',
     defaultSize: { width: 800, height: 40 },
     ports: [],
+    defaultData() {
+      const y = new Date().getFullYear();
+      return { timelineType: 'line', startDate: `${y}-01-01`, endDate: `${y}-12-31` };
+    },
     icon: paletteIconMulti(`<circle cx="2" cy="17" r="2" fill="#999" stroke="none"/>
       <line x1="2" y1="17" x2="33" y2="17" stroke="#1a7a4c" stroke-width="1.2"/>
       <polygon points="35,17 32,14.5 32,19.5" fill="#1a7a4c" stroke="none"/>
