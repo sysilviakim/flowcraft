@@ -251,6 +251,8 @@ const Renderer = (() => {
         'font-family': shape.textStyle.fontFamily,
         'font-size': shape.textStyle.fontSize,
         'font-weight': shape.textStyle.fontWeight,
+        'font-style': shape.textStyle.fontStyle || 'normal',
+        'text-decoration': shape.textStyle.textDecoration || 'none',
         'pointer-events': 'none'
       });
       // Simple multi-line support

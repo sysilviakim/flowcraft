@@ -1357,6 +1357,8 @@ const Tools = (() => {
     textarea.style.fontSize = (shape.textStyle.fontSize * zoom) + 'px';
     textarea.style.fontFamily = shape.textStyle.fontFamily;
     textarea.style.fontWeight = shape.textStyle.fontWeight;
+    textarea.style.fontStyle = shape.textStyle.fontStyle || 'normal';
+    textarea.style.textDecoration = shape.textStyle.textDecoration || 'none';
     textarea.style.color = shape.textStyle.color;
     textarea.style.textAlign = def.customText ? 'center' : shape.textStyle.align;
 
@@ -1744,6 +1746,42 @@ const Tools = (() => {
     if (ctrl && e.key === 'g') {
       e.preventDefault();
       if (e.shiftKey) ungroupSelected(); else groupSelected();
+    }
+    if (ctrl && e.key === 'b') {
+      e.preventDefault();
+      if (selectedShapes.length > 0) {
+        const newWeight = selectedShapes[0].textStyle.fontWeight === 'bold' ? 'normal' : 'bold';
+        History.beginBatch();
+        selectedShapes.forEach(s => {
+          History.execute(new History.ChangeStyleCommand(s.id, 'textStyle', { ...s.textStyle }, { ...s.textStyle, fontWeight: newWeight }));
+        });
+        History.endBatch();
+        if (onSelectionChanged) onSelectionChanged(selectedShapes, selectedConnector);
+      }
+    }
+    if (ctrl && e.key === 'i') {
+      e.preventDefault();
+      if (selectedShapes.length > 0) {
+        const newStyle = (selectedShapes[0].textStyle.fontStyle || 'normal') === 'italic' ? 'normal' : 'italic';
+        History.beginBatch();
+        selectedShapes.forEach(s => {
+          History.execute(new History.ChangeStyleCommand(s.id, 'textStyle', { ...s.textStyle }, { ...s.textStyle, fontStyle: newStyle }));
+        });
+        History.endBatch();
+        if (onSelectionChanged) onSelectionChanged(selectedShapes, selectedConnector);
+      }
+    }
+    if (ctrl && e.key === 'u') {
+      e.preventDefault();
+      if (selectedShapes.length > 0) {
+        const newDeco = (selectedShapes[0].textStyle.textDecoration || 'none') === 'underline' ? 'none' : 'underline';
+        History.beginBatch();
+        selectedShapes.forEach(s => {
+          History.execute(new History.ChangeStyleCommand(s.id, 'textStyle', { ...s.textStyle }, { ...s.textStyle, textDecoration: newDeco }));
+        });
+        History.endBatch();
+        if (onSelectionChanged) onSelectionChanged(selectedShapes, selectedConnector);
+      }
     }
     // Tool shortcuts
     if (!ctrl && !e.altKey) {

@@ -354,6 +354,117 @@ const UI = (() => {
 
       bar.appendChild(makeFtSep());
 
+      // Bold toggle
+      const boldBtn = makeFtBtn('<svg viewBox="0 0 24 24"><path d="M6 4h8a4 4 0 014 4 4 4 0 01-4 4H6z"/><path d="M6 12h9a4 4 0 014 4 4 4 0 01-4 4H6z"/></svg>', 'Bold (Ctrl+B)');
+      if (shape.textStyle.fontWeight === 'bold') boldBtn.classList.add('active');
+      boldBtn.addEventListener('click', () => {
+        const newWeight = shape.textStyle.fontWeight === 'bold' ? 'normal' : 'bold';
+        History.beginBatch();
+        shapes.forEach(s => {
+          History.execute(new History.ChangeStyleCommand(s.id, 'textStyle', { ...s.textStyle }, { ...s.textStyle, fontWeight: newWeight }));
+        });
+        History.endBatch();
+        boldBtn.classList.toggle('active', newWeight === 'bold');
+      });
+      bar.appendChild(boldBtn);
+
+      // Italic toggle
+      const italicBtn = makeFtBtn('<svg viewBox="0 0 24 24"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg>', 'Italic (Ctrl+I)');
+      if ((shape.textStyle.fontStyle || 'normal') === 'italic') italicBtn.classList.add('active');
+      italicBtn.addEventListener('click', () => {
+        const newStyle = (shape.textStyle.fontStyle || 'normal') === 'italic' ? 'normal' : 'italic';
+        History.beginBatch();
+        shapes.forEach(s => {
+          History.execute(new History.ChangeStyleCommand(s.id, 'textStyle', { ...s.textStyle }, { ...s.textStyle, fontStyle: newStyle }));
+        });
+        History.endBatch();
+        italicBtn.classList.toggle('active', newStyle === 'italic');
+      });
+      bar.appendChild(italicBtn);
+
+      // Underline toggle
+      const underlineBtn = makeFtBtn('<svg viewBox="0 0 24 24"><path d="M6 3v7a6 6 0 006 6 6 6 0 006-6V3"/><line x1="4" y1="21" x2="20" y2="21"/></svg>', 'Underline (Ctrl+U)');
+      if ((shape.textStyle.textDecoration || 'none') === 'underline') underlineBtn.classList.add('active');
+      underlineBtn.addEventListener('click', () => {
+        const newDeco = (shape.textStyle.textDecoration || 'none') === 'underline' ? 'none' : 'underline';
+        History.beginBatch();
+        shapes.forEach(s => {
+          History.execute(new History.ChangeStyleCommand(s.id, 'textStyle', { ...s.textStyle }, { ...s.textStyle, textDecoration: newDeco }));
+        });
+        History.endBatch();
+        underlineBtn.classList.toggle('active', newDeco === 'underline');
+      });
+      bar.appendChild(underlineBtn);
+
+      bar.appendChild(makeFtSep());
+
+      // Font size input
+      const sizeInput = document.createElement('input');
+      sizeInput.type = 'number';
+      sizeInput.className = 'ft-size-input';
+      sizeInput.min = 6;
+      sizeInput.max = 72;
+      sizeInput.value = shape.textStyle.fontSize;
+      sizeInput.title = 'Font size';
+      sizeInput.addEventListener('change', () => {
+        const v = Math.max(6, Math.min(72, parseInt(sizeInput.value) || 14));
+        sizeInput.value = v;
+        History.beginBatch();
+        shapes.forEach(s => {
+          History.execute(new History.ChangeStyleCommand(s.id, 'textStyle', { ...s.textStyle }, { ...s.textStyle, fontSize: v }));
+        });
+        History.endBatch();
+      });
+      bar.appendChild(sizeInput);
+
+      // Text color
+      const textColorBtn = document.createElement('div');
+      textColorBtn.className = 'ft-color';
+      textColorBtn.style.backgroundColor = shape.textStyle.color;
+      textColorBtn.title = 'Text color';
+      const textColorInput = document.createElement('input');
+      textColorInput.type = 'color';
+      textColorInput.value = shape.textStyle.color || '#1a1a2e';
+      textColorInput.addEventListener('input', () => {
+        History.beginBatch();
+        shapes.forEach(s => {
+          History.execute(new History.ChangeStyleCommand(s.id, 'textStyle', { ...s.textStyle }, { ...s.textStyle, color: textColorInput.value }));
+        });
+        History.endBatch();
+        textColorBtn.style.backgroundColor = textColorInput.value;
+      });
+      textColorBtn.appendChild(textColorInput);
+      bar.appendChild(textColorBtn);
+
+      bar.appendChild(makeFtSep());
+
+      // Text alignment buttons
+      const alignLeft = makeFtBtn('<svg viewBox="0 0 24 24"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="17" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="3" y2="18"/></svg>', 'Align left');
+      const alignCenter = makeFtBtn('<svg viewBox="0 0 24 24"><line x1="18" y1="10" x2="6" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="18" y1="14" x2="6" y2="14"/><line x1="21" y1="18" x2="3" y2="18"/></svg>', 'Align center');
+      const alignRight = makeFtBtn('<svg viewBox="0 0 24 24"><line x1="21" y1="10" x2="7" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="7" y2="14"/><line x1="21" y1="18" x2="3" y2="18"/></svg>', 'Align right');
+      const currentAlign = shape.textStyle.align || 'center';
+      if (currentAlign === 'left') alignLeft.classList.add('active');
+      else if (currentAlign === 'center') alignCenter.classList.add('active');
+      else if (currentAlign === 'right') alignRight.classList.add('active');
+      const setAlign = (val) => {
+        History.beginBatch();
+        shapes.forEach(s => {
+          History.execute(new History.ChangeStyleCommand(s.id, 'textStyle', { ...s.textStyle }, { ...s.textStyle, align: val }));
+        });
+        History.endBatch();
+        alignLeft.classList.toggle('active', val === 'left');
+        alignCenter.classList.toggle('active', val === 'center');
+        alignRight.classList.toggle('active', val === 'right');
+      };
+      alignLeft.addEventListener('click', () => setAlign('left'));
+      alignCenter.addEventListener('click', () => setAlign('center'));
+      alignRight.addEventListener('click', () => setAlign('right'));
+      bar.appendChild(alignLeft);
+      bar.appendChild(alignCenter);
+      bar.appendChild(alignRight);
+
+      bar.appendChild(makeFtSep());
+
       // Duplicate
       const dupBtn = makeFtBtn('<svg viewBox="0 0 24 24"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2"/></svg>', 'Duplicate');
       dupBtn.addEventListener('click', () => Tools.duplicateSelected());
@@ -564,6 +675,32 @@ const UI = (() => {
       History.execute(new History.ChangeStyleCommand(shape.id, 'textStyle', { ...shape.textStyle }, { ...shape.textStyle, fontFamily: v }));
     });
     textSection.appendChild(makePropRow('Font', fontFamilySelect));
+
+    const fontStyleSelect = makeSelectInput(shape.textStyle.fontStyle || 'normal', [
+      { value: 'normal', label: 'Normal' },
+      { value: 'italic', label: 'Italic' }
+    ], v => {
+      History.execute(new History.ChangeStyleCommand(shape.id, 'textStyle', { ...shape.textStyle }, { ...shape.textStyle, fontStyle: v }));
+    });
+    textSection.appendChild(makePropRow('Style', fontStyleSelect));
+
+    const textDecoSelect = makeSelectInput(shape.textStyle.textDecoration || 'none', [
+      { value: 'none', label: 'None' },
+      { value: 'underline', label: 'Underline' }
+    ], v => {
+      History.execute(new History.ChangeStyleCommand(shape.id, 'textStyle', { ...shape.textStyle }, { ...shape.textStyle, textDecoration: v }));
+    });
+    textSection.appendChild(makePropRow('Decoration', textDecoSelect));
+
+    const textAlignSelect = makeSelectInput(shape.textStyle.align || 'center', [
+      { value: 'left', label: 'Left' },
+      { value: 'center', label: 'Center' },
+      { value: 'right', label: 'Right' }
+    ], v => {
+      History.execute(new History.ChangeStyleCommand(shape.id, 'textStyle', { ...shape.textStyle }, { ...shape.textStyle, align: v }));
+    });
+    textSection.appendChild(makePropRow('Align', textAlignSelect));
+
     container.appendChild(textSection);
 
     // Timeline shape guide height
@@ -1236,6 +1373,9 @@ const UI = (() => {
         <span>Delete</span><span class="key">Delete</span>
         <span>Group</span><span class="key">Ctrl+G</span>
         <span>Ungroup</span><span class="key">Ctrl+Shift+G</span>
+        <span>Bold</span><span class="key">Ctrl+B</span>
+        <span>Italic</span><span class="key">Ctrl+I</span>
+        <span>Underline</span><span class="key">Ctrl+U</span>
         <span>Edit text</span><span>Double-click shape</span>
         <span>Zoom</span><span>Scroll wheel</span>
         <span>Multi-select</span><span class="key">Shift+Click</span>

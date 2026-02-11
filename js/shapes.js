@@ -399,6 +399,8 @@ const Shapes = (() => {
       const fs = s.textStyle ? s.textStyle.fontSize : 11;
       const fw = s.textStyle ? s.textStyle.fontWeight : 'bold';
       const ff = s.textStyle ? s.textStyle.fontFamily : 'MaruBuri, Inter, system-ui, sans-serif';
+      const fst = s.textStyle ? (s.textStyle.fontStyle || 'normal') : 'normal';
+      const td = s.textStyle ? (s.textStyle.textDecoration || 'none') : 'none';
 
       if (lanes.length === 0) {
         // Single empty lane fallback
@@ -425,7 +427,7 @@ const Shapes = (() => {
 
         // Number text
         if (num) {
-          svg += `<text x="${numW/2}" y="${y + laneH/2}" text-anchor="middle" dominant-baseline="central" fill="#333333" stroke="none" font-size="${fs}" font-weight="${fw}" font-family="${ff}">${num}</text>`;
+          svg += `<text x="${numW/2}" y="${y + laneH/2}" text-anchor="middle" dominant-baseline="central" fill="#333333" stroke="none" font-size="${fs}" font-weight="${fw}" font-family="${ff}" font-style="${fst}" text-decoration="${td}">${num}</text>`;
         }
         // Name text (multi-line)
         if (name) {
@@ -433,7 +435,7 @@ const Shapes = (() => {
           const lh = fs * 1.3;
           const startY = y + laneH / 2 - (lines.length - 1) * lh / 2;
           lines.forEach((line, li) => {
-            svg += `<text x="${numW + nameW/2}" y="${startY + li * lh}" text-anchor="middle" dominant-baseline="central" fill="${textColor}" stroke="none" font-size="${fs}" font-weight="${fw}" font-family="${ff}">${line}</text>`;
+            svg += `<text x="${numW + nameW/2}" y="${startY + li * lh}" text-anchor="middle" dominant-baseline="central" fill="${textColor}" stroke="none" font-size="${fs}" font-weight="${fw}" font-family="${ff}" font-style="${fst}" text-decoration="${td}">${line}</text>`;
           });
         }
 
@@ -972,6 +974,8 @@ const Shapes = (() => {
       const fw = s.textStyle ? s.textStyle.fontWeight : 'bold';
       const ff = s.textStyle ? s.textStyle.fontFamily : 'MaruBuri, Inter, system-ui, sans-serif';
       const tc = s.textStyle ? s.textStyle.color : '#ffffff';
+      const fst = s.textStyle ? (s.textStyle.fontStyle || 'normal') : 'normal';
+      const td = s.textStyle ? (s.textStyle.textDecoration || 'none') : 'none';
       let svg = '';
       // Body background
       svg += `<rect x="0" y="0" width="${w}" height="${h}" rx="4" fill="${bg}" stroke="none"/>`;
@@ -980,7 +984,7 @@ const Shapes = (() => {
       // Square off bottom corners of header
       svg += `<rect x="0" y="${hh - 4}" width="${w}" height="4" fill="${s.style.stroke || '#1a7a4c'}" stroke="none"/>`;
       // Title text
-      svg += `<text x="${w/2}" y="${hh/2}" text-anchor="middle" dominant-baseline="central" fill="${tc}" stroke="none" font-size="${fs}" font-weight="${fw}" font-family="${ff}">${title}</text>`;
+      svg += `<text x="${w/2}" y="${hh/2}" text-anchor="middle" dominant-baseline="central" fill="${tc}" stroke="none" font-size="${fs}" font-weight="${fw}" font-family="${ff}" font-style="${fst}" text-decoration="${td}">${title}</text>`;
       // Border
       svg += `<rect x="0" y="0" width="${w}" height="${h}" rx="4" fill="none"/>`;
       return svg;
@@ -1019,6 +1023,8 @@ const Shapes = (() => {
       const fw = s.textStyle ? s.textStyle.fontWeight : 'bold';
       const ff = s.textStyle ? s.textStyle.fontFamily : 'MaruBuri, Inter, system-ui, sans-serif';
       const tc = s.textStyle ? s.textStyle.color : '#ffffff';
+      const fst = s.textStyle ? (s.textStyle.fontStyle || 'normal') : 'normal';
+      const td = s.textStyle ? (s.textStyle.textDecoration || 'none') : 'none';
       let svg = '';
 
       // Background
@@ -1035,7 +1041,7 @@ const Shapes = (() => {
           // Lane body background
           svg += `<rect x="${lhw}" y="${ly}" width="${w - lhw}" height="${laneH}" fill="#ffffff" stroke="none"/>`;
           // Lane label
-          svg += `<text x="${lhw/2}" y="${ly + laneH/2}" text-anchor="middle" dominant-baseline="central" fill="#333" stroke="none" font-size="${Math.min(fs, 12)}" font-weight="${fw}" font-family="${ff}">${lane.name || ''}</text>`;
+          svg += `<text x="${lhw/2}" y="${ly + laneH/2}" text-anchor="middle" dominant-baseline="central" fill="#333" stroke="none" font-size="${Math.min(fs, 12)}" font-weight="${fw}" font-family="${ff}" font-style="${fst}" text-decoration="${td}">${lane.name || ''}</text>`;
           // Lane divider
           if (i > 0) {
             svg += `<line x1="0" y1="${ly}" x2="${w}" y2="${ly}" stroke="#ccc" stroke-width="0.8"/>`;
@@ -1047,7 +1053,7 @@ const Shapes = (() => {
       svg += `<rect x="0" y="0" width="${w}" height="${hh}" rx="3" fill="${s.style.stroke || '#1a7a4c'}" stroke="none"/>`;
       svg += `<rect x="0" y="${hh - 3}" width="${w}" height="3" fill="${s.style.stroke || '#1a7a4c'}" stroke="none"/>`;
       // Title
-      svg += `<text x="${w/2}" y="${hh/2}" text-anchor="middle" dominant-baseline="central" fill="${tc}" stroke="none" font-size="${fs}" font-weight="${fw}" font-family="${ff}">${title}</text>`;
+      svg += `<text x="${w/2}" y="${hh/2}" text-anchor="middle" dominant-baseline="central" fill="${tc}" stroke="none" font-size="${fs}" font-weight="${fw}" font-family="${ff}" font-style="${fst}" text-decoration="${td}">${title}</text>`;
 
       // Vertical lane header divider
       svg += `<line x1="${lhw}" y1="${hh}" x2="${lhw}" y2="${h}" stroke="#ccc" stroke-width="0.8"/>`;
@@ -1090,6 +1096,8 @@ const Shapes = (() => {
       const fw = s.textStyle ? s.textStyle.fontWeight : 'bold';
       const ff = s.textStyle ? s.textStyle.fontFamily : 'MaruBuri, Inter, system-ui, sans-serif';
       const tc = s.textStyle ? s.textStyle.color : '#ffffff';
+      const fst = s.textStyle ? (s.textStyle.fontStyle || 'normal') : 'normal';
+      const td = s.textStyle ? (s.textStyle.textDecoration || 'none') : 'none';
       let svg = '';
 
       // Background
@@ -1105,7 +1113,7 @@ const Shapes = (() => {
           // Lane body background
           svg += `<rect x="${lx}" y="${hh + lhh}" width="${laneW}" height="${h - hh - lhh}" fill="#ffffff" stroke="none"/>`;
           // Lane label
-          svg += `<text x="${lx + laneW/2}" y="${hh + lhh/2}" text-anchor="middle" dominant-baseline="central" fill="#333" stroke="none" font-size="${Math.min(fs, 12)}" font-weight="${fw}" font-family="${ff}">${lane.name || ''}</text>`;
+          svg += `<text x="${lx + laneW/2}" y="${hh + lhh/2}" text-anchor="middle" dominant-baseline="central" fill="#333" stroke="none" font-size="${Math.min(fs, 12)}" font-weight="${fw}" font-family="${ff}" font-style="${fst}" text-decoration="${td}">${lane.name || ''}</text>`;
           // Lane divider
           if (i > 0) {
             svg += `<line x1="${lx}" y1="${hh}" x2="${lx}" y2="${h}" stroke="#ccc" stroke-width="0.8"/>`;
@@ -1117,7 +1125,7 @@ const Shapes = (() => {
       svg += `<rect x="0" y="0" width="${w}" height="${hh}" rx="3" fill="${s.style.stroke || '#1a7a4c'}" stroke="none"/>`;
       svg += `<rect x="0" y="${hh - 3}" width="${w}" height="3" fill="${s.style.stroke || '#1a7a4c'}" stroke="none"/>`;
       // Title
-      svg += `<text x="${w/2}" y="${hh/2}" text-anchor="middle" dominant-baseline="central" fill="${tc}" stroke="none" font-size="${fs}" font-weight="${fw}" font-family="${ff}">${title}</text>`;
+      svg += `<text x="${w/2}" y="${hh/2}" text-anchor="middle" dominant-baseline="central" fill="${tc}" stroke="none" font-size="${fs}" font-weight="${fw}" font-family="${ff}" font-style="${fst}" text-decoration="${td}">${title}</text>`;
 
       // Horizontal line below lane headers
       if (lanes.length > 0) {

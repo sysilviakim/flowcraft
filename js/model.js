@@ -320,6 +320,8 @@ const Model = (() => {
         fontFamily: 'MaruBuri, Inter, system-ui, sans-serif',
         fontSize: 14,
         fontWeight: 'normal',
+        fontStyle: 'normal',
+        textDecoration: 'none',
         color: '#1a1a2e',
         align: 'center',
         vAlign: 'middle'
