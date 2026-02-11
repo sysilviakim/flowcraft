@@ -1,40 +1,54 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 231" width="200" height="231">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 200 231" width="200" height="231">
   <defs>
-    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#2e8b57"/>
-      <stop offset="100%" stop-color="#1a7a4c"/>
-    </linearGradient>
+    <path fill="#fff" d="M1047-1290c-105 10-197-19-287-39l-86 407h299l-33 152H641L475 0H180l295-1368c-219 10-264 188-266 424-2 62 13 100 29 139-142 1-222-55-220-199 8-270 158-414 376-487 89-30 196-45 323-45 168 0 367 52 524 0-28 117-65 234-194 246" id="b"/>
+    <path fill="#fff" d="M362-186c108-9 153-92 185-181h86C557-168 456 1 203 12 6 21-41-173 0-367l219-1026 303-41c-80 380-168 758-242 1140-14 70 11 114 82 108" id="c"/>
+    <path fill="#fff" d="M795-713c143 4 247-64 338-121l18 56c-81 86-218 146-363 170-25 267-125 472-311 573C421-6 362 8 299 8 86 6-29-98-29-315c0-253 95-455 229-591 79-75 183-136 332-136 176 0 264 110 263 329zM286-456c-16 116-39 288 95 280 70-7 110-66 144-123 44-80 79-190 93-303-40-9-54-41-55-86-1-57 26-93 64-111-6-63-11-122-78-119-66 3-101 56-135 104-61 96-110 224-128 358" id="d"/>
+    <path fill="#fff" d="M287-328c-12 60-10 142 55 142 104 0 145-93 164-181l139-657h295L793-328c-20 73-20 142 59 142 87 0 140-66 181-128 95-144 162-334 173-556-11 15-40 19-65 20-52-5-72-50-74-104 2-71 47-113 127-111 161 8 138 208 115 359-45 295-158 553-382 674-56 29-119 44-188 44-135 0-223-58-245-172C428-64 351 7 203 12 6 18-41-173 0-367l139-657h295" id="e"/>
+    <path fill="#fff" d="M625-164c183-2 315-91 399-205l47 21C996-162 841-43 642 12c-56 14-108 21-155 21C161 39 35-144 39-471c8-344 98-624 253-826 101-132 236-239 462-239 198 0 338 76 342 274 7 130-68 217-200 180-21-6-41-21-60-44 56-35 88-102 94-189 8-131-153-157-236-83-170 152-254 419-299 699-11 75-16 147-16 216-2 191 54 321 246 319" id="f"/>
+    <path fill="#fff" d="M797-870c0 91-55 145-148 149-80 5-73-73-97-125-26-22-78-3-101 12-21 14-45 33-70 56L217 0H-78l217-1024h295l-26 127c67-57 130-127 247-127 92 0 142 62 142 154" id="g"/>
+    <path fill="#fff" d="M911-174c104-9 137-104 166-193h86C1095-185 1013-32 812 7 660 37 562-40 551-176 482-83 404 12 246 12 56 12-27-118-27-317c0-258 97-457 231-593 71-68 165-123 296-124 100 0 167 29 166 119l22-109h295c-51 243-106 486-154 730-14 71 14 126 82 120zM285-454c-18 113-27 276 94 268 100-7 150-89 170-181l98-462c1-83-107-97-165-50-110 91-170 254-197 425" id="h"/>
+    <path fill="#fff" d="M-79 499c-180 49-347-36-347-208C-426 78-239 40-74-16l248-1170c44-205 142-348 373-348 166 0 268 119 235 305h-96c2-21 4-33 4-55 4-80-110-84-156-38-64 63-73 196-100 298h150l-15 82H418L182 164C147 336 73 458-79 499zm-234-237c0 69 108 88 147 34 43-58 56-161 78-245-106 40-225 76-225 211" id="i"/>
+    <path fill="#fff" d="M362-186c108-9 153-92 185-181h86C557-168 456 1 203 12 6 21-41-173 0-367l123-575H55l17-82h67l62-283 303-41-70 324h123l-16 82H418c-46 216-98 430-138 648-13 70 11 114 82 108" id="j"/>
+    <g id="a">
+      <use transform="matrix(0.032552083333333336,0,0,0.032552083333333336,0,0)" xlink:href="#b"/>
+      <use transform="matrix(0.032552083333333336,0,0,0.032552083333333336,30.598958333333336,0)" xlink:href="#c"/>
+      <use transform="matrix(0.032552083333333336,0,0,0.032552083333333336,48.40494791666667,0)" xlink:href="#d"/>
+      <use transform="matrix(0.032552083333333336,0,0,0.032552083333333336,77.66927083333334,0)" xlink:href="#e"/>
+      <use transform="matrix(0.032552083333333336,0,0,0.032552083333333336,121.74479166666669,0)" xlink:href="#f"/>
+      <use transform="matrix(0.032552083333333336,0,0,0.032552083333333336,154.88281250000003,0)" xlink:href="#g"/>
+      <use transform="matrix(0.032552083333333336,0,0,0.032552083333333336,179.94791666666669,0)" xlink:href="#h"/>
+      <use transform="matrix(0.032552083333333336,0,0,0.032552083333333336,215.00651041666669,0)" xlink:href="#i"/>
+      <use transform="matrix(0.032552083333333336,0,0,0.032552083333333336,232.81250000000003,0)" xlink:href="#j"/>
+    </g>
   </defs>
-  <!-- Rounded square background -->
-  <rect x="10" y="10" width="180" height="180" rx="36" ry="36" fill="url(#bg-grad)"/>
-  <!-- Abstract FC monogram with flowchart shapes -->
-  <g transform="translate(28, 28)">
-    <!-- Letter F - vertical stroke -->
-    <path d="M22 18 L22 108" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round"/>
-    <!-- Letter F - top horizontal -->
-    <path d="M22 18 L60 18" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round"/>
-    <!-- Letter F - middle horizontal (connector to C) -->
-    <path d="M22 58 L60 58" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round"/>
-    <!-- Letter C - arc -->
-    <path d="M95 24 C72 24, 66 42, 66 62 C66 82, 72 102, 95 102" fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round"/>
-
-    <!-- Flowchart: small rectangle at F-C junction -->
-    <rect x="52" y="48" width="20" height="20" rx="2" fill="#ffffff" opacity="0.95"/>
-
-    <!-- Flowchart: small diamond at C bottom -->
-    <polygon points="95,90 105,100 95,110 85,100" fill="#ffffff" opacity="0.95"/>
-
-    <!-- Node circle at F bottom -->
-    <circle cx="22" cy="108" r="5" fill="#ffffff"/>
-    <!-- Node at C top end -->
-    <circle cx="95" cy="24" r="4.5" fill="#ffffff"/>
-
-    <!-- Connector line from rectangle to diamond -->
-    <path d="M72 58 L85 100" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" opacity="0.6"/>
-
-    <!-- Arrow tip on F top horizontal -->
-    <path d="M55 12 L63 18 L55 24" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/>
+  <!-- lapis lazuli hexagon -->
+  <polygon points="100,3 193,56.5 193,163.5 100,217 7,163.5 7,56.5"
+    fill="#26619C" stroke="#26619C" stroke-width="3"/>
+  <polygon points="100,13 183,61.5 183,158.5 100,207 17,158.5 17,61.5"
+    fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/>
+  <!-- White flowcraft icon scaled and centered in hex -->
+  <g transform="translate(38,38) scale(0.357)">
+    <g transform="translate(-469 -200)">
+      <path d="M530 320c0 16.57-13.43 30-30 30s-30-13.43-30-30 13.43-30 30-30 30 13.43 30 30z" stroke="#fff" stroke-width="2" fill="#fff"/>
+      <path d="M500 356v188.55" stroke="#fff" stroke-width="10" fill="none"/>
+      <path d="M504.98 356.13h-9.96v-5.54l4.96.4 2.27-.08 2.73-.42z" stroke="#fff" stroke-width=".05" fill="#fff"/>
+      <path d="M500 563.82l-4.63-14.27h9.26z" stroke="#fff" stroke-width="10" fill="#fff"/>
+      <path d="M600 406a6 6 0 0 1 6-6h88a6 6 0 0 1 6 6v48a6 6 0 0 1-6 6h-88a6 6 0 0 1-6-6z" stroke="#fff" stroke-width="2" fill="#fff"/>
+      <path d="M500.46 355.98l.5 5.17 1.16 8.12 1.3 6.66 1.4 5.57 1.44 4.75 1.48 4.1 1.5 3.6 1.54 3.2 1.56 2.87 1.58 2.58 1.6 2.36 1.65 2.17 1.7 2 1.73 1.87 1.8 1.75 1.88 1.65 1.97 1.55 2.08 1.48 2.2 1.4 2.38 1.36 2.57 1.28 2.8 1.24 3.12 1.2 3.5 1.13 4.03 1.1 4.77 1.03 5.86.96 4.04.46" stroke="#fff" stroke-width="10" stroke-linejoin="round" fill="none"/>
+      <path d="M505.43 355.65l-9.9.92-.56-6 5 .43 2.28-.08 2.7-.42z" stroke="#fff" stroke-width=".05" fill="#fff"/>
+      <path d="M582.83 429.36l-14.44 4.06.36-9.26z" stroke="#fff" stroke-width="10" fill="#fff"/>
+      <path d="M536 320h48.55" stroke="#fff" stroke-width="10" fill="none"/>
+      <path d="M536.13 324.98h-5.54l.4-4.96-.08-2.27-.42-2.73h5.63z" stroke="#fff" stroke-width=".05" fill="#fff"/>
+      <path d="M603.82 320l-14.27 4.63v-9.26z" stroke="#fff" stroke-width="10" fill="#fff"/>
+      <path d="M820 330c0 22.1-17.9 40-40 40s-40-17.9-40-40 17.9-40 40-40 40 17.9 40 40z" stroke="#fff" stroke-width="2" fill="#fff"/>
+      <path d="M734 330.14l-2.12.06-7 .6-6.8.95-6.48 1.3-6.14 1.58-5.75 1.83-5.32 2.04-4.9 2.2-4.5 2.32-4.13 2.43-3.74 2.5-3.4 2.58-3.1 2.62-2.8 2.66-2.55 2.7-2.3 2.74-2.08 2.76-1.87 2.8-1.68 2.87-1.5 2.9-1.32 2.97-1.15 3.04-1 3.13-.82 3.23-.65 3.34-.5 3.47-.17 2.27" stroke="#fff" stroke-width="10" stroke-linejoin="round" fill="none"/>
+      <path d="M739 330l.1 2.95.27 2.02-5.36.15-.27-9.95 5.58-.16zM655.1 394l-.12 5h-9.96l.14-5.26z" stroke="#fff" stroke-width=".05" fill="#fff"/>
+      <path d="M650.14 466l.05 1.72.55 6.6.9 6.46 1.24 6.2 1.52 5.94 1.8 5.6 2 5.28 2.2 4.9 2.36 4.56 2.48 4.2 2.58 3.86 2.67 3.54 2.75 3.24 2.8 2.95 2.85 2.7 2.9 2.44 2.95 2.2 3 2 .5.3" stroke="#fff" stroke-width="10" stroke-linejoin="round" fill="none"/>
+      <path d="M655.12 466l-9.95.27-.15-5.27h9.96z" stroke="#fff" stroke-width=".05" fill="#fff"/>
+      <path d="M706.4 545.7l-15 .68 2.48-8.94z" stroke="#fff" stroke-width="10" fill="#fff"/>
+      <path d="M755.2 523.6a8 8 0 0 1 9.6 0l30.4 22.8a4.5 4.5 0 0 1 0 7.2l-30.4 22.8a8 8 0 0 1-9.6 0l-30.4-22.8a4.5 4.5 0 0 1 0-7.2z" stroke="#fff" stroke-width="2" fill="#fff"/>
+      <path d="M519.7 206a6 6 0 0 1 6-6h248.6a6 6 0 0 1 6 6v81.34a6 6 0 0 1-6 6H525.7a6 6 0 0 1-6-6z" fill="none"/>
+      <use xlink:href="#a" transform="matrix(1,0,0,1,524.6857552083334,205) translate(0 67)"/>
+    </g>
   </g>
-  <!-- FlowCraft text -->
-  <text x="100" y="218" text-anchor="middle" fill="#1a7a4c" font-family="MaruBuri, Inter, system-ui, sans-serif" font-size="20" font-weight="700" letter-spacing="0.5">FlowCraft</text>
 </svg>
