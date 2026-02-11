@@ -918,7 +918,7 @@ const Tools = (() => {
     textarea.style.width = (nameW * zoom) + 'px';
     textarea.style.height = (laneH * zoom) + 'px';
     textarea.style.fontSize = ((shape.textStyle.fontSize || 11) * zoom) + 'px';
-    textarea.style.fontFamily = shape.textStyle.fontFamily || 'Inter, system-ui, sans-serif';
+    textarea.style.fontFamily = shape.textStyle.fontFamily || 'MaruBuri, Inter, system-ui, sans-serif';
     textarea.style.fontWeight = shape.textStyle.fontWeight || 'bold';
     textarea.style.color = lane.textColor || '#333333';
     textarea.style.textAlign = 'center';

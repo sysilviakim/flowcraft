@@ -83,6 +83,16 @@
     }
   });
 
+  // Palette collapse toggle
+  const paletteWrapper = document.getElementById('palette-wrapper');
+  const paletteToggle = document.getElementById('palette-toggle');
+  if (paletteToggle && paletteWrapper) {
+    paletteToggle.addEventListener('click', () => {
+      paletteWrapper.classList.toggle('collapsed');
+      paletteToggle.innerHTML = paletteWrapper.classList.contains('collapsed') ? '&#9654;' : '&#9664;';
+    });
+  }
+
   // Prevent browser default behaviors that interfere
   document.addEventListener('dragover', e => e.preventDefault());
   document.addEventListener('drop', e => e.preventDefault());

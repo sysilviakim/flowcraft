@@ -290,7 +290,7 @@ const Model = (() => {
       rotation: 0,
       text: '',
       textStyle: {
-        fontFamily: 'Inter, system-ui, sans-serif',
+        fontFamily: 'MaruBuri, Inter, system-ui, sans-serif',
         fontSize: 14,
         fontWeight: 'normal',
         color: '#1a1a2e',
@@ -298,8 +298,8 @@ const Model = (() => {
         vAlign: 'middle'
       },
       style: {
-        fill: '#e8eaff',
-        stroke: '#4a6cf7',
+        fill: '#e5f5ea',
+        stroke: '#1a7a4c',
         strokeWidth: 2,
         strokeDash: '',
         opacity: 1,
@@ -323,7 +323,7 @@ const Model = (() => {
       targetPortId,
       points: [],
       style: {
-        stroke: '#4a6cf7',
+        stroke: '#1a7a4c',
         strokeWidth: 2,
         strokeDash: ''
       },

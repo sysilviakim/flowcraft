@@ -67,7 +67,7 @@ const Renderer = (() => {
         orient: 'auto-start-reverse',
         markerUnits: 'userSpaceOnUse'
       });
-      const p = Utils.svgEl('path', { d: a.path, fill: '#4a6cf7' });
+      const p = Utils.svgEl('path', { d: a.path, fill: '#1a7a4c' });
       marker.appendChild(p);
       defs.appendChild(marker);
     });
@@ -468,7 +468,7 @@ const Renderer = (() => {
         width: shape.width + 2,
         height: shape.height + 2,
         fill: 'none',
-        stroke: '#4a6cf7',
+        stroke: '#1a7a4c',
         'stroke-width': 1.5,
         'stroke-dasharray': '4 2'
       });
@@ -495,7 +495,7 @@ const Renderer = (() => {
           width: 8,
           height: 8,
           fill: '#ffffff',
-          stroke: '#4a6cf7',
+          stroke: '#1a7a4c',
           'stroke-width': 1.5,
           cursor: h.cursor,
           'pointer-events': 'all'
@@ -510,7 +510,7 @@ const Renderer = (() => {
         cx: s.x + s.width / 2,
         cy: s.y - 25,
         r: 5,
-        fill: '#4a6cf7',
+        fill: '#1a7a4c',
         stroke: '#ffffff',
         'stroke-width': 1.5,
         cursor: 'grab',
@@ -526,7 +526,7 @@ const Renderer = (() => {
         y1: s.y,
         x2: s.x + s.width / 2,
         y2: s.y - 25,
-        stroke: '#4a6cf7',
+        stroke: '#1a7a4c',
         'stroke-width': 1,
         'stroke-dasharray': '3 2'
       });
@@ -550,7 +550,7 @@ const Renderer = (() => {
     guides.forEach(g => {
       const line = Utils.svgEl('line', {
         x1: g.x1, y1: g.y1, x2: g.x2, y2: g.y2,
-        stroke: '#4a6cf7',
+        stroke: '#1a7a4c',
         'stroke-width': 1,
         'stroke-dasharray': '4 3'
       });
@@ -577,7 +577,7 @@ const Renderer = (() => {
       const pos = Shapes.getPortPosition(shape, port);
       const circle = Utils.svgEl('circle', {
         cx: pos.x, cy: pos.y, r: 6,
-        fill: '#4a6cf7',
+        fill: '#1a7a4c',
         stroke: '#ffffff',
         'stroke-width': 2,
         opacity: 0.9,
@@ -604,7 +604,7 @@ const Renderer = (() => {
       x: rect.x, y: rect.y,
       width: rect.width, height: rect.height,
       fill: 'rgba(74,108,247,0.08)',
-      stroke: '#4a6cf7',
+      stroke: '#1a7a4c',
       'stroke-width': 1,
       'stroke-dasharray': '5 3',
       'pointer-events': 'none'
@@ -629,7 +629,7 @@ const Renderer = (() => {
       id: 'connector-preview',
       d: d,
       fill: 'none',
-      stroke: '#4a6cf7',
+      stroke: '#1a7a4c',
       'stroke-width': 2,
       'stroke-dasharray': '6 3',
       'pointer-events': 'none'

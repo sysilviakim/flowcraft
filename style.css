@@ -17,6 +17,46 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+@font-face {
+  font-family: 'MaruBuri';
+  src: url('fonts/MaruBuri-ExtraLight.ttf') format('truetype');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MaruBuri';
+  src: url('fonts/MaruBuri-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MaruBuri';
+  src: url('fonts/MaruBuri-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MaruBuri';
+  src: url('fonts/MaruBuri-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'MaruBuri';
+  src: url('fonts/MaruBuri-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --bg-primary: #f5f5f7;
   --bg-secondary: #ffffff;
@@ -30,19 +70,19 @@
   --text-primary: #1a1a2e;
   --text-secondary: #4a4a6a;
   --text-muted: #8a8aa0;
-  --accent: #4a6cf7;
-  --accent-hover: #3b5ce0;
-  --accent-dim: #4a6cf7;
+  --accent: #1a7a4c;
+  --accent-hover: #15643f;
+  --accent-dim: #1a7a4c;
   --danger: #e05252;
   --success: #34a853;
   --warning: #f0a030;
   --canvas-bg: #ffffff;
-  --selection: #4a6cf730;
+  --selection: #1a7a4c30;
   --toolbar-height: 48px;
   --statusbar-height: 28px;
-  --palette-width: 240px;
+  --palette-width: 280px;
   --props-width: 260px;
-  --font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-family: 'MaruBuri', 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Consolas', monospace;
 }
 
@@ -68,13 +108,50 @@ html, body {
 #app {
   display: grid;
   grid-template-rows: var(--toolbar-height) 1fr var(--statusbar-height);
-  grid-template-columns: var(--palette-width) 1fr var(--props-width);
+  grid-template-columns: auto 1fr var(--props-width);
   grid-template-areas:
     "toolbar toolbar toolbar"
     "palette canvas props"
     "status status status";
   width: 100%;
   height: 100%;
+}
+
+#palette-wrapper {
+  grid-area: palette;
+  display: flex;
+  position: relative;
+}
+
+#palette-wrapper .palette-inner {
+  width: var(--palette-width);
+  overflow: hidden;
+  transition: width 0.2s ease;
+}
+
+#palette-wrapper.collapsed .palette-inner {
+  width: 0;
+}
+
+#palette-toggle {
+  flex-shrink: 0;
+  width: 16px;
+  border: none;
+  border-right: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 10px;
+  transition: background 0.15s;
+  padding: 0;
+}
+
+#palette-toggle:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
 }
 
 /* --- Top Toolbar --- */
@@ -87,7 +164,7 @@ html, body {
   border-bottom: 1px solid var(--border-color);
   gap: 2px;
   z-index: 100;
-  overflow-x: auto;
+  overflow: visible;
 }
 
 .toolbar-group {
@@ -125,7 +202,7 @@ html, body {
 }
 
 .toolbar-btn.active {
-  background: #e8eaff;
+  background: #e5f5ea;
   color: var(--accent);
 }
 
@@ -187,11 +264,12 @@ html, body {
 
 /* --- Left Shape Palette --- */
 #palette {
-  grid-area: palette;
   background: var(--bg-panel);
   border-right: 1px solid var(--border-color);
   overflow-y: auto;
   overflow-x: hidden;
+  width: 100%;
+  height: 100%;
 }
 
 #palette::-webkit-scrollbar {
@@ -528,7 +606,7 @@ html, body {
 }
 
 .context-menu-item:hover {
-  background: #e8eaff;
+  background: #e5f5ea;
   color: var(--accent);
 }
 

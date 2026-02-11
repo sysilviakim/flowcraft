@@ -83,7 +83,7 @@ const Shapes = (() => {
   // ---- Palette icon SVG (small preview) ----
   function paletteIcon(pathD, viewBox = '0 0 36 36') {
     return `<svg viewBox="${viewBox}" xmlns="http://www.w3.org/2000/svg">
-      <path d="${pathD}" fill="#e8eaff" stroke="#4a6cf7" stroke-width="1.5"/>
+      <path d="${pathD}" fill="#e5f5ea" stroke="#1a7a4c" stroke-width="1.5"/>
     </svg>`;
   }
 
@@ -294,9 +294,9 @@ const Shapes = (() => {
     category: 'Flowchart', type: 'flowchart:predefined', label: 'Predefined Process',
     defaultSize: { width: 140, height: 70 },
     ports: stdPorts(),
-    icon: paletteIconMulti(`<rect x="4" y="8" width="28" height="20" fill="#e8eaff" stroke="#4a6cf7" stroke-width="1.5"/>
-      <line x1="8" y1="8" x2="8" y2="28" stroke="#4a6cf7" stroke-width="1"/>
-      <line x1="28" y1="8" x2="28" y2="28" stroke="#4a6cf7" stroke-width="1"/>`),
+    icon: paletteIconMulti(`<rect x="4" y="8" width="28" height="20" fill="#e5f5ea" stroke="#1a7a4c" stroke-width="1.5"/>
+      <line x1="8" y1="8" x2="8" y2="28" stroke="#1a7a4c" stroke-width="1"/>
+      <line x1="28" y1="8" x2="28" y2="28" stroke="#1a7a4c" stroke-width="1"/>`),
     render(s) {
       const w = s.width, h = s.height, band = w * 0.1;
       return `<rect x="0" y="0" width="${w}" height="${h}"/>
@@ -320,8 +320,8 @@ const Shapes = (() => {
     category: 'Flowchart', type: 'flowchart:database', label: 'Database',
     defaultSize: { width: 100, height: 110 },
     ports: stdPorts(),
-    icon: paletteIconMulti(`<ellipse cx="18" cy="11" rx="13" ry="5" fill="#e8eaff" stroke="#4a6cf7" stroke-width="1.5"/>
-      <path d="M5 11v14c0 2.8 5.8 5 13 5s13-2.2 13-5V11" fill="#e8eaff" stroke="#4a6cf7" stroke-width="1.5"/>`),
+    icon: paletteIconMulti(`<ellipse cx="18" cy="11" rx="13" ry="5" fill="#e5f5ea" stroke="#1a7a4c" stroke-width="1.5"/>
+      <path d="M5 11v14c0 2.8 5.8 5 13 5s13-2.2 13-5V11" fill="#e5f5ea" stroke="#1a7a4c" stroke-width="1.5"/>`),
     render(s) {
       const w = s.width, h = s.height;
       const ry = Math.min(h * 0.12, 18);
@@ -371,9 +371,9 @@ const Shapes = (() => {
     defaultSize: { width: 800, height: 180 },
     customText: true,
     ports: stdPorts(),
-    icon: paletteIconMulti(`<rect x="2" y="6" width="32" height="24" fill="#e8eaff" stroke="#4a6cf7" stroke-width="1.2" rx="1"/>
-      <line x1="10" y1="6" x2="10" y2="30" stroke="#4a6cf7" stroke-width="0.8"/>
-      <line x1="2" y1="18" x2="32" y2="18" stroke="#4a6cf7" stroke-width="0.6"/>`),
+    icon: paletteIconMulti(`<rect x="2" y="6" width="32" height="24" fill="#e5f5ea" stroke="#1a7a4c" stroke-width="1.2" rx="1"/>
+      <line x1="10" y1="6" x2="10" y2="30" stroke="#1a7a4c" stroke-width="0.8"/>
+      <line x1="2" y1="18" x2="32" y2="18" stroke="#1a7a4c" stroke-width="0.6"/>`),
     getLaneAtY(s, localY) {
       const lanes = (s.data && s.data.lanes) || [];
       if (lanes.length === 0) return -1;
@@ -398,7 +398,7 @@ const Shapes = (() => {
       const w = s.width, h = s.height;
       const fs = s.textStyle ? s.textStyle.fontSize : 11;
       const fw = s.textStyle ? s.textStyle.fontWeight : 'bold';
-      const ff = s.textStyle ? s.textStyle.fontFamily : 'Inter, system-ui, sans-serif';
+      const ff = s.textStyle ? s.textStyle.fontFamily : 'MaruBuri, Inter, system-ui, sans-serif';
 
       if (lanes.length === 0) {
         // Single empty lane fallback
@@ -455,10 +455,10 @@ const Shapes = (() => {
     category: 'Flowchart', type: 'flowchart:timeline', label: 'Timeline',
     defaultSize: { width: 800, height: 40 },
     ports: [],
-    icon: paletteIconMulti(`<rect x="2" y="10" width="32" height="14" fill="#e8eaff" stroke="#4a6cf7" stroke-width="1.2" rx="1"/>
-      <line x1="10" y1="10" x2="10" y2="24" stroke="#4a6cf7" stroke-width="0.6"/>
-      <line x1="18" y1="10" x2="18" y2="24" stroke="#4a6cf7" stroke-width="0.6"/>
-      <line x1="26" y1="10" x2="26" y2="24" stroke="#4a6cf7" stroke-width="0.6"/>`),
+    icon: paletteIconMulti(`<rect x="2" y="10" width="32" height="14" fill="#e5f5ea" stroke="#1a7a4c" stroke-width="1.2" rx="1"/>
+      <line x1="10" y1="10" x2="10" y2="24" stroke="#1a7a4c" stroke-width="0.6"/>
+      <line x1="18" y1="10" x2="18" y2="24" stroke="#1a7a4c" stroke-width="0.6"/>
+      <line x1="26" y1="10" x2="26" y2="24" stroke="#1a7a4c" stroke-width="0.6"/>`),
     render(s) {
       const w = s.width, h = s.height;
       let svg = `<rect x="0" y="0" width="${w}" height="${h}" rx="2"/>`;
@@ -472,17 +472,17 @@ const Shapes = (() => {
           const sd = parseD(s.data.startDate);
           const ed = parseD(s.data.endDate);
           // First tick at start
-          svg += `<text x="3" y="${h-4}" fill="#555555" stroke="none" font-size="9" font-family="Inter,sans-serif">${sd.getMonth()+1}/${sd.getDate()}</text>`;
+          svg += `<text x="3" y="${h-4}" fill="#555555" stroke="none" font-size="9" font-family="MaruBuri,Inter,sans-serif">${sd.getMonth()+1}/${sd.getDate()}</text>`;
           // Month-start ticks
           const d = new Date(sd.getFullYear(), sd.getMonth()+1, 1);
           while (d.getTime() < endMs) {
             const x = ((d.getTime()-startMs)/totalMs)*w;
             svg += `<line x1="${x}" y1="0" x2="${x}" y2="${h}" fill="none" stroke-width="0.5" opacity="0.5"/>`;
-            svg += `<text x="${x+3}" y="${h-4}" fill="#555555" stroke="none" font-size="9" font-family="Inter,sans-serif">${d.getMonth()+1}/${d.getDate()}</text>`;
+            svg += `<text x="${x+3}" y="${h-4}" fill="#555555" stroke="none" font-size="9" font-family="MaruBuri,Inter,sans-serif">${d.getMonth()+1}/${d.getDate()}</text>`;
             d.setMonth(d.getMonth()+1);
           }
           // End label
-          svg += `<text x="${w-3}" y="${h-4}" fill="#555555" stroke="none" font-size="9" font-family="Inter,sans-serif" text-anchor="end">${ed.getMonth()+1}/${ed.getDate()}</text>`;
+          svg += `<text x="${w-3}" y="${h-4}" fill="#555555" stroke="none" font-size="9" font-family="MaruBuri,Inter,sans-serif" text-anchor="end">${ed.getMonth()+1}/${ed.getDate()}</text>`;
         }
       }
       return svg;
@@ -496,9 +496,9 @@ const Shapes = (() => {
     category: 'UML', type: 'uml:class', label: 'Class',
     defaultSize: { width: 160, height: 120 },
     ports: stdPorts(),
-    icon: paletteIconMulti(`<rect x="4" y="6" width="28" height="24" fill="#e8eaff" stroke="#4a6cf7" stroke-width="1.5"/>
-      <line x1="4" y1="14" x2="32" y2="14" stroke="#4a6cf7" stroke-width="1"/>
-      <line x1="4" y1="22" x2="32" y2="22" stroke="#4a6cf7" stroke-width="1"/>`),
+    icon: paletteIconMulti(`<rect x="4" y="6" width="28" height="24" fill="#e5f5ea" stroke="#1a7a4c" stroke-width="1.5"/>
+      <line x1="4" y1="14" x2="32" y2="14" stroke="#1a7a4c" stroke-width="1"/>
+      <line x1="4" y1="22" x2="32" y2="22" stroke="#1a7a4c" stroke-width="1"/>`),
     render(s) {
       const w = s.width, h = s.height;
       const h1 = h / 3, h2 = h * 2 / 3;
@@ -512,8 +512,8 @@ const Shapes = (() => {
     category: 'UML', type: 'uml:interface', label: 'Interface',
     defaultSize: { width: 160, height: 100 },
     ports: stdPorts(),
-    icon: paletteIconMulti(`<rect x="4" y="6" width="28" height="24" fill="#e8eaff" stroke="#4a6cf7" stroke-width="1.5" stroke-dasharray="4 2"/>
-      <line x1="4" y1="14" x2="32" y2="14" stroke="#4a6cf7" stroke-width="1"/>`),
+    icon: paletteIconMulti(`<rect x="4" y="6" width="28" height="24" fill="#e5f5ea" stroke="#1a7a4c" stroke-width="1.5" stroke-dasharray="4 2"/>
+      <line x1="4" y1="14" x2="32" y2="14" stroke="#1a7a4c" stroke-width="1"/>`),
     render(s) {
       const w = s.width, h = s.height;
       const h1 = Math.min(36, h / 3);
@@ -526,8 +526,8 @@ const Shapes = (() => {
     category: 'UML', type: 'uml:package', label: 'Package',
     defaultSize: { width: 160, height: 110 },
     ports: stdPorts(),
-    icon: paletteIconMulti(`<rect x="4" y="6" width="12" height="6" fill="#e8eaff" stroke="#4a6cf7" stroke-width="1.5"/>
-      <rect x="4" y="12" width="28" height="18" fill="#e8eaff" stroke="#4a6cf7" stroke-width="1.5"/>`),
+    icon: paletteIconMulti(`<rect x="4" y="6" width="12" height="6" fill="#e5f5ea" stroke="#1a7a4c" stroke-width="1.5"/>
+      <rect x="4" y="12" width="28" height="18" fill="#e5f5ea" stroke="#1a7a4c" stroke-width="1.5"/>`),
     render(s) {
       const w = s.width, h = s.height;
       const tabW = w * 0.4, tabH = h * 0.12;
@@ -552,11 +552,11 @@ const Shapes = (() => {
     category: 'UML', type: 'uml:actor', label: 'Actor',
     defaultSize: { width: 60, height: 100 },
     ports: stdPorts(),
-    icon: paletteIconMulti(`<circle cx="18" cy="10" r="4" fill="none" stroke="#4a6cf7" stroke-width="1.5"/>
-      <line x1="18" y1="14" x2="18" y2="24" stroke="#4a6cf7" stroke-width="1.5"/>
-      <line x1="10" y1="18" x2="26" y2="18" stroke="#4a6cf7" stroke-width="1.5"/>
-      <line x1="18" y1="24" x2="12" y2="32" stroke="#4a6cf7" stroke-width="1.5"/>
-      <line x1="18" y1="24" x2="24" y2="32" stroke="#4a6cf7" stroke-width="1.5"/>`),
+    icon: paletteIconMulti(`<circle cx="18" cy="10" r="4" fill="none" stroke="#1a7a4c" stroke-width="1.5"/>
+      <line x1="18" y1="14" x2="18" y2="24" stroke="#1a7a4c" stroke-width="1.5"/>
+      <line x1="10" y1="18" x2="26" y2="18" stroke="#1a7a4c" stroke-width="1.5"/>
+      <line x1="18" y1="24" x2="12" y2="32" stroke="#1a7a4c" stroke-width="1.5"/>
+      <line x1="18" y1="24" x2="24" y2="32" stroke="#1a7a4c" stroke-width="1.5"/>`),
     render(s) {
       const w = s.width, h = s.height;
       const cx = w / 2;
@@ -587,9 +587,9 @@ const Shapes = (() => {
     category: 'UML', type: 'uml:component', label: 'Component',
     defaultSize: { width: 160, height: 100 },
     ports: stdPorts(),
-    icon: paletteIconMulti(`<rect x="8" y="6" width="24" height="24" fill="#e8eaff" stroke="#4a6cf7" stroke-width="1.5"/>
-      <rect x="4" y="12" width="8" height="4" fill="#e8eaff" stroke="#4a6cf7" stroke-width="1"/>
-      <rect x="4" y="20" width="8" height="4" fill="#e8eaff" stroke="#4a6cf7" stroke-width="1"/>`),
+    icon: paletteIconMulti(`<rect x="8" y="6" width="24" height="24" fill="#e5f5ea" stroke="#1a7a4c" stroke-width="1.5"/>
+      <rect x="4" y="12" width="8" height="4" fill="#e5f5ea" stroke="#1a7a4c" stroke-width="1"/>
+      <rect x="4" y="20" width="8" height="4" fill="#e5f5ea" stroke="#1a7a4c" stroke-width="1"/>`),
     render(s) {
       const w = s.width, h = s.height;
       const tabW = 14, tabH = 10;
@@ -604,8 +604,8 @@ const Shapes = (() => {
     category: 'UML', type: 'uml:lifeline', label: 'Lifeline',
     defaultSize: { width: 120, height: 160 },
     ports: stdPorts(),
-    icon: paletteIconMulti(`<rect x="6" y="6" width="24" height="10" fill="#e8eaff" stroke="#4a6cf7" stroke-width="1.5"/>
-      <line x1="18" y1="16" x2="18" y2="32" stroke="#4a6cf7" stroke-width="1.5" stroke-dasharray="4 2"/>`),
+    icon: paletteIconMulti(`<rect x="6" y="6" width="24" height="10" fill="#e5f5ea" stroke="#1a7a4c" stroke-width="1.5"/>
+      <line x1="18" y1="16" x2="18" y2="32" stroke="#1a7a4c" stroke-width="1.5" stroke-dasharray="4 2"/>`),
     render(s) {
       const w = s.width, h = s.height;
       const boxH = Math.min(36, h * 0.2);
@@ -621,10 +621,10 @@ const Shapes = (() => {
     category: 'Network', type: 'network:server', label: 'Server',
     defaultSize: { width: 70, height: 100 },
     ports: stdPorts(),
-    icon: paletteIconMulti(`<rect x="8" y="6" width="20" height="24" rx="2" fill="#e8eaff" stroke="#4a6cf7" stroke-width="1.5"/>
-      <line x1="10" y1="12" x2="26" y2="12" stroke="#4a6cf7" stroke-width="1"/>
-      <line x1="10" y1="18" x2="26" y2="18" stroke="#4a6cf7" stroke-width="1"/>
-      <circle cx="22" cy="9" r="1" fill="#4a6cf7"/><circle cx="22" cy="15" r="1" fill="#4a6cf7"/>`),
+    icon: paletteIconMulti(`<rect x="8" y="6" width="20" height="24" rx="2" fill="#e5f5ea" stroke="#1a7a4c" stroke-width="1.5"/>
+      <line x1="10" y1="12" x2="26" y2="12" stroke="#1a7a4c" stroke-width="1"/>
+      <line x1="10" y1="18" x2="26" y2="18" stroke="#1a7a4c" stroke-width="1"/>
+      <circle cx="22" cy="9" r="1" fill="#1a7a4c"/><circle cx="22" cy="15" r="1" fill="#1a7a4c"/>`),
     render(s) {
       const w = s.width, h = s.height;
       const rowH = h / 4;
@@ -641,10 +641,10 @@ const Shapes = (() => {
     category: 'Network', type: 'network:desktop', label: 'Desktop',
     defaultSize: { width: 100, height: 90 },
     ports: stdPorts(),
-    icon: paletteIconMulti(`<rect x="6" y="6" width="24" height="16" rx="1" fill="#e8eaff" stroke="#4a6cf7" stroke-width="1.5"/>
-      <line x1="14" y1="22" x2="22" y2="22" stroke="#4a6cf7" stroke-width="1.5"/>
-      <line x1="18" y1="22" x2="18" y2="26" stroke="#4a6cf7" stroke-width="1.5"/>
-      <line x1="12" y1="26" x2="24" y2="26" stroke="#4a6cf7" stroke-width="1.5"/>`),
+    icon: paletteIconMulti(`<rect x="6" y="6" width="24" height="16" rx="1" fill="#e5f5ea" stroke="#1a7a4c" stroke-width="1.5"/>
+      <line x1="14" y1="22" x2="22" y2="22" stroke="#1a7a4c" stroke-width="1.5"/>
+      <line x1="18" y1="22" x2="18" y2="26" stroke="#1a7a4c" stroke-width="1.5"/>
+      <line x1="12" y1="26" x2="24" y2="26" stroke="#1a7a4c" stroke-width="1.5"/>`),
     render(s) {
       const w = s.width, h = s.height;
       const monH = h * 0.65, standH = h * 0.15;
@@ -659,8 +659,8 @@ const Shapes = (() => {
     category: 'Network', type: 'network:laptop', label: 'Laptop',
     defaultSize: { width: 110, height: 80 },
     ports: stdPorts(),
-    icon: paletteIconMulti(`<rect x="8" y="8" width="20" height="14" rx="1" fill="#e8eaff" stroke="#4a6cf7" stroke-width="1.5"/>
-      <path d="M4 22h28l-2 6H6z" fill="#e8eaff" stroke="#4a6cf7" stroke-width="1.5"/>`),
+    icon: paletteIconMulti(`<rect x="8" y="8" width="20" height="14" rx="1" fill="#e5f5ea" stroke="#1a7a4c" stroke-width="1.5"/>
+      <path d="M4 22h28l-2 6H6z" fill="#e5f5ea" stroke="#1a7a4c" stroke-width="1.5"/>`),
     render(s) {
       const w = s.width, h = s.height;
       const screenH = h * 0.65;
@@ -692,10 +692,10 @@ const Shapes = (() => {
     category: 'Network', type: 'network:router', label: 'Router',
     defaultSize: { width: 100, height: 60 },
     ports: stdPorts(),
-    icon: paletteIconMulti(`<rect x="6" y="12" width="24" height="12" rx="3" fill="#e8eaff" stroke="#4a6cf7" stroke-width="1.5"/>
-      <circle cx="12" cy="18" r="2" fill="#4a6cf7"/>
-      <circle cx="18" cy="18" r="2" fill="#4a6cf7"/>
-      <circle cx="24" cy="18" r="2" fill="#4a6cf7"/>`),
+    icon: paletteIconMulti(`<rect x="6" y="12" width="24" height="12" rx="3" fill="#e5f5ea" stroke="#1a7a4c" stroke-width="1.5"/>
+      <circle cx="12" cy="18" r="2" fill="#1a7a4c"/>
+      <circle cx="18" cy="18" r="2" fill="#1a7a4c"/>
+      <circle cx="24" cy="18" r="2" fill="#1a7a4c"/>`),
     render(s) {
       const w = s.width, h = s.height;
       return `<rect x="0" y="0" width="${w}" height="${h}" rx="${h*0.15}"/>
@@ -709,10 +709,10 @@ const Shapes = (() => {
     category: 'Network', type: 'network:switch', label: 'Switch',
     defaultSize: { width: 120, height: 50 },
     ports: stdPorts(),
-    icon: paletteIconMulti(`<rect x="4" y="13" width="28" height="10" rx="2" fill="#e8eaff" stroke="#4a6cf7" stroke-width="1.5"/>
-      <line x1="8" y1="18" x2="12" y2="18" stroke="#4a6cf7" stroke-width="2"/>
-      <line x1="16" y1="18" x2="20" y2="18" stroke="#4a6cf7" stroke-width="2"/>
-      <line x1="24" y1="18" x2="28" y2="18" stroke="#4a6cf7" stroke-width="2"/>`),
+    icon: paletteIconMulti(`<rect x="4" y="13" width="28" height="10" rx="2" fill="#e5f5ea" stroke="#1a7a4c" stroke-width="1.5"/>
+      <line x1="8" y1="18" x2="12" y2="18" stroke="#1a7a4c" stroke-width="2"/>
+      <line x1="16" y1="18" x2="20" y2="18" stroke="#1a7a4c" stroke-width="2"/>
+      <line x1="24" y1="18" x2="28" y2="18" stroke="#1a7a4c" stroke-width="2"/>`),
     render(s) {
       const w = s.width, h = s.height;
       const gap = w / 6;
@@ -728,7 +728,7 @@ const Shapes = (() => {
     category: 'Network', type: 'network:firewall', label: 'Firewall',
     defaultSize: { width: 90, height: 80 },
     ports: stdPorts(),
-    icon: paletteIconMulti(`<rect x="6" y="6" width="24" height="24" fill="#e8eaff" stroke="#4a6cf7" stroke-width="1.5"/>
+    icon: paletteIconMulti(`<rect x="6" y="6" width="24" height="24" fill="#e5f5ea" stroke="#1a7a4c" stroke-width="1.5"/>
       <line x1="6" y1="14" x2="30" y2="14" stroke="#f07c7c" stroke-width="1.5"/>
       <line x1="6" y1="22" x2="30" y2="22" stroke="#f07c7c" stroke-width="1.5"/>
       <line x1="14" y1="6" x2="14" y2="30" stroke="#f07c7c" stroke-width="1.5"/>
@@ -747,8 +747,8 @@ const Shapes = (() => {
     category: 'Network', type: 'network:database', label: 'Database',
     defaultSize: { width: 80, height: 100 },
     ports: stdPorts(),
-    icon: paletteIconMulti(`<ellipse cx="18" cy="11" rx="12" ry="5" fill="#e8eaff" stroke="#4a6cf7" stroke-width="1.5"/>
-      <path d="M6 11v14c0 2.8 5.4 5 12 5s12-2.2 12-5V11" fill="#e8eaff" stroke="#4a6cf7" stroke-width="1.5"/>`),
+    icon: paletteIconMulti(`<ellipse cx="18" cy="11" rx="12" ry="5" fill="#e5f5ea" stroke="#1a7a4c" stroke-width="1.5"/>
+      <path d="M6 11v14c0 2.8 5.4 5 12 5s12-2.2 12-5V11" fill="#e5f5ea" stroke="#1a7a4c" stroke-width="1.5"/>`),
     render(s) {
       const w = s.width, h = s.height;
       const ry = Math.min(h * 0.12, 18);
@@ -761,9 +761,9 @@ const Shapes = (() => {
     category: 'Network', type: 'network:mobile', label: 'Mobile',
     defaultSize: { width: 60, height: 100 },
     ports: stdPorts(),
-    icon: paletteIconMulti(`<rect x="10" y="4" width="16" height="28" rx="3" fill="#e8eaff" stroke="#4a6cf7" stroke-width="1.5"/>
-      <line x1="10" y1="9" x2="26" y2="9" stroke="#4a6cf7" stroke-width="1"/>
-      <line x1="10" y1="27" x2="26" y2="27" stroke="#4a6cf7" stroke-width="1"/>`),
+    icon: paletteIconMulti(`<rect x="10" y="4" width="16" height="28" rx="3" fill="#e5f5ea" stroke="#1a7a4c" stroke-width="1.5"/>
+      <line x1="10" y1="9" x2="26" y2="9" stroke="#1a7a4c" stroke-width="1"/>
+      <line x1="10" y1="27" x2="26" y2="27" stroke="#1a7a4c" stroke-width="1"/>`),
     render(s) {
       const w = s.width, h = s.height;
       const r = Math.min(8, w * 0.12);
@@ -780,10 +780,10 @@ const Shapes = (() => {
     category: 'Org Chart', type: 'org:person', label: 'Person Card',
     defaultSize: { width: 180, height: 70 },
     ports: stdPorts(),
-    icon: paletteIconMulti(`<rect x="4" y="8" width="28" height="20" rx="3" fill="#e8eaff" stroke="#4a6cf7" stroke-width="1.5"/>
-      <circle cx="13" cy="16" r="3" fill="none" stroke="#4a6cf7" stroke-width="1"/>
-      <line x1="19" y1="14" x2="28" y2="14" stroke="#4a6cf7" stroke-width="1"/>
-      <line x1="19" y1="18" x2="26" y2="18" stroke="#4a6cf7" stroke-width="0.8"/>`),
+    icon: paletteIconMulti(`<rect x="4" y="8" width="28" height="20" rx="3" fill="#e5f5ea" stroke="#1a7a4c" stroke-width="1.5"/>
+      <circle cx="13" cy="16" r="3" fill="none" stroke="#1a7a4c" stroke-width="1"/>
+      <line x1="19" y1="14" x2="28" y2="14" stroke="#1a7a4c" stroke-width="1"/>
+      <line x1="19" y1="18" x2="26" y2="18" stroke="#1a7a4c" stroke-width="0.8"/>`),
     render(s) {
       const w = s.width, h = s.height;
       const r = Math.min(8, w * 0.04);
@@ -859,8 +859,8 @@ const Shapes = (() => {
     category: 'Mind Map', type: 'mindmap:idea', label: 'Idea',
     defaultSize: { width: 120, height: 40 },
     ports: stdPorts(),
-    icon: paletteIconMulti(`<line x1="8" y1="22" x2="28" y2="22" stroke="#4a6cf7" stroke-width="2"/>
-      <text x="18" y="18" text-anchor="middle" font-size="9" fill="#4a6cf7">idea</text>`),
+    icon: paletteIconMulti(`<line x1="8" y1="22" x2="28" y2="22" stroke="#1a7a4c" stroke-width="2"/>
+      <text x="18" y="18" text-anchor="middle" font-size="9" fill="#1a7a4c">idea</text>`),
     render(s) {
       return `<rect x="0" y="0" width="${s.width}" height="${s.height}" fill="transparent" stroke="none"/>
         <line x1="0" y1="${s.height}" x2="${s.width}" y2="${s.height}" stroke="inherit"/>`;
