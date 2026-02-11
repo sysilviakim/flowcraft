@@ -1,0 +1,200 @@
+// FlowCraft - Utility Functions
+// Geometry, color, DOM helpers (no dependencies)
+//
+// Copyright (C) 2026 Silvia Kim
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published
+// by the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+const Utils = (() => {
+  // --- Unique ID generator ---
+  let _idCounter = 0;
+  function uid(prefix = 'fc') {
+    return `${prefix}_${Date.now().toString(36)}_${(++_idCounter).toString(36)}`;
+  }
+
+  // --- Geometry ---
+  function distance(p1, p2) {
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  function midpoint(p1, p2) {
+    return { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+  }
+
+  function clamp(val, min, max) {
+    return Math.max(min, Math.min(max, val));
+  }
+
+  function snapToGrid(value, gridSize) {
+    return Math.round(value / gridSize) * gridSize;
+  }
+
+  function pointInRect(px, py, rect) {
+    return px >= rect.x && px <= rect.x + rect.width &&
+           py >= rect.y && py <= rect.y + rect.height;
+  }
+
+  function rectsOverlap(a, b) {
+    return !(a.x + a.width < b.x || b.x + b.width < a.x ||
+             a.y + a.height < b.y || b.y + b.height < a.y);
+  }
+
+  function rectContains(outer, inner) {
+    return inner.x >= outer.x && inner.y >= outer.y &&
+           inner.x + inner.width <= outer.x + outer.width &&
+           inner.y + inner.height <= outer.y + outer.height;
+  }
+
+  function expandRect(rect, padding) {
+    return {
+      x: rect.x - padding,
+      y: rect.y - padding,
+      width: rect.width + padding * 2,
+      height: rect.height + padding * 2
+    };
+  }
+
+  function getBoundingRect(shapes) {
+    if (!shapes.length) return { x: 0, y: 0, width: 0, height: 0 };
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const s of shapes) {
+      minX = Math.min(minX, s.x);
+      minY = Math.min(minY, s.y);
+      maxX = Math.max(maxX, s.x + s.width);
+      maxY = Math.max(maxY, s.y + s.height);
+    }
+    return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+  }
+
+  function lineIntersectsRect(p1, p2, rect) {
+    const lines = [
+      [{ x: rect.x, y: rect.y }, { x: rect.x + rect.width, y: rect.y }],
+      [{ x: rect.x + rect.width, y: rect.y }, { x: rect.x + rect.width, y: rect.y + rect.height }],
+      [{ x: rect.x + rect.width, y: rect.y + rect.height }, { x: rect.x, y: rect.y + rect.height }],
+      [{ x: rect.x, y: rect.y + rect.height }, { x: rect.x, y: rect.y }]
+    ];
+    for (const [a, b] of lines) {
+      if (lineSegmentIntersection(p1, p2, a, b)) return true;
+    }
+    return false;
+  }
+
+  function lineSegmentIntersection(p1, p2, p3, p4) {
+    const d1x = p2.x - p1.x, d1y = p2.y - p1.y;
+    const d2x = p4.x - p3.x, d2y = p4.y - p3.y;
+    const cross = d1x * d2y - d1y * d2x;
+    if (Math.abs(cross) < 1e-10) return null;
+    const dx = p3.x - p1.x, dy = p3.y - p1.y;
+    const t = (dx * d2y - dy * d2x) / cross;
+    const u = (dx * d1y - dy * d1x) / cross;
+    if (t >= 0 && t <= 1 && u >= 0 && u <= 1) {
+      return { x: p1.x + t * d1x, y: p1.y + t * d1y };
+    }
+    return null;
+  }
+
+  function rotatePoint(px, py, cx, cy, angleDeg) {
+    const rad = angleDeg * Math.PI / 180;
+    const cos = Math.cos(rad), sin = Math.sin(rad);
+    const dx = px - cx, dy = py - cy;
+    return {
+      x: cx + dx * cos - dy * sin,
+      y: cy + dx * sin + dy * cos
+    };
+  }
+
+  // --- Manhattan distance for A* ---
+  function manhattan(a, b) {
+    return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+  }
+
+  // --- Color helpers ---
+  function hexToRgb(hex) {
+    const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return m ? { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) } : null;
+  }
+
+  function rgbToHex(r, g, b) {
+    return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
+  }
+
+  // --- DOM helpers ---
+  function svgEl(tag, attrs = {}) {
+    const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (v !== undefined && v !== null) el.setAttribute(k, v);
+    }
+    return el;
+  }
+
+  function htmlEl(tag, attrs = {}, text = '') {
+    const el = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === 'className') el.className = v;
+      else if (k === 'style' && typeof v === 'object') Object.assign(el.style, v);
+      else el.setAttribute(k, v);
+    }
+    if (text) el.textContent = text;
+    return el;
+  }
+
+  function removeChildren(el) {
+    while (el.firstChild) el.removeChild(el.firstChild);
+  }
+
+  // --- Simple Event Emitter ---
+  class EventEmitter {
+    constructor() {
+      this._listeners = {};
+    }
+    on(event, fn) {
+      (this._listeners[event] || (this._listeners[event] = [])).push(fn);
+      return this;
+    }
+    off(event, fn) {
+      const list = this._listeners[event];
+      if (list) this._listeners[event] = list.filter(f => f !== fn);
+      return this;
+    }
+    emit(event, ...args) {
+      const list = this._listeners[event];
+      if (list) list.forEach(fn => fn(...args));
+      return this;
+    }
+  }
+
+  // --- Debounce ---
+  function debounce(fn, ms) {
+    let timer;
+    return function (...args) {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn.apply(this, args), ms);
+    };
+  }
+
+  // --- Deep clone ---
+  function deepClone(obj) {
+    return JSON.parse(JSON.stringify(obj));
+  }
+
+  return {
+    uid, distance, midpoint, clamp, snapToGrid,
+    pointInRect, rectsOverlap, rectContains, expandRect, getBoundingRect,
+    lineIntersectsRect, lineSegmentIntersection, rotatePoint, manhattan,
+    hexToRgb, rgbToHex, svgEl, htmlEl, removeChildren,
+    EventEmitter, debounce, deepClone
+  };
+})();
