@@ -1,0 +1,26 @@
+# Temporary generator scripts
+_gen.js
+_load.html
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Editor files
+*.swp
+*.swo
+*~
+
+# Lucidchart source exports (not part of the app)
+*.vsdx
+*.csv
+annual-challenge.jpeg
+annual-challenge.pdf
+annual-challenge.png
+
+# RStudio
+.Rproj.user/
+*.Rproj
+
+# Claude Code
+.claude/

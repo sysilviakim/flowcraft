@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<!--
+  FlowCraft - Local Diagramming Application
+  Copyright (C) 2026 Silvia Kim
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published
+  by the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program. If not, see <https://www.gnu.org/licenses/>.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlowCraft - Diagramming Application</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Optional: loads Inter font if online, falls back to system fonts -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" crossorigin="anonymous" media="print" onload="this.media='all'">
+</head>
+<body>
+  <div id="app">
+    <div id="toolbar"></div>
+    <div id="palette"></div>
+    <div id="canvas-container"></div>
+    <div id="properties"></div>
+    <div id="statusbar"></div>
+  </div>
+
+  <!-- Scripts loaded in dependency order -->
+  <script src="js/utils.js"></script>
+  <script src="js/model.js"></script>
+  <script src="js/shapes.js"></script>
+  <script src="js/renderer.js"></script>
+  <script src="js/connectors.js"></script>
+  <script src="js/history.js"></script>
+  <script src="js/tools.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
