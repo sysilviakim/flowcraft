@@ -25,7 +25,7 @@ const Model = (() => {
       this.created = Date.now();
       this.modified = Date.now();
       this.settings = {
-        gridSize: 20,
+        gridSize: 40,
         snapToGrid: true,
         showGrid: true,
         canvasColor: '#ffffff'

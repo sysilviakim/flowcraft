@@ -567,11 +567,13 @@ const Renderer = (() => {
     // Snap alignment lines
     if (guides) {
       guides.forEach(g => {
+        const isGrid = g.grid === true;
         const line = Utils.svgEl('line', {
           x1: g.x1, y1: g.y1, x2: g.x2, y2: g.y2,
-          stroke: '#1a7a4c',
-          'stroke-width': 1,
-          'stroke-dasharray': '4 3'
+          stroke: isGrid ? '#90a4ae' : '#1a7a4c',
+          'stroke-width': isGrid ? 0.75 : 1,
+          'stroke-dasharray': isGrid ? '2 3' : '4 3',
+          opacity: isGrid ? 0.7 : 1
         });
         group.appendChild(line);
       });

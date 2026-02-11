@@ -623,6 +623,32 @@ const Tools = (() => {
         const dx = bestDx || 0;
         const dy = bestDy || 0;
 
+        // Show grid snap guides when snapping to grid (and no shape-to-shape snap overriding)
+        if (diagram.settings.snapToGrid) {
+          const gs = diagram.settings.gridSize;
+          // Final bounding box after any shape-to-shape snap
+          const fx1 = gx1 + dx, fy1 = gy1 + dy;
+          const fx2 = gx2 + dx, fy2 = gy2 + dy;
+          // Show vertical grid guides at left and right edges if they land on grid
+          if (bestDx === null) {
+            if (Math.abs(fx1 - Math.round(fx1 / gs) * gs) < 0.5) {
+              guides.push({ x1: fx1, y1: fy1 - 30, x2: fx1, y2: fy2 + 30, grid: true });
+            }
+            if (Math.abs(fx2 - Math.round(fx2 / gs) * gs) < 0.5) {
+              guides.push({ x1: fx2, y1: fy1 - 30, x2: fx2, y2: fy2 + 30, grid: true });
+            }
+          }
+          // Show horizontal grid guides at top and bottom edges if they land on grid
+          if (bestDy === null) {
+            if (Math.abs(fy1 - Math.round(fy1 / gs) * gs) < 0.5) {
+              guides.push({ x1: fx1 - 30, y1: fy1, x2: fx2 + 30, y2: fy1, grid: true });
+            }
+            if (Math.abs(fy2 - Math.round(fy2 / gs) * gs) < 0.5) {
+              guides.push({ x1: fx1 - 30, y1: fy2, x2: fx2 + 30, y2: fy2, grid: true });
+            }
+          }
+        }
+
         tentative.forEach(t => {
           t.nx += dx;
           t.ny += dy;
