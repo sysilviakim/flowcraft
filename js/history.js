@@ -135,13 +135,27 @@ const History = (() => {
       this.oldX = oldX; this.oldY = oldY;
       this.newX = newX; this.newY = newY;
     }
+    _moveChildren(dx, dy) {
+      const shape = diagram.getShape(this.shapeId);
+      if (!shape) return;
+      const def = Shapes.get(shape.type);
+      if (def && def.isContainer) {
+        const children = diagram.getChildrenOfContainer(this.shapeId);
+        children.forEach(child => {
+          diagram.updateShape(child.id, { x: child.x + dx, y: child.y + dy });
+          Connectors.updateConnectorsForShape(diagram, child.id);
+        });
+      }
+    }
     execute() {
       diagram.updateShape(this.shapeId, { x: this.newX, y: this.newY });
       Connectors.updateConnectorsForShape(diagram, this.shapeId);
+      this._moveChildren(this.newX - this.oldX, this.newY - this.oldY);
     }
     undo() {
       diagram.updateShape(this.shapeId, { x: this.oldX, y: this.oldY });
       Connectors.updateConnectorsForShape(diagram, this.shapeId);
+      this._moveChildren(this.oldX - this.newX, this.oldY - this.newY);
     }
   }
 
@@ -242,12 +256,49 @@ const History = (() => {
     undo() { diagram.addGroup(this.group.shapeIds, this.group.name); }
   }
 
+  class SetContainerCommand {
+    constructor(shapeId, oldContainerId, newContainerId) {
+      this.shapeId = shapeId;
+      this.oldContainerId = oldContainerId;
+      this.newContainerId = newContainerId;
+    }
+    execute() {
+      if (this.newContainerId) {
+        diagram.setContainer(this.shapeId, this.newContainerId);
+      } else {
+        diagram.removeFromContainer(this.shapeId);
+      }
+    }
+    undo() {
+      if (this.oldContainerId) {
+        diagram.setContainer(this.shapeId, this.oldContainerId);
+      } else {
+        diagram.removeFromContainer(this.shapeId);
+      }
+    }
+  }
+
+  class ChangeShapeDataCommand {
+    constructor(shapeId, oldData, newData) {
+      this.shapeId = shapeId;
+      this.oldData = Utils.deepClone(oldData);
+      this.newData = Utils.deepClone(newData);
+    }
+    execute() {
+      diagram.updateShapeDeep(this.shapeId, { data: this.newData });
+    }
+    undo() {
+      diagram.updateShapeDeep(this.shapeId, { data: this.oldData });
+    }
+  }
+
   return {
     init, setOnChange, execute, undo, redo, canUndo, canRedo,
     beginBatch, endBatch, cancelBatch, clear,
     AddShapeCommand, RemoveShapeCommand, MoveShapeCommand, ResizeShapeCommand,
     ChangeStyleCommand, ChangeTextCommand,
     AddConnectorCommand, RemoveConnectorCommand, ChangeConnectorStyleCommand,
-    CompositeCommand, GroupCommand, UngroupCommand
+    CompositeCommand, GroupCommand, UngroupCommand,
+    SetContainerCommand, ChangeShapeDataCommand
   };
 })();
