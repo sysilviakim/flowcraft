@@ -1092,7 +1092,7 @@ const UI = (() => {
     return input;
   }
 
-  // 10 hues × 4 shades color palette (Lucidchart-style)
+  // 10 hues × 4 shades color palette
   const SWATCH_COLORS = [
     // Row 0 (lightest)
     '#ffcdd2','#ffe0b2','#fff9c4','#f0f4c3','#c8e6c9','#b2dfdb','#b3e5fc','#bbdefb','#d1c4e9','#f8bbd0',

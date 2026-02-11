@@ -763,7 +763,7 @@ const Tools = (() => {
         return;
       }
 
-      // Auto-suggest: show ports when hovering over a shape (Lucidchart-style)
+      // Auto-suggest: show ports when hovering over a shape
       const hoverShape = Renderer.getShapeAt(pos.x, pos.y);
       if (hoverShape) {
         if (this._hoveredShape !== hoverShape.id) {
