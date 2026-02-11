@@ -1043,7 +1043,7 @@ const Tools = (() => {
         History.beginBatch();
         selectedShapes.forEach(s => {
           const nx = s.x + mdx, ny = s.y + mdy;
-          History.execute(new History.MoveShapeCommand(s.id, { x: s.x, y: s.y }, { x: nx, y: ny }));
+          History.execute(new History.MoveShapeCommand(s.id, s.x, s.y, nx, ny));
           Connectors.updateConnectorsForShape(diagram, s.id);
         });
         History.endBatch('Move shapes');
