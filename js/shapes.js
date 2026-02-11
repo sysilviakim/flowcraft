@@ -870,5 +870,193 @@ const Shapes = (() => {
     }
   });
 
-  return { registry, register, get, getAll, getByCategory, getCategories, stdPorts, getPortPosition, getPortDirection };
+  // ============================================================
+  // CONTAINERS
+  // ============================================================
+  const SWIMLANE_COLORS = [
+    '#b391b5', '#d1bcd2', '#f9d2de', '#ffbbb1', '#ffdba9', '#ffeca9',
+    '#c3f7c8', '#99d5ca', '#c7e8ac', '#b8f5ed', '#c1e4f7', '#85c2ed'
+  ];
+
+  register({
+    category: 'Containers', type: 'container:container', label: 'Container',
+    defaultSize: { width: 300, height: 250 },
+    isContainer: true,
+    customText: true,
+    ports: stdPorts(),
+    icon: paletteIconMulti(`<rect x="3" y="3" width="30" height="30" fill="#e5f5ea" stroke="#1a7a4c" stroke-width="1.2" rx="2"/>
+      <rect x="3" y="3" width="30" height="8" fill="#1a7a4c" stroke="#1a7a4c" stroke-width="1.2" rx="2"/>
+      <rect x="3" y="8" width="30" height="2" fill="#1a7a4c" stroke="none"/>
+      <text x="18" y="9" text-anchor="middle" font-size="6" fill="#fff" stroke="none">Title</text>`),
+    defaultData() {
+      return { headerHeight: 32, backgroundColor: '#f0f7ff' };
+    },
+    render(s) {
+      const w = s.width, h = s.height;
+      const hh = (s.data && s.data.headerHeight) || 32;
+      const bg = (s.data && s.data.backgroundColor) || '#f0f7ff';
+      const title = s.text || 'Container';
+      const fs = s.textStyle ? s.textStyle.fontSize : 13;
+      const fw = s.textStyle ? s.textStyle.fontWeight : 'bold';
+      const ff = s.textStyle ? s.textStyle.fontFamily : 'MaruBuri, Inter, system-ui, sans-serif';
+      const tc = s.textStyle ? s.textStyle.color : '#ffffff';
+      let svg = '';
+      // Body background
+      svg += `<rect x="0" y="0" width="${w}" height="${h}" rx="4" fill="${bg}" stroke="none"/>`;
+      // Header bar
+      svg += `<rect x="0" y="0" width="${w}" height="${hh}" rx="4" fill="${s.style.stroke || '#1a7a4c'}" stroke="none"/>`;
+      // Square off bottom corners of header
+      svg += `<rect x="0" y="${hh - 4}" width="${w}" height="4" fill="${s.style.stroke || '#1a7a4c'}" stroke="none"/>`;
+      // Title text
+      svg += `<text x="${w/2}" y="${hh/2}" text-anchor="middle" dominant-baseline="central" fill="${tc}" stroke="none" font-size="${fs}" font-weight="${fw}" font-family="${ff}">${title}</text>`;
+      // Border
+      svg += `<rect x="0" y="0" width="${w}" height="${h}" rx="4" fill="none"/>`;
+      return svg;
+    }
+  });
+
+  register({
+    category: 'Containers', type: 'container:swimlane-h', label: 'Swimlane (H)',
+    defaultSize: { width: 600, height: 400 },
+    isContainer: true,
+    customText: true,
+    ports: stdPorts(),
+    icon: paletteIconMulti(`<rect x="2" y="2" width="32" height="32" fill="#e5f5ea" stroke="#1a7a4c" stroke-width="1.2" rx="1"/>
+      <rect x="2" y="2" width="32" height="8" fill="#1a7a4c" stroke="none" rx="1"/>
+      <rect x="2" y="8" width="32" height="2" fill="#1a7a4c" stroke="none"/>
+      <line x1="10" y1="10" x2="10" y2="34" stroke="#1a7a4c" stroke-width="0.6"/>
+      <line x1="2" y1="22" x2="34" y2="22" stroke="#1a7a4c" stroke-width="0.6"/>`),
+    defaultData() {
+      return {
+        headerHeight: 32,
+        laneHeaderWidth: 100,
+        lanes: [
+          { id: Utils.uid('lane'), name: 'Lane 1', color: SWIMLANE_COLORS[0] },
+          { id: Utils.uid('lane'), name: 'Lane 2', color: SWIMLANE_COLORS[1] },
+          { id: Utils.uid('lane'), name: 'Lane 3', color: SWIMLANE_COLORS[2] }
+        ]
+      };
+    },
+    render(s) {
+      const w = s.width, h = s.height;
+      const hh = (s.data && s.data.headerHeight) || 32;
+      const lhw = (s.data && s.data.laneHeaderWidth) || 100;
+      const lanes = (s.data && s.data.lanes) || [];
+      const title = s.text || 'Swimlane';
+      const fs = s.textStyle ? s.textStyle.fontSize : 13;
+      const fw = s.textStyle ? s.textStyle.fontWeight : 'bold';
+      const ff = s.textStyle ? s.textStyle.fontFamily : 'MaruBuri, Inter, system-ui, sans-serif';
+      const tc = s.textStyle ? s.textStyle.color : '#ffffff';
+      let svg = '';
+
+      // Background
+      svg += `<rect x="0" y="0" width="${w}" height="${h}" rx="3" fill="#ffffff" stroke="none"/>`;
+
+      // Lane backgrounds and labels
+      const bodyH = h - hh;
+      if (lanes.length > 0) {
+        const laneH = bodyH / lanes.length;
+        lanes.forEach((lane, i) => {
+          const ly = hh + laneH * i;
+          // Lane header background
+          svg += `<rect x="0" y="${ly}" width="${lhw}" height="${laneH}" fill="${lane.color || '#eeeeee'}" stroke="none"/>`;
+          // Lane body background
+          svg += `<rect x="${lhw}" y="${ly}" width="${w - lhw}" height="${laneH}" fill="#ffffff" stroke="none"/>`;
+          // Lane label
+          svg += `<text x="${lhw/2}" y="${ly + laneH/2}" text-anchor="middle" dominant-baseline="central" fill="#333" stroke="none" font-size="${Math.min(fs, 12)}" font-weight="${fw}" font-family="${ff}">${lane.name || ''}</text>`;
+          // Lane divider
+          if (i > 0) {
+            svg += `<line x1="0" y1="${ly}" x2="${w}" y2="${ly}" stroke="#ccc" stroke-width="0.8"/>`;
+          }
+        });
+      }
+
+      // Header bar
+      svg += `<rect x="0" y="0" width="${w}" height="${hh}" rx="3" fill="${s.style.stroke || '#1a7a4c'}" stroke="none"/>`;
+      svg += `<rect x="0" y="${hh - 3}" width="${w}" height="3" fill="${s.style.stroke || '#1a7a4c'}" stroke="none"/>`;
+      // Title
+      svg += `<text x="${w/2}" y="${hh/2}" text-anchor="middle" dominant-baseline="central" fill="${tc}" stroke="none" font-size="${fs}" font-weight="${fw}" font-family="${ff}">${title}</text>`;
+
+      // Vertical lane header divider
+      svg += `<line x1="${lhw}" y1="${hh}" x2="${lhw}" y2="${h}" stroke="#ccc" stroke-width="0.8"/>`;
+
+      // Border
+      svg += `<rect x="0" y="0" width="${w}" height="${h}" rx="3" fill="none"/>`;
+      return svg;
+    }
+  });
+
+  register({
+    category: 'Containers', type: 'container:swimlane-v', label: 'Swimlane (V)',
+    defaultSize: { width: 600, height: 400 },
+    isContainer: true,
+    customText: true,
+    ports: stdPorts(),
+    icon: paletteIconMulti(`<rect x="2" y="2" width="32" height="32" fill="#e5f5ea" stroke="#1a7a4c" stroke-width="1.2" rx="1"/>
+      <rect x="2" y="2" width="32" height="8" fill="#1a7a4c" stroke="none" rx="1"/>
+      <rect x="2" y="8" width="32" height="2" fill="#1a7a4c" stroke="none"/>
+      <line x1="13" y1="10" x2="13" y2="34" stroke="#1a7a4c" stroke-width="0.6"/>
+      <line x1="23" y1="10" x2="23" y2="34" stroke="#1a7a4c" stroke-width="0.6"/>`),
+    defaultData() {
+      return {
+        headerHeight: 32,
+        laneHeaderHeight: 30,
+        lanes: [
+          { id: Utils.uid('lane'), name: 'Lane 1', color: SWIMLANE_COLORS[0] },
+          { id: Utils.uid('lane'), name: 'Lane 2', color: SWIMLANE_COLORS[1] },
+          { id: Utils.uid('lane'), name: 'Lane 3', color: SWIMLANE_COLORS[2] }
+        ]
+      };
+    },
+    render(s) {
+      const w = s.width, h = s.height;
+      const hh = (s.data && s.data.headerHeight) || 32;
+      const lhh = (s.data && s.data.laneHeaderHeight) || 30;
+      const lanes = (s.data && s.data.lanes) || [];
+      const title = s.text || 'Swimlane';
+      const fs = s.textStyle ? s.textStyle.fontSize : 13;
+      const fw = s.textStyle ? s.textStyle.fontWeight : 'bold';
+      const ff = s.textStyle ? s.textStyle.fontFamily : 'MaruBuri, Inter, system-ui, sans-serif';
+      const tc = s.textStyle ? s.textStyle.color : '#ffffff';
+      let svg = '';
+
+      // Background
+      svg += `<rect x="0" y="0" width="${w}" height="${h}" rx="3" fill="#ffffff" stroke="none"/>`;
+
+      // Lane backgrounds and labels
+      if (lanes.length > 0) {
+        const laneW = w / lanes.length;
+        lanes.forEach((lane, i) => {
+          const lx = laneW * i;
+          // Lane column header background
+          svg += `<rect x="${lx}" y="${hh}" width="${laneW}" height="${lhh}" fill="${lane.color || '#eeeeee'}" stroke="none"/>`;
+          // Lane body background
+          svg += `<rect x="${lx}" y="${hh + lhh}" width="${laneW}" height="${h - hh - lhh}" fill="#ffffff" stroke="none"/>`;
+          // Lane label
+          svg += `<text x="${lx + laneW/2}" y="${hh + lhh/2}" text-anchor="middle" dominant-baseline="central" fill="#333" stroke="none" font-size="${Math.min(fs, 12)}" font-weight="${fw}" font-family="${ff}">${lane.name || ''}</text>`;
+          // Lane divider
+          if (i > 0) {
+            svg += `<line x1="${lx}" y1="${hh}" x2="${lx}" y2="${h}" stroke="#ccc" stroke-width="0.8"/>`;
+          }
+        });
+      }
+
+      // Header bar
+      svg += `<rect x="0" y="0" width="${w}" height="${hh}" rx="3" fill="${s.style.stroke || '#1a7a4c'}" stroke="none"/>`;
+      svg += `<rect x="0" y="${hh - 3}" width="${w}" height="3" fill="${s.style.stroke || '#1a7a4c'}" stroke="none"/>`;
+      // Title
+      svg += `<text x="${w/2}" y="${hh/2}" text-anchor="middle" dominant-baseline="central" fill="${tc}" stroke="none" font-size="${fs}" font-weight="${fw}" font-family="${ff}">${title}</text>`;
+
+      // Horizontal line below lane headers
+      if (lanes.length > 0) {
+        svg += `<line x1="0" y1="${hh + lhh}" x2="${w}" y2="${hh + lhh}" stroke="#ccc" stroke-width="0.8"/>`;
+      }
+
+      // Border
+      svg += `<rect x="0" y="0" width="${w}" height="${h}" rx="3" fill="none"/>`;
+      return svg;
+    }
+  });
+
+  return { registry, register, get, getAll, getByCategory, getCategories, stdPorts, getPortPosition, getPortDirection, SWIMLANE_COLORS };
 })();
