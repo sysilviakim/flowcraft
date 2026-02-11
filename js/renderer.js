@@ -542,25 +542,141 @@ const Renderer = (() => {
   }
 
   // --- Alignment guides ---
-  function showAlignmentGuides(guides) {
+  function showAlignmentGuides(guides, distances) {
     clearAlignmentGuides();
-    if (!guides || guides.length === 0) return;
+    if ((!guides || guides.length === 0) && (!distances || distances.length === 0)) return;
 
     const group = Utils.svgEl('g', { id: 'alignment-guides', 'pointer-events': 'none' });
-    guides.forEach(g => {
-      const line = Utils.svgEl('line', {
-        x1: g.x1, y1: g.y1, x2: g.x2, y2: g.y2,
-        stroke: '#1a7a4c',
-        'stroke-width': 1,
-        'stroke-dasharray': '4 3'
+
+    // Snap alignment lines
+    if (guides) {
+      guides.forEach(g => {
+        const line = Utils.svgEl('line', {
+          x1: g.x1, y1: g.y1, x2: g.x2, y2: g.y2,
+          stroke: '#1a7a4c',
+          'stroke-width': 1,
+          'stroke-dasharray': '4 3'
+        });
+        group.appendChild(line);
       });
-      group.appendChild(line);
-    });
+    }
+
+    // Distance indicators
+    if (distances) {
+      distances.forEach(d => {
+        const isHoriz = Math.abs(d.y1 - d.y2) < 1;
+        const color = d.equalSpacing ? '#e65100' : '#1a7a4c';
+
+        // Dimension line
+        const dimLine = Utils.svgEl('line', {
+          x1: d.x1, y1: d.y1, x2: d.x2, y2: d.y2,
+          stroke: color, 'stroke-width': 1
+        });
+        group.appendChild(dimLine);
+
+        // End ticks
+        if (isHoriz) {
+          const tickH = 6;
+          group.appendChild(Utils.svgEl('line', { x1: d.x1, y1: d.y1 - tickH, x2: d.x1, y2: d.y1 + tickH, stroke: color, 'stroke-width': 1 }));
+          group.appendChild(Utils.svgEl('line', { x1: d.x2, y1: d.y2 - tickH, x2: d.x2, y2: d.y2 + tickH, stroke: color, 'stroke-width': 1 }));
+        } else {
+          const tickW = 6;
+          group.appendChild(Utils.svgEl('line', { x1: d.x1 - tickW, y1: d.y1, x2: d.x1 + tickW, y2: d.y1, stroke: color, 'stroke-width': 1 }));
+          group.appendChild(Utils.svgEl('line', { x1: d.x2 - tickW, y1: d.y2, x2: d.x2 + tickW, y2: d.y2, stroke: color, 'stroke-width': 1 }));
+        }
+
+        // Label background + text
+        const mx = (d.x1 + d.x2) / 2;
+        const my = (d.y1 + d.y2) / 2;
+        const label = d.value + 'px';
+        const textW = label.length * 6 + 8;
+
+        const bg = Utils.svgEl('rect', {
+          x: mx - textW / 2, y: isHoriz ? my - 18 : my - 7,
+          width: textW, height: 14, rx: 3,
+          fill: color, opacity: 0.85
+        });
+        group.appendChild(bg);
+
+        const text = Utils.svgEl('text', {
+          x: mx, y: isHoriz ? my - 8 : my + 4,
+          'text-anchor': 'middle',
+          'dominant-baseline': 'central',
+          fill: '#ffffff',
+          'font-size': 10,
+          'font-family': 'system-ui, sans-serif',
+          'font-weight': 600
+        });
+        text.textContent = label;
+        group.appendChild(text);
+      });
+    }
+
     canvasLayer.appendChild(group);
   }
 
   function clearAlignmentGuides() {
     const existing = canvasLayer.querySelector('#alignment-guides');
+    if (existing) existing.remove();
+  }
+
+  // --- Connector waypoint handles ---
+  function showWaypointHandles(conn) {
+    clearWaypointHandles();
+    if (!conn || !conn.points || conn.points.length < 2) return;
+
+    const group = Utils.svgEl('g', { id: 'waypoint-handles' });
+    const pts = conn.points;
+
+    // Show handles at each intermediate waypoint
+    for (let i = 1; i < pts.length - 1; i++) {
+      const sq = Utils.svgEl('rect', {
+        x: pts[i].x - 4, y: pts[i].y - 4,
+        width: 8, height: 8,
+        fill: '#ffffff', stroke: '#1a7a4c', 'stroke-width': 1.5,
+        cursor: 'move', 'pointer-events': 'all', rx: 1
+      });
+      sq.setAttribute('data-waypoint-idx', i);
+      sq.setAttribute('data-connector-id', conn.id);
+      group.appendChild(sq);
+    }
+
+    // Show midpoint handles (circles) on each segment for adding waypoints
+    for (let i = 0; i < pts.length - 1; i++) {
+      const mx = (pts[i].x + pts[i + 1].x) / 2;
+      const my = (pts[i].y + pts[i + 1].y) / 2;
+      const circ = Utils.svgEl('circle', {
+        cx: mx, cy: my, r: 4,
+        fill: '#e5f5ea', stroke: '#1a7a4c', 'stroke-width': 1,
+        cursor: 'pointer', 'pointer-events': 'all', opacity: 0.7
+      });
+      circ.setAttribute('data-midpoint-idx', i);
+      circ.setAttribute('data-connector-id', conn.id);
+      group.appendChild(circ);
+    }
+
+    // Show draggable label handle if label exists
+    if (conn.label && conn.label.text) {
+      const labelPos = conn.label.position || 0.5;
+      const pt = getPointAlongPath(pts, labelPos);
+      if (pt) {
+        const diamond = Utils.svgEl('rect', {
+          x: pt.x - 5, y: pt.y - 5, width: 10, height: 10,
+          fill: '#ffffff', stroke: '#e65100', 'stroke-width': 1.5,
+          cursor: 'grab', 'pointer-events': 'all', rx: 2,
+          transform: `rotate(45 ${pt.x} ${pt.y})`
+        });
+        diamond.setAttribute('data-label-handle', 'true');
+        diamond.setAttribute('data-connector-id', conn.id);
+        group.appendChild(diamond);
+      }
+    }
+
+    canvasLayer.appendChild(group);
+  }
+
+  function clearWaypointHandles() {
+    const existing = canvasLayer.querySelector('#waypoint-handles');
     if (existing) existing.remove();
   }
 
@@ -713,6 +829,7 @@ const Renderer = (() => {
     renderAll, reorderShapes,
     showSelectionHandles, clearSelectionHandles,
     showAlignmentGuides, clearAlignmentGuides,
+    showWaypointHandles, clearWaypointHandles,
     showPorts, clearPorts,
     showMarquee, clearMarquee,
     showConnectorPreview, clearConnectorPreview,

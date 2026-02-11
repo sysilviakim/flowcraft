@@ -43,8 +43,14 @@ const Tools = (() => {
     selectedConnector = connector || null;
     if (selectedShapes.length > 0) {
       Renderer.showSelectionHandles(selectedShapes);
+      Renderer.clearWaypointHandles();
     } else {
       Renderer.clearSelectionHandles();
+    }
+    if (selectedConnector) {
+      Renderer.showWaypointHandles(selectedConnector);
+    } else {
+      Renderer.clearWaypointHandles();
     }
     if (onSelectionChanged) onSelectionChanged(selectedShapes, selectedConnector);
   }
@@ -182,6 +188,12 @@ const Tools = (() => {
     _marquee: false,
     _autoConnect: false,       // auto-suggest line dragging
     _autoConnectSource: null,  // { shape, port }
+    _waypointDrag: false,      // dragging connector waypoint
+    _waypointConnId: null,
+    _waypointIdx: null,
+    _waypointStartPoints: null,
+    _labelDrag: false,         // dragging connector label
+    _labelConnId: null,
     _startPos: null,
     _dragOffsets: null,
     _resizeHandle: null,
@@ -217,6 +229,53 @@ const Tools = (() => {
             return;
           }
         }
+      }
+
+      // Check if clicking a waypoint handle
+      const waypointEl = e.target.closest('[data-waypoint-idx]');
+      if (waypointEl) {
+        const idx = parseInt(waypointEl.getAttribute('data-waypoint-idx'));
+        const connId = waypointEl.getAttribute('data-connector-id');
+        const conn = diagram.getConnector(connId);
+        if (conn) {
+          this._waypointDrag = true;
+          this._waypointConnId = connId;
+          this._waypointIdx = idx;
+          this._waypointStartPoints = conn.points.map(p => ({ ...p }));
+          this._startPos = pos;
+          return;
+        }
+      }
+
+      // Check if clicking a midpoint handle (add waypoint)
+      const midpointEl = e.target.closest('[data-midpoint-idx]');
+      if (midpointEl) {
+        const segIdx = parseInt(midpointEl.getAttribute('data-midpoint-idx'));
+        const connId = midpointEl.getAttribute('data-connector-id');
+        const conn = diagram.getConnector(connId);
+        if (conn && conn.points) {
+          const mx = (conn.points[segIdx].x + conn.points[segIdx + 1].x) / 2;
+          const my = (conn.points[segIdx].y + conn.points[segIdx + 1].y) / 2;
+          conn.points.splice(segIdx + 1, 0, { x: mx, y: my });
+          diagram.updateConnector(connId, { points: [...conn.points] });
+          // Start dragging the new waypoint
+          this._waypointDrag = true;
+          this._waypointConnId = connId;
+          this._waypointIdx = segIdx + 1;
+          this._waypointStartPoints = conn.points.map(p => ({ ...p }));
+          this._startPos = pos;
+          return;
+        }
+      }
+
+      // Check if clicking a connector label handle
+      const labelEl = e.target.closest('[data-label-handle]');
+      if (labelEl) {
+        const connId = labelEl.getAttribute('data-connector-id');
+        this._labelDrag = true;
+        this._labelConnId = connId;
+        this._startPos = pos;
+        return;
       }
 
       // Check if clicking a resize handle
@@ -262,6 +321,25 @@ const Tools = (() => {
         this._dragging = true;
         this._startPos = pos;
         this._dragOffsets = selectedShapes.map(s => ({ id: s.id, ox: s.x - pos.x, oy: s.y - pos.y, startX: s.x, startY: s.y }));
+
+        // Alt+drag: clone shapes and drag the clones
+        if (e.altKey && selectedShapes.length > 0) {
+          History.beginBatch();
+          const newShapes = [];
+          selectedShapes.forEach(s => {
+            const clone = Utils.deepClone(s);
+            clone.id = Utils.uid('shp');
+            History.execute(new History.AddShapeCommand(clone));
+            const ns = diagram.getShape(clone.id);
+            if (ns) newShapes.push(ns);
+          });
+          History.endBatch('Clone shapes');
+          selectedShapes = newShapes;
+          selectedConnector = null;
+          Renderer.showSelectionHandles(selectedShapes);
+          if (onSelectionChanged) onSelectionChanged(selectedShapes, selectedConnector);
+          this._dragOffsets = selectedShapes.map(s => ({ id: s.id, ox: s.x - pos.x, oy: s.y - pos.y, startX: s.x, startY: s.y }));
+        }
         return;
       }
 
@@ -298,6 +376,49 @@ const Tools = (() => {
           Renderer.showPorts(shape, false);
         } else {
           Renderer.clearPorts();
+        }
+        return;
+      }
+
+      // Waypoint dragging
+      if (this._waypointDrag && this._waypointConnId) {
+        const conn = diagram.getConnector(this._waypointConnId);
+        if (conn && conn.points[this._waypointIdx]) {
+          conn.points[this._waypointIdx].x = pos.x;
+          conn.points[this._waypointIdx].y = pos.y;
+          diagram.updateConnector(this._waypointConnId, { points: [...conn.points] });
+          Renderer.showWaypointHandles(conn);
+        }
+        return;
+      }
+
+      // Label dragging
+      if (this._labelDrag && this._labelConnId) {
+        const conn = diagram.getConnector(this._labelConnId);
+        if (conn && conn.points && conn.points.length >= 2) {
+          let totalLen = 0;
+          const segs = [];
+          for (let i = 1; i < conn.points.length; i++) {
+            const len = Utils.distance(conn.points[i - 1], conn.points[i]);
+            segs.push({ from: conn.points[i - 1], to: conn.points[i], len });
+            totalLen += len;
+          }
+          let bestDist = Infinity, bestT = 0.5, cumLen = 0;
+          for (const seg of segs) {
+            const sdx = seg.to.x - seg.from.x, sdy = seg.to.y - seg.from.y;
+            const lenSq = sdx * sdx + sdy * sdy;
+            let t = lenSq === 0 ? 0 : ((pos.x - seg.from.x) * sdx + (pos.y - seg.from.y) * sdy) / lenSq;
+            t = Math.max(0, Math.min(1, t));
+            const px = seg.from.x + t * sdx, py = seg.from.y + t * sdy;
+            const dist = Utils.distance(pos, { x: px, y: py });
+            if (dist < bestDist) {
+              bestDist = dist;
+              bestT = totalLen === 0 ? 0.5 : (cumLen + t * seg.len) / totalLen;
+            }
+            cumLen += seg.len;
+          }
+          diagram.updateConnector(this._labelConnId, { label: { text: conn.label.text, position: Math.max(0.05, Math.min(0.95, bestT)) } });
+          Renderer.showWaypointHandles(conn);
         }
         return;
       }
@@ -457,8 +578,87 @@ const Tools = (() => {
           guides.push({ x1: minX - 20, y1: bestSnapY, x2: maxX + 20, y2: bestSnapY });
         }
 
+        // === Distance indicators (#13) ===
+        // Compute group bounding box after snap
+        const fgx1 = gx1 + (dx || 0), fgy1 = gy1 + (dy || 0);
+        const fgx2 = gx2 + (dx || 0), fgy2 = gy2 + (dy || 0);
+        const distances = [];
+
+        // For each "other" shape, compute gaps to the dragged group
+        for (const other of otherShapes) {
+          const yOverlap = !(fgy2 < other.y || other.y + other.height < fgy1);
+          if (yOverlap) {
+            const overlapTop = Math.max(fgy1, other.y);
+            const overlapBot = Math.min(fgy2, other.y + other.height);
+            const midY = (overlapTop + overlapBot) / 2;
+            // Gap left of group
+            const gapL = fgx1 - (other.x + other.width);
+            if (gapL > 2 && gapL < 300) {
+              distances.push({ x1: other.x + other.width, y1: midY, x2: fgx1, y2: midY, value: Math.round(gapL) });
+            }
+            // Gap right of group
+            const gapR = other.x - fgx2;
+            if (gapR > 2 && gapR < 300) {
+              distances.push({ x1: fgx2, y1: midY, x2: other.x, y2: midY, value: Math.round(gapR) });
+            }
+          }
+          const xOverlap = !(fgx2 < other.x || other.x + other.width < fgx1);
+          if (xOverlap) {
+            const overlapLeft = Math.max(fgx1, other.x);
+            const overlapRight = Math.min(fgx2, other.x + other.width);
+            const midX = (overlapLeft + overlapRight) / 2;
+            // Gap above group
+            const gapT = fgy1 - (other.y + other.height);
+            if (gapT > 2 && gapT < 300) {
+              distances.push({ x1: midX, y1: other.y + other.height, x2: midX, y2: fgy1, value: Math.round(gapT) });
+            }
+            // Gap below group
+            const gapB = other.y - fgy2;
+            if (gapB > 2 && gapB < 300) {
+              distances.push({ x1: midX, y1: fgy2, x2: midX, y2: other.y, value: Math.round(gapB) });
+            }
+          }
+        }
+
+        // === Equal-spacing snap ===
+        // Find nearest neighbor on each side and try to match spacing
+        let nearestLeft = null, nearestRight = null, nearestTop = null, nearestBottom = null;
+        for (const other of otherShapes) {
+          const yOv = !(fgy2 < other.y || other.y + other.height < fgy1);
+          if (yOv) {
+            const gl = fgx1 - (other.x + other.width);
+            if (gl > 0 && (!nearestLeft || gl < nearestLeft.gap)) nearestLeft = { shape: other, gap: gl };
+            const gr = other.x - fgx2;
+            if (gr > 0 && (!nearestRight || gr < nearestRight.gap)) nearestRight = { shape: other, gap: gr };
+          }
+          const xOv = !(fgx2 < other.x || other.x + other.width < fgx1);
+          if (xOv) {
+            const gt = fgy1 - (other.y + other.height);
+            if (gt > 0 && (!nearestTop || gt < nearestTop.gap)) nearestTop = { shape: other, gap: gt };
+            const gb = other.y - fgy2;
+            if (gb > 0 && (!nearestBottom || gb < nearestBottom.gap)) nearestBottom = { shape: other, gap: gb };
+          }
+        }
+
+        // If left and right gaps are close, mark equal-spacing
+        if (nearestLeft && nearestRight && Math.abs(nearestLeft.gap - nearestRight.gap) < snapThreshold * 2) {
+          const avg = (nearestLeft.gap + nearestRight.gap) / 2;
+          distances.forEach(d => {
+            if (d.value === Math.round(nearestLeft.gap) || d.value === Math.round(nearestRight.gap)) {
+              d.equalSpacing = true;
+            }
+          });
+        }
+        if (nearestTop && nearestBottom && Math.abs(nearestTop.gap - nearestBottom.gap) < snapThreshold * 2) {
+          distances.forEach(d => {
+            if (d.value === Math.round(nearestTop.gap) || d.value === Math.round(nearestBottom.gap)) {
+              d.equalSpacing = true;
+            }
+          });
+        }
+
         Renderer.showSelectionHandles(selectedShapes);
-        Renderer.showAlignmentGuides(guides);
+        Renderer.showAlignmentGuides(guides, distances);
         return;
       }
 
@@ -489,6 +689,23 @@ const Tools = (() => {
 
     onMouseUp(e) {
       const pos = getCanvasPos(e);
+
+      // Waypoint drag completion
+      if (this._waypointDrag && this._waypointConnId) {
+        // Waypoint already moved in onMouseMove; just clean up
+        this._waypointDrag = false;
+        this._waypointConnId = null;
+        this._waypointIdx = null;
+        this._waypointStartPoints = null;
+        return;
+      }
+
+      // Label drag completion
+      if (this._labelDrag && this._labelConnId) {
+        this._labelDrag = false;
+        this._labelConnId = null;
+        return;
+      }
 
       // Auto-connect line completion
       if (this._autoConnect && this._autoConnectSource) {
