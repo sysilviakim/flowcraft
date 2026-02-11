@@ -58,10 +58,37 @@ const Model = (() => {
       // Remove connected connectors
       const toRemove = this.connectors.filter(c => c.sourceShapeId === id || c.targetShapeId === id);
       toRemove.forEach(c => this.removeConnector(c.id));
+      // Clear containerId from children if this was a container
+      this.shapes.forEach(s => {
+        if (s.containerId === id) s.containerId = null;
+      });
       this.modified = Date.now();
       this.emit('shape:removed', shape);
       this.emit('changed');
       return shape;
+    }
+
+    // --- Container operations ---
+    getChildrenOfContainer(containerId) {
+      return this.shapes.filter(s => s.containerId === containerId);
+    }
+
+    setContainer(shapeId, containerId) {
+      const shape = this._shapeMap.get(shapeId);
+      if (!shape) return;
+      shape.containerId = containerId;
+      this.modified = Date.now();
+      this.emit('shape:changed', shape);
+      this.emit('changed');
+    }
+
+    removeFromContainer(shapeId) {
+      const shape = this._shapeMap.get(shapeId);
+      if (!shape) return;
+      shape.containerId = null;
+      this.modified = Date.now();
+      this.emit('shape:changed', shape);
+      this.emit('changed');
     }
 
     getShape(id) {
@@ -307,6 +334,7 @@ const Model = (() => {
       },
       layerId: null,
       groupId: null,
+      containerId: null,
       locked: false,
       ports: [],
       data: {},
