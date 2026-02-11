@@ -575,6 +575,14 @@ const UI = (() => {
     if (shape.type === 'flowchart:timeline') {
       const tlSection = makePropsSection('Timeline');
 
+      const typeSelect = makeSelectInput((shape.data && shape.data.timelineType) || 'block', [
+        { value: 'block', label: 'Block' },
+        { value: 'line', label: 'Line' }
+      ], v => {
+        diagram.updateShapeDeep(shape.id, { data: { timelineType: v } });
+      });
+      tlSection.appendChild(makePropRow('Type', typeSelect));
+
       const startDateInput = document.createElement('input');
       startDateInput.type = 'date';
       startDateInput.className = 'props-input';
@@ -597,6 +605,15 @@ const UI = (() => {
         diagram.updateShapeDeep(shape.id, { data: { guideHeight: Math.max(0, v) } });
       });
       tlSection.appendChild(makePropRow('Guide height', guideInput));
+
+      // Show dates checkbox (for line timelines, off by default)
+      const showDatesCheckbox = document.createElement('input');
+      showDatesCheckbox.type = 'checkbox';
+      showDatesCheckbox.checked = !!(shape.data && shape.data.showDates);
+      showDatesCheckbox.addEventListener('change', () => {
+        diagram.updateShapeDeep(shape.id, { data: { showDates: showDatesCheckbox.checked } });
+      });
+      tlSection.appendChild(makePropRow('Show dates', showDatesCheckbox));
 
       container.appendChild(tlSection);
     }

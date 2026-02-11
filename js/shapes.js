@@ -462,6 +462,59 @@ const Shapes = (() => {
     render(s) {
       const w = s.width, h = s.height;
       const guideH = (s.data && s.data.guideHeight) || 0;
+      const tlType = (s.data && s.data.timelineType) || 'block';
+
+      if (tlType === 'line') {
+        // Line timeline: horizontal line with tick marks and arrow
+        const midY = h / 2;
+        const tickH = h * 0.4; // tick mark half-height
+        const arrowSize = 8;
+        // Main line
+        let svg = `<rect x="0" y="0" width="${w}" height="${h}" fill="none" stroke="none"/>`;
+        svg += `<line x1="0" y1="${midY}" x2="${w - arrowSize}" y2="${midY}" stroke="${s.style.stroke !== 'none' ? s.style.stroke : '#555555'}" stroke-width="${Math.max(s.style.strokeWidth || 1.5, 1)}" fill="none"/>`;
+        // Arrow head
+        svg += `<polygon points="${w},${midY} ${w - arrowSize},${midY - arrowSize/2} ${w - arrowSize},${midY + arrowSize/2}" fill="${s.style.stroke !== 'none' ? s.style.stroke : '#555555'}" stroke="none"/>`;
+        // Start dot
+        svg += `<circle cx="0" cy="${midY}" r="3.5" fill="#b0b0b0" stroke="none"/>`;
+
+        if (s.data && s.data.startDate && s.data.endDate) {
+          const parseD = ds => { const [y,m,d] = ds.split('-').map(Number); return new Date(y,m-1,d); };
+          const startMs = parseD(s.data.startDate).getTime();
+          const endMs = parseD(s.data.endDate).getTime();
+          const totalMs = endMs - startMs;
+          if (totalMs > 0) {
+            const sd = parseD(s.data.startDate);
+            const ed = parseD(s.data.endDate);
+            const lineW = w - arrowSize;
+            const showDates = s.data.showDates === true;
+            // Start label
+            if (showDates) svg += `<text x="6" y="${midY - tickH - 4}" fill="#555555" stroke="none" font-size="9" font-family="MaruBuri,Inter,sans-serif">${sd.getMonth()+1}/${sd.getDate()}</text>`;
+            // Month-start ticks with graduated opacity (fades from light to dark)
+            const d = new Date(sd.getFullYear(), sd.getMonth()+1, 1);
+            const monthTicks = [];
+            while (d.getTime() < endMs) {
+              monthTicks.push(new Date(d));
+              d.setMonth(d.getMonth()+1);
+            }
+            monthTicks.forEach((tick, i) => {
+              const x = ((tick.getTime()-startMs)/totalMs)*lineW;
+              const progress = monthTicks.length > 1 ? i / (monthTicks.length - 1) : 0;
+              const opacity = 0.25 + progress * 0.75;
+              const strokeW = 0.5 + progress * 1.5;
+              svg += `<line x1="${x}" y1="${midY - tickH}" x2="${x}" y2="${midY + tickH}" fill="none" stroke="${s.style.stroke !== 'none' ? s.style.stroke : '#555555'}" stroke-width="${strokeW}" opacity="${opacity}"/>`;
+              if (guideH > 0) {
+                svg += `<line x1="${x}" y1="${midY + tickH}" x2="${x}" y2="${h + guideH}" fill="none" stroke="#d0d0d8" stroke-width="0.8" opacity="0.4"/>`;
+              }
+              if (showDates) svg += `<text x="${x+3}" y="${midY - tickH - 4}" fill="#555555" stroke="none" font-size="9" font-family="MaruBuri,Inter,sans-serif">${tick.getMonth()+1}/${tick.getDate()}</text>`;
+            });
+            // End label
+            if (showDates) svg += `<text x="${lineW - 3}" y="${midY - tickH - 4}" fill="#555555" stroke="none" font-size="9" font-family="MaruBuri,Inter,sans-serif" text-anchor="end">${ed.getMonth()+1}/${ed.getDate()}</text>`;
+          }
+        }
+        return svg;
+      }
+
+      // Block timeline (default): filled rectangle bar with ticks
       let svg = `<rect x="0" y="0" width="${w}" height="${h}" rx="2"/>`;
       if (s.data && s.data.startDate && s.data.endDate) {
         const parseD = ds => { const [y,m,d] = ds.split('-').map(Number); return new Date(y,m-1,d); };
