@@ -31,20 +31,24 @@ const Renderer = (() => {
     // Defs for patterns, markers, filters
     const defs = Utils.svgEl('defs');
 
-    // Grid pattern
+    // Grid pattern (line grid)
     gridPattern = Utils.svgEl('pattern', {
       id: 'grid-pattern',
       width: diagram.settings.gridSize,
       height: diagram.settings.gridSize,
       patternUnits: 'userSpaceOnUse'
     });
-    const gridDot = Utils.svgEl('circle', {
-      cx: diagram.settings.gridSize / 2,
-      cy: diagram.settings.gridSize / 2,
-      r: 0.8,
-      fill: '#c0c0d0'
+    const gs = diagram.settings.gridSize;
+    const gridLineH = Utils.svgEl('line', {
+      x1: 0, y1: gs, x2: gs, y2: gs,
+      stroke: '#e0e0e8', 'stroke-width': 0.5
     });
-    gridPattern.appendChild(gridDot);
+    const gridLineV = Utils.svgEl('line', {
+      x1: gs, y1: 0, x2: gs, y2: gs,
+      stroke: '#e0e0e8', 'stroke-width': 0.5
+    });
+    gridPattern.appendChild(gridLineH);
+    gridPattern.appendChild(gridLineV);
     defs.appendChild(gridPattern);
 
     // Arrow markers
@@ -166,8 +170,11 @@ const Renderer = (() => {
     const gs = diagram.settings.gridSize;
     gridPattern.setAttribute('width', gs);
     gridPattern.setAttribute('height', gs);
-    gridPattern.querySelector('circle').setAttribute('cx', gs / 2);
-    gridPattern.querySelector('circle').setAttribute('cy', gs / 2);
+    // Update line grid positions
+    const hLine = gridPattern.querySelector('line');
+    const vLine = gridPattern.querySelectorAll('line')[1];
+    if (hLine) { hLine.setAttribute('x2', gs); hLine.setAttribute('y1', gs); hLine.setAttribute('y2', gs); }
+    if (vLine) { vLine.setAttribute('x1', gs); vLine.setAttribute('x2', gs); vLine.setAttribute('y2', gs); }
     gridGroup.style.display = diagram.settings.showGrid ? '' : 'none';
   }
 
@@ -701,7 +708,7 @@ const Renderer = (() => {
     ports.forEach(port => {
       const pos = Shapes.getPortPosition(shape, port);
       const circle = Utils.svgEl('circle', {
-        cx: pos.x, cy: pos.y, r: 6,
+        cx: pos.x, cy: pos.y, r: 8,
         fill: '#1a7a4c',
         stroke: '#ffffff',
         'stroke-width': 2,
@@ -780,6 +787,21 @@ const Renderer = (() => {
     return null;
   }
 
+  // Like getShapeAt but with an expanded margin around each shape,
+  // used by the connector tool to show ports before the cursor is directly on the shape.
+  function getShapeNear(canvasX, canvasY, margin = 20) {
+    for (let i = diagram.shapes.length - 1; i >= 0; i--) {
+      const s = diagram.shapes[i];
+      const layer = diagram.getLayer(s.layerId);
+      if (layer && (!layer.visible || layer.locked)) continue;
+      if (canvasX >= s.x - margin && canvasX <= s.x + s.width + margin &&
+          canvasY >= s.y - margin && canvasY <= s.y + s.height + margin) {
+        return s;
+      }
+    }
+    return null;
+  }
+
   function getConnectorAt(canvasX, canvasY, threshold = 8) {
     for (let i = diagram.connectors.length - 1; i >= 0; i--) {
       const c = diagram.connectors[i];
@@ -802,7 +824,7 @@ const Renderer = (() => {
     return Utils.distance(p, { x: a.x + t * dx, y: a.y + t * dy });
   }
 
-  function getPortAt(canvasX, canvasY, threshold = 12) {
+  function getPortAt(canvasX, canvasY, threshold = 20) {
     for (let i = diagram.shapes.length - 1; i >= 0; i--) {
       const s = diagram.shapes[i];
       const layer = diagram.getLayer(s.layerId);
@@ -842,7 +864,7 @@ const Renderer = (() => {
     showPorts, clearPorts,
     showMarquee, clearMarquee,
     showConnectorPreview, clearConnectorPreview,
-    getShapeAt, getConnectorAt, getPortAt,
+    getShapeAt, getShapeNear, getConnectorAt, getPortAt,
     updateMarkerColors
   };
 })();
