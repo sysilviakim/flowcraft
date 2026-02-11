@@ -325,7 +325,7 @@ const Model = (() => {
         vAlign: 'middle'
       },
       style: {
-        fill: '#e5f5ea',
+        fill: '#ffffff',
         stroke: '#1a7a4c',
         strokeWidth: 2,
         strokeDash: '',
