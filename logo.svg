@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 231" width="200" height="231">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4a6cf7"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+  </defs>
+  <!-- Hex outline -->
+  <polygon points="100,3 193,56.5 193,163.5 100,217 7,163.5 7,56.5"
+    fill="url(#bg)" stroke="#ffffff" stroke-width="4"/>
+  <!-- Inner hex border -->
+  <polygon points="100,13 183,61.5 183,158.5 100,207 17,158.5 17,61.5"
+    fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5"/>
+  <!-- Flowchart icon: 3 connected boxes -->
+  <!-- Top box -->
+  <rect x="72" y="52" width="56" height="32" rx="4" fill="none" stroke="#ffffff" stroke-width="2.5"/>
+  <!-- Bottom-left box -->
+  <rect x="32" y="128" width="48" height="28" rx="4" fill="none" stroke="#ffffff" stroke-width="2.5"/>
+  <!-- Bottom-right box -->
+  <rect x="120" y="128" width="48" height="28" rx="4" fill="none" stroke="#ffffff" stroke-width="2.5"/>
+  <!-- Diamond (decision) center -->
+  <polygon points="100,90 116,104 100,118 84,104" fill="none" stroke="#ffffff" stroke-width="2.5"/>
+  <!-- Connector: top box to diamond -->
+  <line x1="100" y1="84" x2="100" y2="90" stroke="#ffffff" stroke-width="2"/>
+  <!-- Connector: diamond to bottom-left -->
+  <line x1="84" y1="104" x2="56" y2="128" stroke="#ffffff" stroke-width="2"/>
+  <!-- Connector: diamond to bottom-right -->
+  <line x1="116" y1="104" x2="144" y2="128" stroke="#ffffff" stroke-width="2"/>
+  <!-- Arrow tips -->
+  <polygon points="52,124 56,128 60,124" fill="#ffffff" stroke="none"/>
+  <polygon points="140,124 144,128 148,124" fill="#ffffff" stroke="none"/>
+  <!-- Text: FlowCraft -->
+  <text x="100" y="180" text-anchor="middle" font-family="Inter, system-ui, sans-serif"
+    font-size="19" font-weight="bold" fill="#ffffff" letter-spacing="0.5">FlowCraft</text>
+</svg>

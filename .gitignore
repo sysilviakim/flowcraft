@@ -20,7 +20,6 @@ annual-challenge.png
 
 # RStudio
 .Rproj.user/
-*.Rproj
 
 # Claude Code
 .claude/
