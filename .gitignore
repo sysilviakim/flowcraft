@@ -14,6 +14,8 @@ Thumbs.db
 # Lucidchart source exports (not part of the app)
 *.vsdx
 *.csv
+
+# Example exports (not part of the app)
 annual-challenge.jpeg
 annual-challenge.pdf
 annual-challenge.png
@@ -21,8 +23,8 @@ annual-challenge.png
 # RStudio
 .Rproj.user/
 
-# Notes
-improvements.txt
+# Notes / text files
+*.txt
 
 # Claude Code
 .claude/
