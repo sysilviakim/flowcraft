@@ -316,6 +316,36 @@ const UI = (() => {
     textSection.appendChild(makePropRow('Font', fontFamilySelect));
     container.appendChild(textSection);
 
+    // Timeline shape guide height
+    if (shape.type === 'flowchart:timeline') {
+      const tlSection = makePropsSection('Timeline');
+
+      const startDateInput = document.createElement('input');
+      startDateInput.type = 'date';
+      startDateInput.className = 'props-input';
+      startDateInput.value = (shape.data && shape.data.startDate) || '';
+      startDateInput.addEventListener('change', () => {
+        diagram.updateShapeDeep(shape.id, { data: { startDate: startDateInput.value } });
+      });
+      tlSection.appendChild(makePropRow('Start', startDateInput));
+
+      const endDateInput = document.createElement('input');
+      endDateInput.type = 'date';
+      endDateInput.className = 'props-input';
+      endDateInput.value = (shape.data && shape.data.endDate) || '';
+      endDateInput.addEventListener('change', () => {
+        diagram.updateShapeDeep(shape.id, { data: { endDate: endDateInput.value } });
+      });
+      tlSection.appendChild(makePropRow('End', endDateInput));
+
+      const guideInput = makeNumberInput((shape.data && shape.data.guideHeight) || 0, v => {
+        diagram.updateShapeDeep(shape.id, { data: { guideHeight: Math.max(0, v) } });
+      });
+      tlSection.appendChild(makePropRow('Guide height', guideInput));
+
+      container.appendChild(tlSection);
+    }
+
     // Timeline interval date attributes
     if (shape.data && shape.data.timelineInterval && shape.data.startDate && shape.data.endDate) {
       const dateSection = makePropsSection('Timeline Dates');

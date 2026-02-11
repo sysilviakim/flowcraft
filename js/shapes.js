@@ -461,9 +461,9 @@ const Shapes = (() => {
       <line x1="26" y1="10" x2="26" y2="24" stroke="#1a7a4c" stroke-width="0.6"/>`),
     render(s) {
       const w = s.width, h = s.height;
+      const guideH = (s.data && s.data.guideHeight) || 0;
       let svg = `<rect x="0" y="0" width="${w}" height="${h}" rx="2"/>`;
       if (s.data && s.data.startDate && s.data.endDate) {
-        const cum = [0,31,59,90,120,151,181,212,243,273,304,334,365];
         const parseD = ds => { const [y,m,d] = ds.split('-').map(Number); return new Date(y,m-1,d); };
         const startMs = parseD(s.data.startDate).getTime();
         const endMs = parseD(s.data.endDate).getTime();
@@ -473,11 +473,14 @@ const Shapes = (() => {
           const ed = parseD(s.data.endDate);
           // First tick at start
           svg += `<text x="3" y="${h-4}" fill="#555555" stroke="none" font-size="9" font-family="MaruBuri,Inter,sans-serif">${sd.getMonth()+1}/${sd.getDate()}</text>`;
-          // Month-start ticks
+          // Month-start ticks with optional guide lines
           const d = new Date(sd.getFullYear(), sd.getMonth()+1, 1);
           while (d.getTime() < endMs) {
             const x = ((d.getTime()-startMs)/totalMs)*w;
             svg += `<line x1="${x}" y1="0" x2="${x}" y2="${h}" fill="none" stroke-width="0.5" opacity="0.5"/>`;
+            if (guideH > 0) {
+              svg += `<line x1="${x}" y1="${h}" x2="${x}" y2="${h + guideH}" fill="none" stroke="#d0d0d8" stroke-width="0.8" opacity="0.4"/>`;
+            }
             svg += `<text x="${x+3}" y="${h-4}" fill="#555555" stroke="none" font-size="9" font-family="MaruBuri,Inter,sans-serif">${d.getMonth()+1}/${d.getDate()}</text>`;
             d.setMonth(d.getMonth()+1);
           }
