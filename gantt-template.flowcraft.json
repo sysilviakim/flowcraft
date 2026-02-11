@@ -1,0 +1,331 @@
+{
+  "id": "diag_gantt_template",
+  "name": "Gantt Timeline Template",
+  "created": 1770800793279,
+  "modified": 1770800793279,
+  "settings": {
+    "gridSize": 20,
+    "snapToGrid": false,
+    "showGrid": true,
+    "canvasColor": "#ffffff"
+  },
+  "layers": [
+    {
+      "id": "layer_default",
+      "name": "Layer 1",
+      "visible": true,
+      "locked": false,
+      "order": 0
+    }
+  ],
+  "shapes": [
+    {
+      "id": "shp_1",
+      "type": "basic:rectangle",
+      "x": 20,
+      "y": 20,
+      "width": 1100,
+      "height": 42,
+      "rotation": 0,
+      "text": "Project Title",
+      "textStyle": {
+        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontSize": 24,
+        "fontWeight": "bold",
+        "color": "#1a1a2e",
+        "align": "center",
+        "vAlign": "middle"
+      },
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "none",
+        "strokeWidth": 0,
+        "strokeDash": "",
+        "opacity": 1,
+        "shadow": false
+      },
+      "layerId": "layer_default",
+      "groupId": null,
+      "locked": false,
+      "ports": [],
+      "data": {}
+    },
+    {
+      "id": "shp_2",
+      "type": "basic:rectangle",
+      "x": 20,
+      "y": 58,
+      "width": 1100,
+      "height": 20,
+      "rotation": 0,
+      "text": "Author  |  Date",
+      "textStyle": {
+        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontSize": 11,
+        "fontWeight": "normal",
+        "color": "#666666",
+        "align": "center",
+        "vAlign": "middle"
+      },
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "none",
+        "strokeWidth": 0,
+        "strokeDash": "",
+        "opacity": 1,
+        "shadow": false
+      },
+      "layerId": "layer_default",
+      "groupId": null,
+      "locked": false,
+      "ports": [],
+      "data": {}
+    },
+    {
+      "id": "shp_q1",
+      "type": "basic:rectangle",
+      "x": 100,
+      "y": 82,
+      "width": 245,
+      "height": 108,
+      "rotation": 0,
+      "text": "Q1 Goals\n-\n-\n-",
+      "textStyle": {
+        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontSize": 9,
+        "fontWeight": "normal",
+        "color": "#333333",
+        "align": "left",
+        "vAlign": "top"
+      },
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#ffffff",
+        "strokeWidth": 0,
+        "strokeDash": "",
+        "opacity": 1,
+        "shadow": false
+      },
+      "layerId": "layer_default",
+      "groupId": null,
+      "locked": false,
+      "ports": [],
+      "data": {}
+    },
+    {
+      "id": "shp_q2",
+      "type": "basic:rectangle",
+      "x": 355,
+      "y": 82,
+      "width": 245,
+      "height": 108,
+      "rotation": 0,
+      "text": "Q2 Goals\n-\n-\n-",
+      "textStyle": {
+        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontSize": 9,
+        "fontWeight": "normal",
+        "color": "#333333",
+        "align": "left",
+        "vAlign": "top"
+      },
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#ffffff",
+        "strokeWidth": 0,
+        "strokeDash": "",
+        "opacity": 1,
+        "shadow": false
+      },
+      "layerId": "layer_default",
+      "groupId": null,
+      "locked": false,
+      "ports": [],
+      "data": {}
+    },
+    {
+      "id": "shp_q3",
+      "type": "basic:rectangle",
+      "x": 610,
+      "y": 82,
+      "width": 245,
+      "height": 108,
+      "rotation": 0,
+      "text": "Q3 Goals\n-\n-\n-",
+      "textStyle": {
+        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontSize": 9,
+        "fontWeight": "normal",
+        "color": "#333333",
+        "align": "left",
+        "vAlign": "top"
+      },
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#ffffff",
+        "strokeWidth": 0,
+        "strokeDash": "",
+        "opacity": 1,
+        "shadow": false
+      },
+      "layerId": "layer_default",
+      "groupId": null,
+      "locked": false,
+      "ports": [],
+      "data": {}
+    },
+    {
+      "id": "shp_q4",
+      "type": "basic:rectangle",
+      "x": 865,
+      "y": 82,
+      "width": 245,
+      "height": 108,
+      "rotation": 0,
+      "text": "Q4 Goals\n-\n-\n-",
+      "textStyle": {
+        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontSize": 9,
+        "fontWeight": "normal",
+        "color": "#333333",
+        "align": "left",
+        "vAlign": "top"
+      },
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#ffffff",
+        "strokeWidth": 0,
+        "strokeDash": "",
+        "opacity": 1,
+        "shadow": false
+      },
+      "layerId": "layer_default",
+      "groupId": null,
+      "locked": false,
+      "ports": [],
+      "data": {}
+    },
+    {
+      "id": "shp_timeline_main",
+      "type": "flowchart:timeline",
+      "x": 150,
+      "y": 196,
+      "width": 960,
+      "height": 42,
+      "rotation": 0,
+      "text": "",
+      "textStyle": {
+        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontSize": 12,
+        "fontWeight": "normal",
+        "color": "#1a1a2e",
+        "align": "center",
+        "vAlign": "middle"
+      },
+      "style": {
+        "fill": "#7cb342",
+        "stroke": "#5a8a2a",
+        "strokeWidth": 1,
+        "strokeDash": "",
+        "opacity": 1,
+        "shadow": false
+      },
+      "layerId": "layer_default",
+      "groupId": null,
+      "locked": false,
+      "ports": [],
+      "data": {
+        "startDate": "2026-01-01",
+        "endDate": "2026-12-31",
+        "guideHeight": 500
+      }
+    },
+    {
+      "id": "shp_swim_lanes",
+      "type": "flowchart:swim-lane",
+      "x": 22,
+      "y": 250,
+      "width": 1088,
+      "height": 496,
+      "rotation": 0,
+      "text": "",
+      "textStyle": {
+        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontSize": 11,
+        "fontWeight": "bold",
+        "color": "#1a1a2e",
+        "align": "center",
+        "vAlign": "middle"
+      },
+      "style": {
+        "fill": "none",
+        "stroke": "#d0d0d8",
+        "strokeWidth": 0.5,
+        "strokeDash": "",
+        "opacity": 1,
+        "shadow": false
+      },
+      "layerId": "layer_default",
+      "groupId": null,
+      "locked": false,
+      "ports": [],
+      "data": {
+        "lanes": [
+          {
+            "number": "01",
+            "name": "Track 1",
+            "color": "#b391b5",
+            "textColor": "#333333"
+          },
+          {
+            "number": "02",
+            "name": "Track 2",
+            "color": "#d1bcd2",
+            "textColor": "#333333"
+          },
+          {
+            "number": "03",
+            "name": "Track 3",
+            "color": "#f9d2de",
+            "textColor": "#333333"
+          },
+          {
+            "number": "04",
+            "name": "Track 4",
+            "color": "#ffbbb1",
+            "textColor": "#333333"
+          },
+          {
+            "number": "05",
+            "name": "Track 5",
+            "color": "#ffdba9",
+            "textColor": "#333333"
+          },
+          {
+            "number": "06",
+            "name": "Track 6",
+            "color": "#ffeca9",
+            "textColor": "#333333"
+          },
+          {
+            "number": "07",
+            "name": "Track 7",
+            "color": "#c3f7c8",
+            "textColor": "#333333"
+          },
+          {
+            "number": "08",
+            "name": "Track 8",
+            "color": "#99d5ca",
+            "textColor": "#333333"
+          }
+        ],
+        "numberWidth": 28,
+        "nameWidth": 85,
+        "laneHeight": 62
+      }
+    }
+  ],
+  "connectors": [],
+  "groups": []
+}
