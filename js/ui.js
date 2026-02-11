@@ -1087,6 +1087,7 @@ const UI = (() => {
         <span>Zoom</span><span>Scroll wheel</span>
         <span>Multi-select</span><span class="key">Shift+Click</span>
         <span>Constrain (equal)</span><span class="key">Shift+Drag</span>
+        <span>Clone (Alt+drag)</span><span class="key">Alt+Drag</span>
       </div>
       <div class="modal-buttons">
         <button class="props-btn primary" id="close-shortcuts">Close</button>
