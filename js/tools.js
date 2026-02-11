@@ -742,9 +742,21 @@ const Tools = (() => {
             targetShape.id, targetPort.id
           );
           conn.points = Connectors.routeConnector(diagram, conn);
-          // Auto-label connectors from decision shapes
           autoLabelDecisionConnector(conn, this._autoConnectSource.shape);
           History.execute(new History.AddConnectorCommand(conn));
+        } else {
+          // No target: create a dangling connector ending at mouse position
+          const srcPos = Shapes.getPortPosition(this._autoConnectSource.shape, this._autoConnectSource.port);
+          const dist = Utils.distance(srcPos, pos);
+          if (dist > 10) {
+            const conn = Model.createConnector(
+              this._autoConnectSource.shape.id, this._autoConnectSource.port.id,
+              null, null
+            );
+            conn.points = [srcPos, { x: pos.x, y: pos.y }];
+            autoLabelDecisionConnector(conn, this._autoConnectSource.shape);
+            History.execute(new History.AddConnectorCommand(conn));
+          }
         }
 
         this._autoConnect = false;
@@ -1070,9 +1082,21 @@ const Tools = (() => {
           targetShape.id, targetPort.id
         );
         conn.points = Connectors.routeConnector(diagram, conn);
-        // Auto-label connectors from decision shapes
         autoLabelDecisionConnector(conn, this._sourceShape);
         History.execute(new History.AddConnectorCommand(conn));
+      } else {
+        // No target: create a dangling connector ending at mouse position
+        const srcPos = Shapes.getPortPosition(this._sourceShape, this._sourcePort);
+        const dist = Utils.distance(srcPos, pos);
+        if (dist > 10) {
+          const conn = Model.createConnector(
+            this._sourceShape.id, this._sourcePort.id,
+            null, null
+          );
+          conn.points = [srcPos, { x: pos.x, y: pos.y }];
+          autoLabelDecisionConnector(conn, this._sourceShape);
+          History.execute(new History.AddConnectorCommand(conn));
+        }
       }
 
       this._connecting = false;

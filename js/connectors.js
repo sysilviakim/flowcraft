@@ -184,6 +184,28 @@ const Connectors = (() => {
   function updateConnectorsForShape(diagram, shapeId) {
     const conns = diagram.getConnectorsForShape(shapeId);
     conns.forEach(conn => {
+      // Dangling connector (no target): update source end only
+      if (!conn.targetShapeId) {
+        const srcShape = diagram.getShape(conn.sourceShapeId);
+        if (srcShape && conn.points && conn.points.length >= 2) {
+          const srcDef = Shapes.get(srcShape.type);
+          const srcPort = (srcDef.ports || Shapes.stdPorts()).find(p => p.id === conn.sourcePortId) || { id: 'right', side: 'right', offset: 0.5 };
+          conn.points[0] = Shapes.getPortPosition(srcShape, srcPort);
+        }
+        diagram.emit('connector:changed', conn);
+        return;
+      }
+      // Dangling connector (no source): update target end only
+      if (!conn.sourceShapeId) {
+        const tgtShape = diagram.getShape(conn.targetShapeId);
+        if (tgtShape && conn.points && conn.points.length >= 2) {
+          const tgtDef = Shapes.get(tgtShape.type);
+          const tgtPort = (tgtDef.ports || Shapes.stdPorts()).find(p => p.id === conn.targetPortId) || { id: 'left', side: 'left', offset: 0.5 };
+          conn.points[conn.points.length - 1] = Shapes.getPortPosition(tgtShape, tgtPort);
+        }
+        diagram.emit('connector:changed', conn);
+        return;
+      }
       const points = routeConnector(diagram, conn);
       conn.points = points;
       diagram.emit('connector:changed', conn);
