@@ -548,8 +548,22 @@ const Tools = (() => {
         tentative.forEach(t => {
           t.nx += dx;
           t.ny += dy;
+          const moveDx = t.nx - t.shape.x;
+          const moveDy = t.ny - t.shape.y;
           diagram.updateShape(t.shape.id, { x: t.nx, y: t.ny });
           Connectors.updateConnectorsForShape(diagram, t.shape.id);
+
+          // Move container children along with the container
+          const def = Shapes.get(t.shape.type);
+          if (def && def.isContainer) {
+            const children = diagram.getChildrenOfContainer(t.shape.id);
+            children.forEach(child => {
+              if (!selectedShapes.find(sel => sel.id === child.id)) {
+                diagram.updateShape(child.id, { x: child.x + moveDx, y: child.y + moveDy });
+                Connectors.updateConnectorsForShape(diagram, child.id);
+              }
+            });
+          }
         });
 
         // Build guide lines
@@ -728,6 +742,8 @@ const Tools = (() => {
             targetShape.id, targetPort.id
           );
           conn.points = Connectors.routeConnector(diagram, conn);
+          // Auto-label connectors from decision shapes
+          autoLabelDecisionConnector(conn, this._autoConnectSource.shape);
           History.execute(new History.AddConnectorCommand(conn));
         }
 
@@ -773,6 +789,35 @@ const Tools = (() => {
             ));
           }
         });
+
+        // Container parenting: check if shapes were dropped into/out of containers
+        selectedShapes.forEach(shape => {
+          const shapeDef = Shapes.get(shape.type);
+          if (shapeDef && shapeDef.isContainer) return; // Don't parent containers into containers
+
+          const centerX = shape.x + shape.width / 2;
+          const centerY = shape.y + shape.height / 2;
+          const oldContainerId = shape.containerId || null;
+
+          // Find container that shape center is inside (iterate in reverse z-order for topmost)
+          let newContainerId = null;
+          for (let i = diagram.shapes.length - 1; i >= 0; i--) {
+            const candidate = diagram.shapes[i];
+            if (candidate.id === shape.id) continue;
+            const candidateDef = Shapes.get(candidate.type);
+            if (!candidateDef || !candidateDef.isContainer) continue;
+            if (centerX >= candidate.x && centerX <= candidate.x + candidate.width &&
+                centerY >= candidate.y && centerY <= candidate.y + candidate.height) {
+              newContainerId = candidate.id;
+              break;
+            }
+          }
+
+          if (newContainerId !== oldContainerId) {
+            History.execute(new History.SetContainerCommand(shape.id, oldContainerId, newContainerId));
+          }
+        });
+
         History.endBatch('Move shapes');
         this._dragging = false;
         Renderer.clearAlignmentGuides();
@@ -812,6 +857,12 @@ const Tools = (() => {
           }
         }
         startInlineEdit(shape);
+        return;
+      }
+      // Double-click on connector to edit label
+      const conn = Renderer.getConnectorAt(pos.x, pos.y);
+      if (conn) {
+        startConnectorLabelEdit(conn, pos);
       }
     },
 
@@ -861,6 +912,7 @@ const Tools = (() => {
       const def = Shapes.get(drawShapeType);
       const shape = Model.createShape(drawShapeType, pos.x, pos.y, 1, 1);
       shape.ports = def.ports || Shapes.stdPorts();
+      if (def.defaultData) shape.data = def.defaultData();
       this._previewShape = shape;
       diagram.addShape(shape);
     },
@@ -1018,6 +1070,8 @@ const Tools = (() => {
           targetShape.id, targetPort.id
         );
         conn.points = Connectors.routeConnector(diagram, conn);
+        // Auto-label connectors from decision shapes
+        autoLabelDecisionConnector(conn, this._sourceShape);
         History.execute(new History.AddConnectorCommand(conn));
       }
 
@@ -1208,6 +1262,79 @@ const Tools = (() => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         textarea.blur();
+      }
+      e.stopPropagation();
+    });
+  }
+
+  // ===== Connector label inline editing =====
+  function startConnectorLabelEdit(conn, canvasPos) {
+    const existing = document.querySelector('.text-edit-overlay');
+    if (existing) existing.remove();
+
+    const zoom = Renderer.getZoom();
+    // Find the label position along the path
+    const labelPos = (conn.label && conn.label.position) || 0.5;
+    const pts = conn.points;
+    let pt = canvasPos;
+    if (pts && pts.length >= 2) {
+      // Calculate point along path
+      let totalLen = 0;
+      const segs = [];
+      for (let i = 1; i < pts.length; i++) {
+        const len = Utils.distance(pts[i - 1], pts[i]);
+        segs.push({ from: pts[i - 1], to: pts[i], len });
+        totalLen += len;
+      }
+      let target = totalLen * labelPos;
+      for (const seg of segs) {
+        if (target <= seg.len) {
+          const frac = seg.len === 0 ? 0 : target / seg.len;
+          pt = {
+            x: seg.from.x + (seg.to.x - seg.from.x) * frac,
+            y: seg.from.y + (seg.to.y - seg.from.y) * frac
+          };
+          break;
+        }
+        target -= seg.len;
+      }
+    }
+
+    const screenPos = Renderer.canvasToScreen(pt.x, pt.y);
+    const container = Renderer.getContainer();
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'text-edit-overlay';
+    input.value = (conn.label && conn.label.text) || '';
+    input.style.left = (screenPos.x + container.offsetLeft - 50) + 'px';
+    input.style.top = (screenPos.y + container.offsetTop - 12) + 'px';
+    input.style.width = '100px';
+    input.style.height = (24 * zoom) + 'px';
+    input.style.fontSize = (12 * zoom) + 'px';
+    input.style.textAlign = 'center';
+    input.style.fontFamily = 'MaruBuri, Inter, system-ui, sans-serif';
+    input.placeholder = 'Label';
+
+    document.body.appendChild(input);
+    input.focus();
+    input.select();
+
+    const finish = () => {
+      const newText = input.value;
+      diagram.updateConnector(conn.id, { label: { text: newText, position: labelPos } });
+      input.remove();
+    };
+
+    input.addEventListener('blur', finish);
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        input.value = (conn.label && conn.label.text) || '';
+        input.blur();
+      }
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        input.blur();
       }
       e.stopPropagation();
     });
@@ -1453,6 +1580,20 @@ const Tools = (() => {
     }
   }
 
+  // ===== Auto-label decision connectors =====
+  function autoLabelDecisionConnector(conn, sourceShape) {
+    if (sourceShape.type !== 'flowchart:decision') return;
+    // Count existing connectors from this decision shape
+    const existing = diagram.getConnectorsForShape(sourceShape.id)
+      .filter(c => c.sourceShapeId === sourceShape.id);
+    if (existing.length === 0) {
+      conn.label = { text: 'Yes', position: 0.5 };
+    } else if (existing.length === 1) {
+      conn.label = { text: 'No', position: 0.5 };
+    }
+    // 3+ connectors: no auto-label
+  }
+
   // Drag from palette handler
   function handlePaletteDrop(shapeType, x, y) {
     const def = Shapes.get(shapeType);
@@ -1465,6 +1606,10 @@ const Tools = (() => {
     }
     const shape = Model.createShape(shapeType, sx, sy, def.defaultSize.width, def.defaultSize.height);
     shape.ports = def.ports || Shapes.stdPorts();
+    // Initialize container data
+    if (def.defaultData) {
+      shape.data = def.defaultData();
+    }
     History.execute(new History.AddShapeCommand(shape));
     const newShape = diagram.getShape(shape.id);
     if (newShape) {
