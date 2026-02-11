@@ -601,19 +601,41 @@ const UI = (() => {
       });
       tlSection.appendChild(makePropRow('End', endDateInput));
 
+      const markersSelect = makeSelectInput((shape.data && shape.data.markers) || 'months', [
+        { value: 'days', label: 'Days' },
+        { value: 'weeks', label: 'Weeks' },
+        { value: 'months', label: 'Months' },
+        { value: 'years', label: 'Years' }
+      ], v => {
+        diagram.updateShapeDeep(shape.id, { data: { markers: v } });
+      });
+      tlSection.appendChild(makePropRow('Markers', markersSelect));
+
+      const labelFormatSelect = makeSelectInput((shape.data && shape.data.labelFormat) || 'M/D', [
+        { value: 'M/D', label: 'M/D' },
+        { value: 'D/M', label: 'D/M' },
+        { value: 'YYYY/M/D', label: 'YYYY/M/D' },
+        { value: 'M/D/YYYY', label: 'M/D/YYYY' },
+        { value: 'D/M/YYYY', label: 'D/M/YYYY' }
+      ], v => {
+        diagram.updateShapeDeep(shape.id, { data: { labelFormat: v } });
+      });
+      tlSection.appendChild(makePropRow('Label format', labelFormatSelect));
+
+      const tlTypeVal = (shape.data && shape.data.timelineType) || 'block';
+      const showLabelsDefault = tlTypeVal === 'block' ? (shape.data && shape.data.showLabels !== false) : !!(shape.data && shape.data.showLabels);
+      const showLabelsCheckbox = document.createElement('input');
+      showLabelsCheckbox.type = 'checkbox';
+      showLabelsCheckbox.checked = showLabelsDefault;
+      showLabelsCheckbox.addEventListener('change', () => {
+        diagram.updateShapeDeep(shape.id, { data: { showLabels: showLabelsCheckbox.checked } });
+      });
+      tlSection.appendChild(makePropRow('Show labels', showLabelsCheckbox));
+
       const guideInput = makeNumberInput((shape.data && shape.data.guideHeight) || 0, v => {
         diagram.updateShapeDeep(shape.id, { data: { guideHeight: Math.max(0, v) } });
       });
       tlSection.appendChild(makePropRow('Guide height', guideInput));
-
-      // Show dates checkbox (for line timelines, off by default)
-      const showDatesCheckbox = document.createElement('input');
-      showDatesCheckbox.type = 'checkbox';
-      showDatesCheckbox.checked = !!(shape.data && shape.data.showDates);
-      showDatesCheckbox.addEventListener('change', () => {
-        diagram.updateShapeDeep(shape.id, { data: { showDates: showDatesCheckbox.checked } });
-      });
-      tlSection.appendChild(makePropRow('Show dates', showDatesCheckbox));
 
       container.appendChild(tlSection);
     }

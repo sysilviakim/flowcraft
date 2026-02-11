@@ -463,52 +463,77 @@ const Shapes = (() => {
       const w = s.width, h = s.height;
       const guideH = (s.data && s.data.guideHeight) || 0;
       const tlType = (s.data && s.data.timelineType) || 'block';
+      const markers = (s.data && s.data.markers) || 'months';
+      const labelFormat = (s.data && s.data.labelFormat) || 'M/D';
+      const showLabels = tlType === 'block' ? (s.data && s.data.showLabels !== false) : !!(s.data && s.data.showLabels);
+
+      const parseD = ds => { const [y,m,d] = ds.split('-').map(Number); return new Date(y,m-1,d); };
+
+      function formatDate(dt) {
+        const m = dt.getMonth() + 1, d = dt.getDate(), y = dt.getFullYear();
+        switch (labelFormat) {
+          case 'YYYY/M/D': return `${y}/${m}/${d}`;
+          case 'M/D/YYYY': return `${m}/${d}/${y}`;
+          case 'D/M': return `${d}/${m}`;
+          case 'D/M/YYYY': return `${d}/${m}/${y}`;
+          case 'M/D':
+          default: return `${m}/${d}`;
+        }
+      }
+
+      function generateTicks(startDt, endDt) {
+        const ticks = [];
+        let d;
+        switch (markers) {
+          case 'days':
+            d = new Date(startDt); d.setDate(d.getDate() + 1);
+            while (d.getTime() < endDt.getTime()) { ticks.push(new Date(d)); d.setDate(d.getDate() + 1); }
+            break;
+          case 'weeks':
+            d = new Date(startDt);
+            d.setDate(d.getDate() + (7 - d.getDay()) % 7 || 7);
+            while (d.getTime() < endDt.getTime()) { ticks.push(new Date(d)); d.setDate(d.getDate() + 7); }
+            break;
+          case 'years':
+            d = new Date(startDt.getFullYear() + 1, 0, 1);
+            while (d.getTime() < endDt.getTime()) { ticks.push(new Date(d)); d.setFullYear(d.getFullYear() + 1); }
+            break;
+          case 'months':
+          default:
+            d = new Date(startDt.getFullYear(), startDt.getMonth() + 1, 1);
+            while (d.getTime() < endDt.getTime()) { ticks.push(new Date(d)); d.setMonth(d.getMonth() + 1); }
+            break;
+        }
+        return ticks;
+      }
 
       if (tlType === 'line') {
-        // Line timeline: horizontal line with tick marks and arrow
         const midY = h / 2;
-        const tickH = h * 0.4; // tick mark half-height
+        const tickH = h * 0.4;
         const arrowSize = 8;
-        // Main line
+        const strokeColor = s.style.stroke !== 'none' ? s.style.stroke : '#555555';
         let svg = `<rect x="0" y="0" width="${w}" height="${h}" fill="none" stroke="none"/>`;
-        svg += `<line x1="0" y1="${midY}" x2="${w - arrowSize}" y2="${midY}" stroke="${s.style.stroke !== 'none' ? s.style.stroke : '#555555'}" stroke-width="${Math.max(s.style.strokeWidth || 1.5, 1)}" fill="none"/>`;
-        // Arrow head
-        svg += `<polygon points="${w},${midY} ${w - arrowSize},${midY - arrowSize/2} ${w - arrowSize},${midY + arrowSize/2}" fill="${s.style.stroke !== 'none' ? s.style.stroke : '#555555'}" stroke="none"/>`;
-        // Start dot
+        svg += `<line x1="0" y1="${midY}" x2="${w - arrowSize}" y2="${midY}" stroke="${strokeColor}" stroke-width="${Math.max(s.style.strokeWidth || 1.5, 1)}" fill="none"/>`;
+        svg += `<polygon points="${w},${midY} ${w - arrowSize},${midY - arrowSize/2} ${w - arrowSize},${midY + arrowSize/2}" fill="${strokeColor}" stroke="none"/>`;
         svg += `<circle cx="0" cy="${midY}" r="3.5" fill="#b0b0b0" stroke="none"/>`;
 
         if (s.data && s.data.startDate && s.data.endDate) {
-          const parseD = ds => { const [y,m,d] = ds.split('-').map(Number); return new Date(y,m-1,d); };
-          const startMs = parseD(s.data.startDate).getTime();
-          const endMs = parseD(s.data.endDate).getTime();
-          const totalMs = endMs - startMs;
+          const sd = parseD(s.data.startDate), ed = parseD(s.data.endDate);
+          const startMs = sd.getTime(), endMs = ed.getTime(), totalMs = endMs - startMs;
           if (totalMs > 0) {
-            const sd = parseD(s.data.startDate);
-            const ed = parseD(s.data.endDate);
             const lineW = w - arrowSize;
-            const showDates = s.data.showDates === true;
-            // Start label
-            if (showDates) svg += `<text x="6" y="${midY - tickH - 4}" fill="#555555" stroke="none" font-size="9" font-family="MaruBuri,Inter,sans-serif">${sd.getMonth()+1}/${sd.getDate()}</text>`;
-            // Month-start ticks with graduated opacity (fades from light to dark)
-            const d = new Date(sd.getFullYear(), sd.getMonth()+1, 1);
-            const monthTicks = [];
-            while (d.getTime() < endMs) {
-              monthTicks.push(new Date(d));
-              d.setMonth(d.getMonth()+1);
-            }
-            monthTicks.forEach((tick, i) => {
-              const x = ((tick.getTime()-startMs)/totalMs)*lineW;
-              const progress = monthTicks.length > 1 ? i / (monthTicks.length - 1) : 0;
+            if (showLabels) svg += `<text x="6" y="${midY - tickH - 4}" fill="#555555" stroke="none" font-size="9" font-family="MaruBuri,Inter,sans-serif">${formatDate(sd)}</text>`;
+            const ticks = generateTicks(sd, ed);
+            ticks.forEach((tick, i) => {
+              const x = ((tick.getTime() - startMs) / totalMs) * lineW;
+              const progress = ticks.length > 1 ? i / (ticks.length - 1) : 0;
               const opacity = 0.25 + progress * 0.75;
               const strokeW = 0.5 + progress * 1.5;
-              svg += `<line x1="${x}" y1="${midY - tickH}" x2="${x}" y2="${midY + tickH}" fill="none" stroke="${s.style.stroke !== 'none' ? s.style.stroke : '#555555'}" stroke-width="${strokeW}" opacity="${opacity}"/>`;
-              if (guideH > 0) {
-                svg += `<line x1="${x}" y1="${midY + tickH}" x2="${x}" y2="${h + guideH}" fill="none" stroke="#d0d0d8" stroke-width="0.8" opacity="0.4"/>`;
-              }
-              if (showDates) svg += `<text x="${x+3}" y="${midY - tickH - 4}" fill="#555555" stroke="none" font-size="9" font-family="MaruBuri,Inter,sans-serif">${tick.getMonth()+1}/${tick.getDate()}</text>`;
+              svg += `<line x1="${x}" y1="${midY - tickH}" x2="${x}" y2="${midY + tickH}" fill="none" stroke="${strokeColor}" stroke-width="${strokeW}" opacity="${opacity}"/>`;
+              if (guideH > 0) svg += `<line x1="${x}" y1="${midY + tickH}" x2="${x}" y2="${h + guideH}" fill="none" stroke="#d0d0d8" stroke-width="0.8" opacity="0.4"/>`;
+              if (showLabels) svg += `<text x="${x+3}" y="${midY - tickH - 4}" fill="#555555" stroke="none" font-size="9" font-family="MaruBuri,Inter,sans-serif">${formatDate(tick)}</text>`;
             });
-            // End label
-            if (showDates) svg += `<text x="${lineW - 3}" y="${midY - tickH - 4}" fill="#555555" stroke="none" font-size="9" font-family="MaruBuri,Inter,sans-serif" text-anchor="end">${ed.getMonth()+1}/${ed.getDate()}</text>`;
+            if (showLabels) svg += `<text x="${lineW - 3}" y="${midY - tickH - 4}" fill="#555555" stroke="none" font-size="9" font-family="MaruBuri,Inter,sans-serif" text-anchor="end">${formatDate(ed)}</text>`;
           }
         }
         return svg;
@@ -517,28 +542,18 @@ const Shapes = (() => {
       // Block timeline (default): filled rectangle bar with ticks
       let svg = `<rect x="0" y="0" width="${w}" height="${h}" rx="2"/>`;
       if (s.data && s.data.startDate && s.data.endDate) {
-        const parseD = ds => { const [y,m,d] = ds.split('-').map(Number); return new Date(y,m-1,d); };
-        const startMs = parseD(s.data.startDate).getTime();
-        const endMs = parseD(s.data.endDate).getTime();
-        const totalMs = endMs - startMs;
+        const sd = parseD(s.data.startDate), ed = parseD(s.data.endDate);
+        const startMs = sd.getTime(), endMs = ed.getTime(), totalMs = endMs - startMs;
         if (totalMs > 0) {
-          const sd = parseD(s.data.startDate);
-          const ed = parseD(s.data.endDate);
-          // First tick at start
-          svg += `<text x="3" y="${h-4}" fill="#555555" stroke="none" font-size="9" font-family="MaruBuri,Inter,sans-serif">${sd.getMonth()+1}/${sd.getDate()}</text>`;
-          // Month-start ticks with optional guide lines
-          const d = new Date(sd.getFullYear(), sd.getMonth()+1, 1);
-          while (d.getTime() < endMs) {
-            const x = ((d.getTime()-startMs)/totalMs)*w;
+          if (showLabels) svg += `<text x="3" y="${h-4}" fill="#555555" stroke="none" font-size="9" font-family="MaruBuri,Inter,sans-serif">${formatDate(sd)}</text>`;
+          const ticks = generateTicks(sd, ed);
+          ticks.forEach(tick => {
+            const x = ((tick.getTime() - startMs) / totalMs) * w;
             svg += `<line x1="${x}" y1="0" x2="${x}" y2="${h}" fill="none" stroke-width="0.5" opacity="0.5"/>`;
-            if (guideH > 0) {
-              svg += `<line x1="${x}" y1="${h}" x2="${x}" y2="${h + guideH}" fill="none" stroke="#d0d0d8" stroke-width="0.8" opacity="0.4"/>`;
-            }
-            svg += `<text x="${x+3}" y="${h-4}" fill="#555555" stroke="none" font-size="9" font-family="MaruBuri,Inter,sans-serif">${d.getMonth()+1}/${d.getDate()}</text>`;
-            d.setMonth(d.getMonth()+1);
-          }
-          // End label
-          svg += `<text x="${w-3}" y="${h-4}" fill="#555555" stroke="none" font-size="9" font-family="MaruBuri,Inter,sans-serif" text-anchor="end">${ed.getMonth()+1}/${ed.getDate()}</text>`;
+            if (guideH > 0) svg += `<line x1="${x}" y1="${h}" x2="${x}" y2="${h + guideH}" fill="none" stroke="#d0d0d8" stroke-width="0.8" opacity="0.4"/>`;
+            if (showLabels) svg += `<text x="${x+3}" y="${h-4}" fill="#555555" stroke="none" font-size="9" font-family="MaruBuri,Inter,sans-serif">${formatDate(tick)}</text>`;
+          });
+          if (showLabels) svg += `<text x="${w-3}" y="${h-4}" fill="#555555" stroke="none" font-size="9" font-family="MaruBuri,Inter,sans-serif" text-anchor="end">${formatDate(ed)}</text>`;
         }
       }
       return svg;
