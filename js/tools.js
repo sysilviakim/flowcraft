@@ -38,14 +38,92 @@ const Tools = (() => {
   function getSelectedShapes() { return selectedShapes; }
   function getSelectedConnector() { return selectedConnector; }
 
+  function computeSelectionDistances(shapes) {
+    if (!shapes || shapes.length === 0) return [];
+    // Compute bounding box of selected shapes
+    let gx1 = Infinity, gy1 = Infinity, gx2 = -Infinity, gy2 = -Infinity;
+    shapes.forEach(s => {
+      gx1 = Math.min(gx1, s.x);
+      gy1 = Math.min(gy1, s.y);
+      gx2 = Math.max(gx2, s.x + s.width);
+      gy2 = Math.max(gy2, s.y + s.height);
+    });
+    const midX = (gx1 + gx2) / 2;
+    const midY = (gy1 + gy2) / 2;
+    const otherShapes = diagram.shapes.filter(s => !shapes.find(sel => sel.id === s.id));
+    const distances = [];
+    const maxDist = 400;
+
+    for (const other of otherShapes) {
+      const ox1 = other.x, oy1 = other.y;
+      const ox2 = other.x + other.width, oy2 = other.y + other.height;
+
+      // Horizontal overlap check for vertical gaps
+      const xOverlap = !(gx2 < ox1 || ox2 < gx1);
+      // Vertical overlap check for horizontal gaps
+      const yOverlap = !(gy2 < oy1 || oy2 < gy1);
+
+      if (yOverlap) {
+        const overlapMidY = (Math.max(gy1, oy1) + Math.min(gy2, oy2)) / 2;
+        // Gap to the left
+        const gapL = gx1 - ox2;
+        if (gapL > 0 && gapL < maxDist) {
+          distances.push({ x1: ox2, y1: overlapMidY, x2: gx1, y2: overlapMidY, value: Math.round(gapL) });
+        }
+        // Gap to the right
+        const gapR = ox1 - gx2;
+        if (gapR > 0 && gapR < maxDist) {
+          distances.push({ x1: gx2, y1: overlapMidY, x2: ox1, y2: overlapMidY, value: Math.round(gapR) });
+        }
+      }
+      if (xOverlap) {
+        const overlapMidX = (Math.max(gx1, ox1) + Math.min(gx2, ox2)) / 2;
+        // Gap above
+        const gapT = gy1 - oy2;
+        if (gapT > 0 && gapT < maxDist) {
+          distances.push({ x1: overlapMidX, y1: oy2, x2: overlapMidX, y2: gy1, value: Math.round(gapT) });
+        }
+        // Gap below
+        const gapB = oy1 - gy2;
+        if (gapB > 0 && gapB < maxDist) {
+          distances.push({ x1: overlapMidX, y1: gy2, x2: overlapMidX, y2: oy1, value: Math.round(gapB) });
+        }
+      }
+    }
+
+    // Keep only nearest in each direction
+    let nearestL = null, nearestR = null, nearestT = null, nearestB = null;
+    distances.forEach(d => {
+      const isHoriz = Math.abs(d.y1 - d.y2) < 1;
+      if (isHoriz) {
+        if (d.x1 < gx1) { // left
+          if (!nearestL || d.value < nearestL.value) nearestL = d;
+        } else { // right
+          if (!nearestR || d.value < nearestR.value) nearestR = d;
+        }
+      } else {
+        if (d.y1 < gy1) { // top
+          if (!nearestT || d.value < nearestT.value) nearestT = d;
+        } else { // bottom
+          if (!nearestB || d.value < nearestB.value) nearestB = d;
+        }
+      }
+    });
+    return [nearestL, nearestR, nearestT, nearestB].filter(Boolean);
+  }
+
   function setSelection(shapes, connector) {
     selectedShapes = shapes || [];
     selectedConnector = connector || null;
     if (selectedShapes.length > 0) {
       Renderer.showSelectionHandles(selectedShapes);
       Renderer.clearWaypointHandles();
+      // Show distances to nearest objects
+      const distances = computeSelectionDistances(selectedShapes);
+      Renderer.showAlignmentGuides(null, distances);
     } else {
       Renderer.clearSelectionHandles();
+      Renderer.clearAlignmentGuides();
     }
     if (selectedConnector) {
       Renderer.showWaypointHandles(selectedConnector);
@@ -478,7 +556,7 @@ const Tools = (() => {
         const otherShapes = diagram.shapes.filter(s => !selectedShapes.find(sel => sel.id === s.id));
         const snapThreshold = 5;
 
-        // Compute tentative positions for all selected shapes
+        // Compute tentative positions with grid snap as baseline
         const tentative = selectedShapes.map((shape, i) => {
           const offset = this._dragOffsets[i];
           let nx = pos.x + offset.ox;
@@ -491,7 +569,7 @@ const Tools = (() => {
           return { nx, ny, shape };
         });
 
-        // Compute group bounding box from tentative positions
+        // Compute group bounding box from grid-snapped positions
         let gx1 = Infinity, gy1 = Infinity, gx2 = -Infinity, gy2 = -Infinity;
         tentative.forEach(t => {
           gx1 = Math.min(gx1, t.nx);
@@ -517,7 +595,7 @@ const Tools = (() => {
           targetYs.add(o.y + o.height);
         });
 
-        // Find best X snap
+        // Find best X snap (shape-to-shape only — overrides grid if close enough)
         let bestDx = null, bestSnapX = null;
         for (const rx of refXs) {
           for (const tx of targetXs) {
@@ -529,7 +607,7 @@ const Tools = (() => {
           }
         }
 
-        // Find best Y snap
+        // Find best Y snap (shape-to-shape only — overrides grid if close enough)
         let bestDy = null, bestSnapY = null;
         for (const ry of refYs) {
           for (const ty of targetYs) {
@@ -786,6 +864,11 @@ const Tools = (() => {
           { x: shape.x, y: shape.y, width: shape.width, height: shape.height }
         ));
         this._resizing = false;
+        // Re-fetch and show distances after resize
+        selectedShapes = selectedShapes.map(s => diagram.getShape(s.id)).filter(Boolean);
+        const postResizeDistances = computeSelectionDistances(selectedShapes);
+        Renderer.showAlignmentGuides(null, postResizeDistances);
+        Renderer.showSelectionHandles(selectedShapes);
         return;
       }
 
@@ -832,7 +915,11 @@ const Tools = (() => {
 
         History.endBatch('Move shapes');
         this._dragging = false;
-        Renderer.clearAlignmentGuides();
+        // Re-fetch selected shapes with updated positions and show distances
+        selectedShapes = selectedShapes.map(s => diagram.getShape(s.id)).filter(Boolean);
+        const postDragDistances = computeSelectionDistances(selectedShapes);
+        Renderer.showAlignmentGuides(null, postDragDistances);
+        Renderer.showSelectionHandles(selectedShapes);
         return;
       }
 
@@ -1016,8 +1103,8 @@ const Tools = (() => {
           this._sourcePort = portInfo.port;
           Renderer.clearPorts();
         } else {
-          // Check if clicking on a shape - auto-select nearest port
-          const shape = Renderer.getShapeAt(pos.x, pos.y);
+          // Check if clicking near a shape - auto-select nearest port
+          const shape = Renderer.getShapeNear(pos.x, pos.y);
           if (shape) {
             const port = Connectors.findNearestPort(shape, pos.x, pos.y);
             if (port) {
@@ -1039,8 +1126,8 @@ const Tools = (() => {
         const srcPos = Shapes.getPortPosition(this._sourceShape, this._sourcePort);
         Renderer.showConnectorPreview([srcPos, pos]);
 
-        // Highlight ports on hovered shape
-        const shape = Renderer.getShapeAt(pos.x, pos.y);
+        // Highlight ports on hovered shape (with proximity margin)
+        const shape = Renderer.getShapeNear(pos.x, pos.y);
         if (shape && shape.id !== this._sourceShape.id) {
           Renderer.showPorts(shape);
         } else {
@@ -1049,8 +1136,8 @@ const Tools = (() => {
         return;
       }
 
-      // Not connecting - show ports on hover
-      const shape = Renderer.getShapeAt(pos.x, pos.y);
+      // Not connecting - show ports when cursor is near a shape
+      const shape = Renderer.getShapeNear(pos.x, pos.y);
       if (shape) {
         Renderer.showPorts(shape);
       } else {
@@ -1062,14 +1149,14 @@ const Tools = (() => {
       if (!this._connecting) return;
       const pos = getCanvasPos(e);
 
-      // Find target
+      // Find target (use proximity detection so you don't need pixel-perfect aim)
       let targetShape = null, targetPort = null;
       const portInfo = Renderer.getPortAt(pos.x, pos.y);
       if (portInfo && portInfo.shape.id !== this._sourceShape.id) {
         targetShape = portInfo.shape;
         targetPort = portInfo.port;
       } else {
-        const shape = Renderer.getShapeAt(pos.x, pos.y);
+        const shape = Renderer.getShapeNear(pos.x, pos.y);
         if (shape && shape.id !== this._sourceShape.id) {
           targetShape = shape;
           targetPort = Connectors.findNearestPort(shape, pos.x, pos.y);
