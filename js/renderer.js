@@ -663,7 +663,7 @@ const Renderer = (() => {
       const my = (pts[i].y + pts[i + 1].y) / 2;
       const circ = Utils.svgEl('circle', {
         cx: mx, cy: my, r: 4,
-        fill: '#e5f5ea', stroke: '#1a7a4c', 'stroke-width': 1,
+        fill: '#ffffff', stroke: '#1a7a4c', 'stroke-width': 1,
         cursor: 'pointer', 'pointer-events': 'all', opacity: 0.7
       });
       circ.setAttribute('data-midpoint-idx', i);
