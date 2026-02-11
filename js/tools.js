@@ -554,7 +554,7 @@ const Tools = (() => {
 
         const guides = [];
         const otherShapes = diagram.shapes.filter(s => !selectedShapes.find(sel => sel.id === s.id));
-        const snapThreshold = 5;
+        const snapThreshold = 10;
 
         // Compute tentative positions with grid snap as baseline
         const tentative = selectedShapes.map((shape, i) => {
@@ -670,36 +670,52 @@ const Tools = (() => {
           }
         });
 
-        // Build guide lines
-        if (bestSnapX !== null) {
-          let minY = Infinity, maxY = -Infinity;
-          tentative.forEach(t => { minY = Math.min(minY, t.ny); maxY = Math.max(maxY, t.ny + t.shape.height); });
-          otherShapes.forEach(o => {
-            const ox = [o.x, o.x + o.width / 2, o.x + o.width];
-            if (ox.some(v => Math.abs(v - bestSnapX) < 0.5)) {
-              minY = Math.min(minY, o.y);
-              maxY = Math.max(maxY, o.y + o.height);
+        // Build guide lines for ALL alignments after snap (not just the snap target)
+        // Final reference points after snap
+        const fgx1 = gx1 + dx, fgy1 = gy1 + dy;
+        const fgx2 = gx2 + dx, fgy2 = gy2 + dy;
+        const fRefXs = [fgx1, fgx1 + gw / 2, fgx2];
+        const fRefYs = [fgy1, fgy1 + gh / 2, fgy2];
+
+        // Show vertical guides for every X alignment
+        const shownXGuides = new Set();
+        for (const rx of fRefXs) {
+          for (const tx of targetXs) {
+            if (Math.abs(rx - tx) < 0.5 && !shownXGuides.has(tx)) {
+              shownXGuides.add(tx);
+              let minY = fgy1, maxY = fgy2;
+              otherShapes.forEach(o => {
+                const ox = [o.x, o.x + o.width / 2, o.x + o.width];
+                if (ox.some(v => Math.abs(v - tx) < 0.5)) {
+                  minY = Math.min(minY, o.y);
+                  maxY = Math.max(maxY, o.y + o.height);
+                }
+              });
+              guides.push({ x1: tx, y1: minY - 20, x2: tx, y2: maxY + 20 });
             }
-          });
-          guides.push({ x1: bestSnapX, y1: minY - 20, x2: bestSnapX, y2: maxY + 20 });
+          }
         }
-        if (bestSnapY !== null) {
-          let minX = Infinity, maxX = -Infinity;
-          tentative.forEach(t => { minX = Math.min(minX, t.nx); maxX = Math.max(maxX, t.nx + t.shape.width); });
-          otherShapes.forEach(o => {
-            const oy = [o.y, o.y + o.height / 2, o.y + o.height];
-            if (oy.some(v => Math.abs(v - bestSnapY) < 0.5)) {
-              minX = Math.min(minX, o.x);
-              maxX = Math.max(maxX, o.x + o.width);
+
+        // Show horizontal guides for every Y alignment
+        const shownYGuides = new Set();
+        for (const ry of fRefYs) {
+          for (const ty of targetYs) {
+            if (Math.abs(ry - ty) < 0.5 && !shownYGuides.has(ty)) {
+              shownYGuides.add(ty);
+              let minX = fgx1, maxX = fgx2;
+              otherShapes.forEach(o => {
+                const oy = [o.y, o.y + o.height / 2, o.y + o.height];
+                if (oy.some(v => Math.abs(v - ty) < 0.5)) {
+                  minX = Math.min(minX, o.x);
+                  maxX = Math.max(maxX, o.x + o.width);
+                }
+              });
+              guides.push({ x1: minX - 20, y1: ty, x2: maxX + 20, y2: ty });
             }
-          });
-          guides.push({ x1: minX - 20, y1: bestSnapY, x2: maxX + 20, y2: bestSnapY });
+          }
         }
 
         // === Distance indicators (#13) ===
-        // Compute group bounding box after snap
-        const fgx1 = gx1 + (dx || 0), fgy1 = gy1 + (dy || 0);
-        const fgx2 = gx2 + (dx || 0), fgy2 = gy2 + (dy || 0);
         const distances = [];
 
         // For each "other" shape, compute gaps to the dragged group
@@ -1013,6 +1029,29 @@ const Tools = (() => {
       if (e.key === 'a' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         setSelection([...diagram.shapes], null);
+      }
+      // Arrow keys to move selected shapes
+      if (selectedShapes.length > 0 && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        e.preventDefault();
+        // Ctrl+Arrow = 1px fine-tune, plain Arrow = grid-size step
+        const step = e.ctrlKey ? 1 : (diagram.settings.snapToGrid ? diagram.settings.gridSize : 10);
+        let mdx = 0, mdy = 0;
+        if (e.key === 'ArrowLeft') mdx = -step;
+        if (e.key === 'ArrowRight') mdx = step;
+        if (e.key === 'ArrowUp') mdy = -step;
+        if (e.key === 'ArrowDown') mdy = step;
+        History.beginBatch();
+        selectedShapes.forEach(s => {
+          const nx = s.x + mdx, ny = s.y + mdy;
+          History.execute(new History.MoveShapeCommand(s.id, { x: s.x, y: s.y }, { x: nx, y: ny }));
+          Connectors.updateConnectorsForShape(diagram, s.id);
+        });
+        History.endBatch('Move shapes');
+        selectedShapes = selectedShapes.map(s => diagram.getShape(s.id)).filter(Boolean);
+        Renderer.showSelectionHandles(selectedShapes);
+        const postMoveDistances = computeSelectionDistances(selectedShapes);
+        Renderer.showAlignmentGuides(null, postMoveDistances);
+        if (onSelectionChanged) onSelectionChanged(selectedShapes, selectedConnector);
       }
     }
   };
