@@ -45,6 +45,11 @@
     Renderer.setPan(rect.width / 2, rect.height / 2);
   }
 
+  // Track recently used shapes
+  diagram.on('shape:added', shape => {
+    if (shape && shape.type) UI.addRecentShape(shape.type);
+  });
+
   // Auto-update timeline interval dates when shapes are moved/resized
   function msToISO(ms) {
     const dt = new Date(ms);
@@ -90,6 +95,16 @@
     paletteToggle.addEventListener('click', () => {
       paletteWrapper.classList.toggle('collapsed');
       paletteToggle.innerHTML = paletteWrapper.classList.contains('collapsed') ? '&#9654;' : '&#9664;';
+    });
+  }
+
+  // Properties panel collapse toggle
+  const propsWrapper = document.getElementById('properties-wrapper');
+  const propsToggle = document.getElementById('props-toggle');
+  if (propsToggle && propsWrapper) {
+    propsToggle.addEventListener('click', () => {
+      propsWrapper.classList.toggle('collapsed');
+      propsToggle.innerHTML = propsWrapper.classList.contains('collapsed') ? '&#9664;' : '&#9654;';
     });
   }
 

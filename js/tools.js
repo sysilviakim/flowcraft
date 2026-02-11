@@ -141,6 +141,39 @@ const Tools = (() => {
     return Renderer.screenToCanvas(sx, sy);
   }
 
+  // ===== AUTO-PAN NEAR EDGES =====
+  const AUTO_PAN_ZONE = 40;  // px from edge
+  const AUTO_PAN_SPEED = 4;  // px per frame
+  let _autoPanRAF = null;
+  let _lastMouseClientX = 0, _lastMouseClientY = 0;
+
+  function startAutoPan() {
+    if (_autoPanRAF) return;
+    function tick() {
+      const rect = containerEl.getBoundingClientRect();
+      const mx = _lastMouseClientX - rect.left;
+      const my = _lastMouseClientY - rect.top;
+      let dx = 0, dy = 0;
+      if (mx < AUTO_PAN_ZONE) dx = AUTO_PAN_SPEED;
+      else if (mx > rect.width - AUTO_PAN_ZONE) dx = -AUTO_PAN_SPEED;
+      if (my < AUTO_PAN_ZONE) dy = AUTO_PAN_SPEED;
+      else if (my > rect.height - AUTO_PAN_ZONE) dy = -AUTO_PAN_SPEED;
+      if (dx !== 0 || dy !== 0) {
+        const pan = Renderer.getPan();
+        Renderer.setPan(pan.x + dx, pan.y + dy);
+      }
+      _autoPanRAF = requestAnimationFrame(tick);
+    }
+    _autoPanRAF = requestAnimationFrame(tick);
+  }
+
+  function stopAutoPan() {
+    if (_autoPanRAF) {
+      cancelAnimationFrame(_autoPanRAF);
+      _autoPanRAF = null;
+    }
+  }
+
   // ===== SELECT TOOL =====
   tools.select = {
     _dragging: false,
@@ -250,6 +283,8 @@ const Tools = (() => {
     },
 
     onMouseMove(e) {
+      _lastMouseClientX = e.clientX;
+      _lastMouseClientY = e.clientY;
       const pos = getCanvasPos(e);
 
       // Auto-connect line dragging
@@ -308,6 +343,16 @@ const Tools = (() => {
       }
 
       if (this._dragging && selectedShapes.length > 0) {
+        // Auto-pan when near edge
+        const edgeRect = containerEl.getBoundingClientRect();
+        const emx = e.clientX - edgeRect.left, emy = e.clientY - edgeRect.top;
+        if (emx < AUTO_PAN_ZONE || emx > edgeRect.width - AUTO_PAN_ZONE ||
+            emy < AUTO_PAN_ZONE || emy > edgeRect.height - AUTO_PAN_ZONE) {
+          startAutoPan();
+        } else {
+          stopAutoPan();
+        }
+
         const guides = [];
         const otherShapes = diagram.shapes.filter(s => !selectedShapes.find(sel => sel.id === s.id));
         const snapThreshold = 5;
@@ -500,6 +545,7 @@ const Tools = (() => {
       }
 
       if (this._dragging) {
+        stopAutoPan();
         // Record move commands
         History.beginBatch();
         selectedShapes.forEach((shape, i) => {

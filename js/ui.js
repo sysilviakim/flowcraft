@@ -31,12 +31,103 @@ const UI = (() => {
     Tools.setOnToolChanged(updateToolbar);
     History.setOnChange(updateHistoryButtons);
     diagram.on('changed', updateStatusBar);
+
+    // Reposition floating toolbar on shape moves; hide on pan/zoom
+    diagram.on('shape:changed', () => {
+      if (_floatingToolbar) {
+        const shapes = Tools.getSelectedShapes();
+        const conn = Tools.getSelectedConnector();
+        if (shapes.length > 0 || conn) positionFloatingToolbar(shapes, conn);
+      }
+    });
+
+    // Reposition floating toolbar on pan/zoom
+    let _ftRepositionTimer = null;
+    const svgEl = Renderer.getSvg();
+    svgEl.addEventListener('wheel', () => {
+      if (_floatingToolbar) _floatingToolbar.style.display = 'none';
+      clearTimeout(_ftRepositionTimer);
+      _ftRepositionTimer = setTimeout(() => {
+        if (_floatingToolbar) {
+          _floatingToolbar.style.display = '';
+          positionFloatingToolbar(Tools.getSelectedShapes(), Tools.getSelectedConnector());
+        }
+      }, 150);
+    }, { passive: true });
+  }
+
+  // ===== RECENTLY USED SHAPES =====
+  const RECENT_KEY = 'flowcraft-recent-shapes';
+  const MAX_RECENT = 8;
+
+  function getRecentShapes() {
+    try {
+      return JSON.parse(localStorage.getItem(RECENT_KEY)) || [];
+    } catch (e) { return []; }
+  }
+
+  function addRecentShape(type) {
+    let recent = getRecentShapes();
+    recent = recent.filter(t => t !== type);
+    recent.unshift(type);
+    if (recent.length > MAX_RECENT) recent.length = MAX_RECENT;
+    localStorage.setItem(RECENT_KEY, JSON.stringify(recent));
+    buildRecentSection();
+  }
+
+  function buildRecentSection() {
+    const palette = document.getElementById('palette');
+    if (!palette) return;
+    const existing = palette.querySelector('#palette-recent');
+    if (existing) existing.remove();
+
+    const recent = getRecentShapes();
+    if (recent.length === 0) return;
+
+    const section = document.createElement('div');
+    section.className = 'palette-section';
+    section.id = 'palette-recent';
+
+    const header = document.createElement('div');
+    header.className = 'palette-header';
+    header.innerHTML = '<span>Recent</span><span class="arrow">&#9662;</span>';
+    header.addEventListener('click', () => { section.classList.toggle('collapsed'); });
+    section.appendChild(header);
+
+    const grid = document.createElement('div');
+    grid.className = 'palette-grid';
+
+    recent.forEach(type => {
+      const def = Shapes.get(type);
+      if (!def) return;
+      const item = document.createElement('div');
+      item.className = 'palette-item';
+      item.setAttribute('draggable', 'true');
+      item.setAttribute('data-shape-type', def.type);
+      item.innerHTML = `${def.icon}<span class="palette-item-label">${def.label}</span>`;
+
+      item.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/plain', def.type);
+        e.dataTransfer.effectAllowed = 'copy';
+      });
+      item.addEventListener('click', () => {
+        Tools.setDrawShapeType(def.type);
+        Tools.setTool('draw');
+      });
+      grid.appendChild(item);
+    });
+
+    section.appendChild(grid);
+    palette.insertBefore(section, palette.firstChild);
   }
 
   // ===== SHAPE PALETTE =====
   function buildPalette() {
     const palette = document.getElementById('palette');
     Utils.removeChildren(palette);
+
+    // Build recent shapes section first
+    buildRecentSection();
 
     const categories = Shapes.getCategories();
     categories.forEach(cat => {
@@ -212,6 +303,167 @@ const UI = (() => {
     if (redoBtn) redoBtn.style.opacity = History.canRedo() ? 1 : 0.3;
   }
 
+  // ===== FLOATING MINI-TOOLBAR =====
+  let _floatingToolbar = null;
+
+  function hideFloatingToolbar() {
+    if (_floatingToolbar) {
+      _floatingToolbar.remove();
+      _floatingToolbar = null;
+    }
+  }
+
+  function showFloatingToolbar(shapes, connector) {
+    hideFloatingToolbar();
+    if ((!shapes || shapes.length === 0) && !connector) return;
+
+    const bar = document.createElement('div');
+    bar.className = 'floating-toolbar';
+
+    if (shapes && shapes.length >= 1) {
+      const shape = shapes[0];
+
+      // Fill color
+      const fillBtn = document.createElement('div');
+      fillBtn.className = 'ft-color';
+      fillBtn.style.backgroundColor = shape.style.fill;
+      fillBtn.title = 'Fill color';
+      const fillInput = document.createElement('input');
+      fillInput.type = 'color';
+      fillInput.value = shape.style.fill || '#ffffff';
+      fillInput.addEventListener('input', () => {
+        shapes.forEach(s => {
+          History.execute(new History.ChangeStyleCommand(s.id, 'style', { ...s.style }, { ...s.style, fill: fillInput.value }));
+        });
+        fillBtn.style.backgroundColor = fillInput.value;
+      });
+      fillBtn.appendChild(fillInput);
+      bar.appendChild(fillBtn);
+
+      // Stroke color
+      const strokeBtn = document.createElement('div');
+      strokeBtn.className = 'ft-color';
+      strokeBtn.style.backgroundColor = shape.style.stroke;
+      strokeBtn.title = 'Stroke color';
+      const strokeInput = document.createElement('input');
+      strokeInput.type = 'color';
+      strokeInput.value = shape.style.stroke || '#000000';
+      strokeInput.addEventListener('input', () => {
+        shapes.forEach(s => {
+          History.execute(new History.ChangeStyleCommand(s.id, 'style', { ...s.style }, { ...s.style, stroke: strokeInput.value }));
+        });
+        strokeBtn.style.backgroundColor = strokeInput.value;
+      });
+      strokeBtn.appendChild(strokeInput);
+      bar.appendChild(strokeBtn);
+
+      bar.appendChild(makeFtSep());
+
+      // Duplicate
+      const dupBtn = makeFtBtn('<svg viewBox="0 0 24 24"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2"/></svg>', 'Duplicate');
+      dupBtn.addEventListener('click', () => Tools.duplicateSelected());
+      bar.appendChild(dupBtn);
+
+      // Bring to front
+      const frontBtn = makeFtBtn('<svg viewBox="0 0 24 24"><rect x="2" y="2" width="8" height="8" rx="1" opacity=".4"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg>', 'Bring to front');
+      frontBtn.addEventListener('click', () => { diagram.bringToFront(shape.id); });
+      bar.appendChild(frontBtn);
+
+      bar.appendChild(makeFtSep());
+
+      // Delete
+      const delBtn = makeFtBtn('<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>', 'Delete');
+      delBtn.classList.add('danger');
+      delBtn.addEventListener('click', () => Tools.deleteSelected());
+      bar.appendChild(delBtn);
+    } else if (connector) {
+      // Routing type toggle
+      const routeTypes = ['straight', 'curved', 'orthogonal'];
+      const routeLabels = { straight: 'Straight', curved: 'Curved', orthogonal: 'Step' };
+      const routeBtn = makeFtBtn('<svg viewBox="0 0 24 24"><path d="M4 20L12 4l8 16"/></svg>', `Routing: ${routeLabels[connector.routingType]}`);
+      routeBtn.addEventListener('click', () => {
+        const idx = routeTypes.indexOf(connector.routingType);
+        const next = routeTypes[(idx + 1) % routeTypes.length];
+        diagram.updateConnector(connector.id, { routingType: next });
+        connector.points = Connectors.routeConnector(diagram, connector);
+        diagram.updateConnector(connector.id, { points: connector.points });
+        routeBtn.title = `Routing: ${routeLabels[next]}`;
+      });
+      bar.appendChild(routeBtn);
+
+      // Reverse arrows
+      const revBtn = makeFtBtn('<svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>', 'Reverse arrows');
+      revBtn.addEventListener('click', () => {
+        const oldStart = connector.startArrow;
+        const oldEnd = connector.endArrow;
+        diagram.updateConnector(connector.id, { startArrow: oldEnd, endArrow: oldStart });
+      });
+      bar.appendChild(revBtn);
+
+      bar.appendChild(makeFtSep());
+
+      // Delete
+      const delBtn = makeFtBtn('<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>', 'Delete');
+      delBtn.classList.add('danger');
+      delBtn.addEventListener('click', () => Tools.deleteSelected());
+      bar.appendChild(delBtn);
+    }
+
+    document.body.appendChild(bar);
+    _floatingToolbar = bar;
+
+    // Position above selected element
+    positionFloatingToolbar(shapes, connector);
+  }
+
+  function positionFloatingToolbar(shapes, connector) {
+    if (!_floatingToolbar) return;
+    const container = Renderer.getContainer();
+    const containerRect = container.getBoundingClientRect();
+
+    let cx, cy;
+    if (shapes && shapes.length > 0) {
+      const bounds = Utils.getBoundingRect(shapes);
+      const screen = Renderer.canvasToScreen(bounds.x + bounds.width / 2, bounds.y);
+      cx = screen.x + containerRect.left;
+      cy = screen.y + containerRect.top;
+    } else if (connector && connector.points && connector.points.length >= 2) {
+      const midIdx = Math.floor(connector.points.length / 2);
+      const pt = connector.points[midIdx];
+      const screen = Renderer.canvasToScreen(pt.x, pt.y);
+      cx = screen.x + containerRect.left;
+      cy = screen.y + containerRect.top;
+    } else {
+      hideFloatingToolbar();
+      return;
+    }
+
+    const barRect = _floatingToolbar.getBoundingClientRect();
+    let left = cx - barRect.width / 2;
+    let top = cy - barRect.height - 12;
+
+    // Keep within viewport
+    left = Math.max(4, Math.min(left, window.innerWidth - barRect.width - 4));
+    if (top < 4) top = cy + 12; // flip below if too high
+
+    _floatingToolbar.style.left = left + 'px';
+    _floatingToolbar.style.top = top + 'px';
+  }
+
+  function makeFtBtn(icon, title) {
+    const btn = document.createElement('button');
+    btn.className = 'ft-btn';
+    btn.innerHTML = icon;
+    btn.title = title || '';
+    return btn;
+  }
+
+  function makeFtSep() {
+    const sep = document.createElement('div');
+    sep.className = 'ft-sep';
+    return sep;
+  }
+
   // ===== PROPERTIES PANEL =====
   function buildPropertiesPanel() {
     const props = document.getElementById('properties');
@@ -229,6 +481,9 @@ const UI = (() => {
     const content = document.getElementById('props-content');
     if (!content) return;
     Utils.removeChildren(content);
+
+    // Show/hide floating mini-toolbar
+    showFloatingToolbar(shapes, connector);
 
     if (shapes && shapes.length === 1) {
       buildShapeProperties(content, shapes[0]);
@@ -980,5 +1235,7 @@ const UI = (() => {
   const iconMagnet = '<svg viewBox="0 0 24 24"><path d="M6 2v6a6 6 0 0012 0V2M6 2h4m4 0h4M6 8h4m4 0h4"/></svg>';
   const iconHelp = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
 
-  return { init, updatePropertiesPanel, updateStatusBar, zoomToFit };
+  return { init, updatePropertiesPanel, updateStatusBar, zoomToFit, addRecentShape, hideFloatingToolbar,
+    updateProperties() { updatePropertiesPanel(Tools.getSelectedShapes(), Tools.getSelectedConnector()); }
+  };
 })();
