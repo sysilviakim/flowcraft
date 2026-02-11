@@ -132,7 +132,7 @@ const UI = (() => {
     const categories = Shapes.getCategories();
     categories.forEach(cat => {
       const section = document.createElement('div');
-      const collapsedByDefault = ['UML', 'Network', 'Org Chart'];
+      const collapsedByDefault = ['UML', 'Network', 'Org Chart', 'ER Diagram', 'Mind Map'];
       section.className = 'palette-section' + (collapsedByDefault.includes(cat) ? ' collapsed' : '');
 
       const header = document.createElement('div');
@@ -641,6 +641,89 @@ const UI = (() => {
       container.appendChild(dateSection);
     }
 
+    // Container properties
+    const shapeDef = Shapes.get(shape.type);
+    if (shapeDef && shapeDef.isContainer) {
+      const containerSection = makePropsSection('Container');
+
+      // Background color (for simple container)
+      if (shape.type === 'container:container') {
+        const bgOnChange = v => {
+          const oldData = Utils.deepClone(shape.data);
+          const newData = { ...oldData, backgroundColor: v };
+          History.execute(new History.ChangeShapeDataCommand(shape.id, oldData, newData));
+        };
+        containerSection.appendChild(makePropRow('Background', makeColorInput((shape.data && shape.data.backgroundColor) || '#f0f7ff', bgOnChange)));
+
+        // Background color swatches from swimlane palette
+        const swatchGrid = document.createElement('div');
+        swatchGrid.className = 'color-swatch-grid';
+        Shapes.SWIMLANE_COLORS.forEach(color => {
+          const swatch = document.createElement('div');
+          swatch.className = 'color-swatch';
+          swatch.style.backgroundColor = color;
+          swatch.title = color;
+          swatch.addEventListener('click', () => bgOnChange(color));
+          swatchGrid.appendChild(swatch);
+        });
+        containerSection.appendChild(swatchGrid);
+      }
+
+      // Lanes editor (for swimlanes)
+      if (shape.data && shape.data.lanes) {
+        shape.data.lanes.forEach((lane, idx) => {
+          const laneRow = document.createElement('div');
+          laneRow.style.cssText = 'display:flex;gap:4px;align-items:center;padding:2px 0;';
+
+          const nameInput = document.createElement('input');
+          nameInput.className = 'props-input';
+          nameInput.style.flex = '1';
+          nameInput.value = lane.name || '';
+          nameInput.title = 'Lane name';
+          nameInput.addEventListener('change', () => {
+            const oldData = Utils.deepClone(shape.data);
+            shape.data.lanes[idx].name = nameInput.value;
+            diagram.updateShapeDeep(shape.id, { data: { lanes: shape.data.lanes } });
+          });
+
+          // Color picker - show dropdown with swimlane palette
+          const colorBtn = document.createElement('div');
+          colorBtn.style.cssText = `width:24px;height:20px;border:1px solid #ccc;border-radius:3px;cursor:pointer;background:${lane.color || '#eeeeee'};flex-shrink:0;`;
+          colorBtn.title = 'Lane color';
+          colorBtn.addEventListener('click', () => {
+            showLaneColorPicker(colorBtn, shape, idx);
+          });
+
+          const removeBtn = document.createElement('button');
+          removeBtn.textContent = '\u00d7';
+          removeBtn.style.cssText = 'width:20px;height:20px;border:none;background:#eee;cursor:pointer;border-radius:3px;font-size:12px;line-height:1;flex-shrink:0;';
+          removeBtn.title = 'Remove lane';
+          removeBtn.addEventListener('click', () => {
+            if (shape.data.lanes.length <= 1) return;
+            shape.data.lanes.splice(idx, 1);
+            diagram.updateShapeDeep(shape.id, { data: { lanes: shape.data.lanes } });
+            updatePropertiesPanel([diagram.getShape(shape.id)], null);
+          });
+
+          laneRow.append(nameInput, colorBtn, removeBtn);
+          containerSection.appendChild(laneRow);
+        });
+
+        const addBtn = document.createElement('button');
+        addBtn.textContent = '+ Add Lane';
+        addBtn.style.cssText = 'margin-top:4px;padding:4px 10px;border:1px solid #ccc;background:#fafafa;cursor:pointer;border-radius:3px;font-size:11px;width:100%;';
+        addBtn.addEventListener('click', () => {
+          const colorIdx = shape.data.lanes.length % Shapes.SWIMLANE_COLORS.length;
+          shape.data.lanes.push({ id: Utils.uid('lane'), name: `Lane ${shape.data.lanes.length + 1}`, color: Shapes.SWIMLANE_COLORS[colorIdx] });
+          diagram.updateShapeDeep(shape.id, { data: { lanes: shape.data.lanes } });
+          updatePropertiesPanel([diagram.getShape(shape.id)], null);
+        });
+        containerSection.appendChild(addBtn);
+      }
+
+      container.appendChild(containerSection);
+    }
+
     // Swim Lane lanes editor
     if (shape.type === 'flowchart:swim-lane' && shape.data && shape.data.lanes) {
       const lanesSection = makePropsSection('Lanes');
@@ -1045,6 +1128,42 @@ const UI = (() => {
     });
     select.addEventListener('change', () => onChange(select.value));
     return select;
+  }
+
+  // ===== Lane Color Picker =====
+  function showLaneColorPicker(anchorEl, shape, laneIdx) {
+    const existing = document.querySelector('.lane-color-picker');
+    if (existing) existing.remove();
+
+    const picker = document.createElement('div');
+    picker.className = 'lane-color-picker';
+    picker.style.cssText = 'position:fixed;z-index:10001;background:#fff;border:1px solid #ddd;border-radius:8px;padding:8px;box-shadow:0 4px 16px rgba(0,0,0,0.12);display:grid;grid-template-columns:repeat(6,24px);gap:4px;';
+
+    Shapes.SWIMLANE_COLORS.forEach(color => {
+      const swatch = document.createElement('div');
+      swatch.style.cssText = `width:24px;height:24px;border-radius:4px;cursor:pointer;background:${color};border:2px solid ${color === (shape.data.lanes[laneIdx].color || '') ? '#333' : 'transparent'};`;
+      swatch.addEventListener('click', () => {
+        shape.data.lanes[laneIdx].color = color;
+        diagram.updateShapeDeep(shape.id, { data: { lanes: shape.data.lanes } });
+        updatePropertiesPanel([diagram.getShape(shape.id)], null);
+        picker.remove();
+      });
+      picker.appendChild(swatch);
+    });
+
+    const rect = anchorEl.getBoundingClientRect();
+    picker.style.left = (rect.left - 80) + 'px';
+    picker.style.top = (rect.bottom + 4) + 'px';
+    document.body.appendChild(picker);
+
+    setTimeout(() => {
+      document.addEventListener('click', function closePicker(e) {
+        if (!picker.contains(e.target)) {
+          picker.remove();
+          document.removeEventListener('click', closePicker);
+        }
+      });
+    }, 10);
   }
 
   // ===== Dialogs =====
