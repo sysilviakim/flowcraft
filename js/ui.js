@@ -108,7 +108,7 @@ const UI = (() => {
     // Logo / App name
     const logo = document.createElement('div');
     logo.className = 'toolbar-group';
-    logo.innerHTML = '<span style="font-weight:700;font-size:15px;color:#4a6cf7;letter-spacing:-0.5px;margin-right:8px">FlowCraft</span>';
+    logo.innerHTML = '<span style="font-weight:700;font-size:15px;color:#1a7a4c;letter-spacing:-0.5px;margin-right:8px">FlowCraft</span>';
     toolbar.appendChild(logo);
 
     // File operations
@@ -303,6 +303,17 @@ const UI = (() => {
       History.execute(new History.ChangeStyleCommand(shape.id, 'textStyle', { ...shape.textStyle }, { ...shape.textStyle, fontWeight: v }));
     });
     textSection.appendChild(makePropRow('Weight', fontWeightSelect));
+
+    const fontFamilySelect = makeSelectInput(shape.textStyle.fontFamily, [
+      { value: 'MaruBuri, Inter, system-ui, sans-serif', label: 'MaruBuri' },
+      { value: 'Inter, system-ui, sans-serif', label: 'Inter' },
+      { value: 'system-ui, -apple-system, sans-serif', label: 'System UI' },
+      { value: 'Georgia, Times New Roman, serif', label: 'Serif' },
+      { value: 'Consolas, Courier New, monospace', label: 'Monospace' }
+    ], v => {
+      History.execute(new History.ChangeStyleCommand(shape.id, 'textStyle', { ...shape.textStyle }, { ...shape.textStyle, fontFamily: v }));
+    });
+    textSection.appendChild(makePropRow('Font', fontFamilySelect));
     container.appendChild(textSection);
 
     // Timeline interval date attributes
@@ -437,7 +448,8 @@ const UI = (() => {
   }
 
   function buildConnectorProperties(container, conn) {
-    const styleSection = makePropsSection('Connector Style');
+    // --- Line Style section ---
+    const styleSection = makePropsSection('Line Style');
     styleSection.appendChild(makePropRow('Color', makeColorInput(conn.style.stroke, v => {
       History.execute(new History.ChangeConnectorStyleCommand(conn.id, { ...conn.style }, { ...conn.style, stroke: v }));
     })));
@@ -445,26 +457,34 @@ const UI = (() => {
       History.execute(new History.ChangeConnectorStyleCommand(conn.id, { ...conn.style }, { ...conn.style, strokeWidth: v }));
     })));
 
+    // Dash pattern
+    const dashSelect = makeSelectInput(conn.style.strokeDash || '', [
+      { value: '', label: 'Solid' },
+      { value: '6 3', label: 'Dashed' },
+      { value: '2 3', label: 'Dotted' },
+      { value: '8 3 2 3', label: 'Dash-dot' }
+    ], v => {
+      History.execute(new History.ChangeConnectorStyleCommand(conn.id, { ...conn.style }, { ...conn.style, strokeDash: v }));
+    });
+    styleSection.appendChild(makePropRow('Pattern', dashSelect));
+    container.appendChild(styleSection);
+
+    // --- Routing section ---
+    const routeSection = makePropsSection('Routing');
     const routeSelect = makeSelectInput(conn.routingType, [
-      { value: 'orthogonal', label: 'Orthogonal' },
       { value: 'straight', label: 'Straight' },
-      { value: 'curved', label: 'Curved' }
+      { value: 'curved', label: 'Curved' },
+      { value: 'orthogonal', label: 'Step' }
     ], v => {
       diagram.updateConnector(conn.id, { routingType: v });
       conn.points = Connectors.routeConnector(diagram, conn);
       diagram.updateConnector(conn.id, { points: conn.points });
     });
-    styleSection.appendChild(makePropRow('Routing', routeSelect));
+    routeSection.appendChild(makePropRow('Type', routeSelect));
+    container.appendChild(routeSection);
 
-    const endArrowSelect = makeSelectInput(conn.endArrow, [
-      { value: 'arrow', label: 'Arrow' },
-      { value: 'diamond', label: 'Diamond' },
-      { value: 'circle', label: 'Circle' },
-      { value: 'none', label: 'None' }
-    ], v => {
-      diagram.updateConnector(conn.id, { endArrow: v });
-    });
-    styleSection.appendChild(makePropRow('End', endArrowSelect));
+    // --- Arrows section ---
+    const arrowSection = makePropsSection('Arrows');
 
     const startArrowSelect = makeSelectInput(conn.startArrow, [
       { value: 'none', label: 'None' },
@@ -474,18 +494,58 @@ const UI = (() => {
     ], v => {
       diagram.updateConnector(conn.id, { startArrow: v });
     });
-    styleSection.appendChild(makePropRow('Start', startArrowSelect));
+    arrowSection.appendChild(makePropRow('Start', startArrowSelect));
 
-    // Label
+    const endArrowSelect = makeSelectInput(conn.endArrow, [
+      { value: 'none', label: 'None' },
+      { value: 'arrow', label: 'Arrow' },
+      { value: 'diamond', label: 'Diamond' },
+      { value: 'circle', label: 'Circle' }
+    ], v => {
+      diagram.updateConnector(conn.id, { endArrow: v });
+    });
+    arrowSection.appendChild(makePropRow('End', endArrowSelect));
+
+    // Quick action buttons row
+    const btnRow = document.createElement('div');
+    btnRow.className = 'props-row';
+    btnRow.style.gap = '6px';
+
+    const reverseBtn = document.createElement('button');
+    reverseBtn.className = 'props-btn';
+    reverseBtn.textContent = 'Reverse';
+    reverseBtn.title = 'Swap arrow direction';
+    reverseBtn.addEventListener('click', () => {
+      const oldStart = conn.startArrow;
+      const oldEnd = conn.endArrow;
+      diagram.updateConnector(conn.id, { startArrow: oldEnd, endArrow: oldStart });
+      UI.updateProperties();
+    });
+    btnRow.appendChild(reverseBtn);
+
+    const noArrowBtn = document.createElement('button');
+    noArrowBtn.className = 'props-btn';
+    noArrowBtn.textContent = 'No arrows';
+    noArrowBtn.title = 'Remove all arrows (plain line)';
+    noArrowBtn.addEventListener('click', () => {
+      diagram.updateConnector(conn.id, { startArrow: 'none', endArrow: 'none' });
+      UI.updateProperties();
+    });
+    btnRow.appendChild(noArrowBtn);
+
+    arrowSection.appendChild(btnRow);
+    container.appendChild(arrowSection);
+
+    // --- Label section ---
+    const labelSection = makePropsSection('Label');
     const labelInput = document.createElement('input');
     labelInput.className = 'props-input';
     labelInput.value = (conn.label && conn.label.text) || '';
     labelInput.addEventListener('change', () => {
       diagram.updateConnector(conn.id, { label: { text: labelInput.value, position: 0.5 } });
     });
-    styleSection.appendChild(makePropRow('Label', labelInput));
-
-    container.appendChild(styleSection);
+    labelSection.appendChild(makePropRow('Text', labelInput));
+    container.appendChild(labelSection);
   }
 
   function buildCanvasProperties(container) {
