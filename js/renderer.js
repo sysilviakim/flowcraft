@@ -439,8 +439,17 @@ const Renderer = (() => {
 
     // Re-render connectors first (below shapes)
     diagram.connectors.forEach(c => renderConnector(c));
-    // Then shapes
-    diagram.shapes.forEach(s => renderShape(s));
+    // Then shapes: containers first, then regular shapes (so children render on top)
+    const containers = diagram.shapes.filter(s => {
+      const def = Shapes.get(s.type);
+      return def && def.isContainer;
+    });
+    const regular = diagram.shapes.filter(s => {
+      const def = Shapes.get(s.type);
+      return !def || !def.isContainer;
+    });
+    containers.forEach(s => renderShape(s));
+    regular.forEach(s => renderShape(s));
 
     updateGrid();
   }
