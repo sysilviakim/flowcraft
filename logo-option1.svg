@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="bg-grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4a6cf7"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+  </defs>
+  <!-- Rounded square background -->
+  <rect x="10" y="10" width="180" height="180" rx="36" ry="36" fill="url(#bg-grad1)"/>
+  <!-- Flowing bezier curves connecting nodes -->
+  <!-- Curve from node1 to node2 -->
+  <path d="M55 60 C80 60, 80 95, 105 95" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.85"/>
+  <!-- Curve from node2 to node3 -->
+  <path d="M105 95 C130 95, 125 55, 150 55" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.85"/>
+  <!-- Curve from node2 to node4 -->
+  <path d="M105 95 C125 95, 130 130, 150 130" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.85"/>
+  <!-- Curve from node1 to bottom-left node -->
+  <path d="M55 60 C55 85, 55 100, 65 125" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.85"/>
+  <!-- Node circles -->
+  <circle cx="55" cy="60" r="8" fill="#ffffff"/>
+  <circle cx="105" cy="95" r="9" fill="#ffffff"/>
+  <circle cx="150" cy="55" r="7" fill="#ffffff"/>
+  <circle cx="150" cy="130" r="7" fill="#ffffff"/>
+  <circle cx="65" cy="125" r="6" fill="#ffffff"/>
+  <!-- FlowCraft text -->
+  <text x="100" y="168" text-anchor="middle" fill="#ffffff" font-family="MaruBuri, Inter, system-ui, sans-serif" font-size="20" font-weight="600" letter-spacing="0.5">FlowCraft</text>
+</svg>

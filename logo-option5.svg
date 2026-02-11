@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="bg-grad5" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4a6cf7"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+  </defs>
+  <!-- Hexagonal badge background -->
+  <polygon points="100,14 172,44 172,136 100,166 28,136 28,44" fill="url(#bg-grad5)"/>
+  <!-- Subtle inner hexagon border -->
+  <polygon points="100,22 165,49 165,131 100,158 35,131 35,49" fill="none" stroke="#ffffff" stroke-width="1.5" opacity="0.15"/>
+  <!-- Hub-and-spoke: radiating lines from center -->
+  <!-- Spoke: top -->
+  <line x1="100" y1="90" x2="100" y2="42" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.8"/>
+  <!-- Spoke: top-right -->
+  <line x1="100" y1="90" x2="146" y2="55" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.8"/>
+  <!-- Spoke: bottom-right -->
+  <line x1="100" y1="90" x2="146" y2="125" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.8"/>
+  <!-- Spoke: bottom -->
+  <line x1="100" y1="90" x2="100" y2="138" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.8"/>
+  <!-- Spoke: bottom-left -->
+  <line x1="100" y1="90" x2="54" y2="125" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.8"/>
+  <!-- Spoke: top-left -->
+  <line x1="100" y1="90" x2="54" y2="55" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.8"/>
+  <!-- Central hub node -->
+  <circle cx="100" cy="90" r="12" fill="#ffffff"/>
+  <!-- Endpoint dots -->
+  <circle cx="100" cy="42" r="6" fill="#ffffff"/>
+  <circle cx="146" cy="55" r="6" fill="#ffffff"/>
+  <circle cx="146" cy="125" r="6" fill="#ffffff"/>
+  <circle cx="100" cy="138" r="6" fill="#ffffff"/>
+  <circle cx="54" cy="125" r="6" fill="#ffffff"/>
+  <circle cx="54" cy="55" r="6" fill="#ffffff"/>
+  <!-- FlowCraft text below hexagon -->
+  <text x="100" y="190" text-anchor="middle" fill="url(#bg-grad5)" font-family="MaruBuri, Inter, system-ui, sans-serif" font-size="18" font-weight="700" letter-spacing="0.5">FlowCraft</text>
+</svg>

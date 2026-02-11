@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="bg-grad3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4a6cf7"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+  </defs>
+  <!-- Rounded square background -->
+  <rect x="10" y="10" width="180" height="180" rx="36" ry="36" fill="url(#bg-grad3)"/>
+  <!-- Interlocking shapes in semi-transparent white -->
+  <!-- Circle (left) -->
+  <circle cx="78" cy="82" r="32" fill="#ffffff" opacity="0.3" stroke="#ffffff" stroke-width="2" stroke-opacity="0.6"/>
+  <!-- Diamond (right-top) -->
+  <rect x="98" y="56" width="38" height="38" rx="4" fill="#ffffff" opacity="0.3" stroke="#ffffff" stroke-width="2" stroke-opacity="0.6" transform="rotate(45, 117, 75)"/>
+  <!-- Rounded rectangle (bottom-right) -->
+  <rect x="88" y="90" width="50" height="36" rx="10" fill="#ffffff" opacity="0.3" stroke="#ffffff" stroke-width="2" stroke-opacity="0.6"/>
+  <!-- Overlap brightening - intersection areas appear brighter naturally with opacity stacking -->
+  <!-- Small accent dot at center of overlap -->
+  <circle cx="102" cy="88" r="3" fill="#ffffff" opacity="0.8"/>
+  <!-- FlowCraft text -->
+  <text x="100" y="168" text-anchor="middle" fill="#ffffff" font-family="MaruBuri, Inter, system-ui, sans-serif" font-size="20" font-weight="600" letter-spacing="0.5">FlowCraft</text>
+</svg>
