@@ -455,10 +455,13 @@ const Shapes = (() => {
     category: 'Flowchart', type: 'flowchart:timeline', label: 'Timeline',
     defaultSize: { width: 800, height: 40 },
     ports: [],
-    icon: paletteIconMulti(`<rect x="2" y="10" width="32" height="14" fill="#ffffff" stroke="#1a7a4c" stroke-width="1.2" rx="1"/>
-      <line x1="10" y1="10" x2="10" y2="24" stroke="#1a7a4c" stroke-width="0.6"/>
-      <line x1="18" y1="10" x2="18" y2="24" stroke="#1a7a4c" stroke-width="0.6"/>
-      <line x1="26" y1="10" x2="26" y2="24" stroke="#1a7a4c" stroke-width="0.6"/>`),
+    icon: paletteIconMulti(`<circle cx="2" cy="17" r="2" fill="#999" stroke="none"/>
+      <line x1="2" y1="17" x2="33" y2="17" stroke="#1a7a4c" stroke-width="1.2"/>
+      <polygon points="35,17 32,14.5 32,19.5" fill="#1a7a4c" stroke="none"/>
+      <line x1="9" y1="13" x2="9" y2="21" stroke="#1a7a4c" stroke-width="0.7" opacity="0.6"/>
+      <line x1="16" y1="13" x2="16" y2="21" stroke="#1a7a4c" stroke-width="0.7" opacity="0.6"/>
+      <line x1="23" y1="13" x2="23" y2="21" stroke="#1a7a4c" stroke-width="0.7" opacity="0.6"/>
+      <line x1="30" y1="13" x2="30" y2="21" stroke="#1a7a4c" stroke-width="0.7" opacity="0.6"/>`),
     render(s) {
       const w = s.width, h = s.height;
       const guideH = (s.data && s.data.guideHeight) || 0;
@@ -524,12 +527,9 @@ const Shapes = (() => {
             const lineW = w - arrowSize;
             if (showLabels) svg += `<text x="6" y="${midY - tickH - 4}" fill="#555555" stroke="none" font-size="9" font-family="MaruBuri,Inter,sans-serif">${formatDate(sd)}</text>`;
             const ticks = generateTicks(sd, ed);
-            ticks.forEach((tick, i) => {
+            ticks.forEach(tick => {
               const x = ((tick.getTime() - startMs) / totalMs) * lineW;
-              const progress = ticks.length > 1 ? i / (ticks.length - 1) : 0;
-              const opacity = 0.25 + progress * 0.75;
-              const strokeW = 0.5 + progress * 1.5;
-              svg += `<line x1="${x}" y1="${midY - tickH}" x2="${x}" y2="${midY + tickH}" fill="none" stroke="${strokeColor}" stroke-width="${strokeW}" opacity="${opacity}"/>`;
+              svg += `<line x1="${x}" y1="${midY - tickH}" x2="${x}" y2="${midY + tickH}" fill="none" stroke="${strokeColor}" stroke-width="0.5" opacity="0.5"/>`;
               if (guideH > 0) svg += `<line x1="${x}" y1="${midY + tickH}" x2="${x}" y2="${h + guideH}" fill="none" stroke="#d0d0d8" stroke-width="0.8" opacity="0.4"/>`;
               if (showLabels) svg += `<text x="${x+3}" y="${midY - tickH - 4}" fill="#555555" stroke="none" font-size="9" font-family="MaruBuri,Inter,sans-serif">${formatDate(tick)}</text>`;
             });
