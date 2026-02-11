@@ -11,10 +11,6 @@ Thumbs.db
 *.swo
 *~
 
-# Lucidchart source exports (not part of the app)
-*.vsdx
-*.csv
-
 # Example exports (not part of the app)
 annual-challenge.jpeg
 annual-challenge.pdf
@@ -28,3 +24,7 @@ annual-challenge.png
 
 # Claude Code
 .claude/
+CLAUDE.md
+
+# Misc
+flowcraft-white.svg
