@@ -157,11 +157,8 @@
       const isAttached = shape.data.timelineInterval && shape.data.timelineId;
 
       if (!isAttached) {
-        // Not yet attached — check if near a timeline (strict: horizontal + vertical)
-        const nearby = findNearbyTimeline(shape);
-        if (nearby && nearby.data && nearby.data.startDate && nearby.data.endDate) {
-          attachToTimeline(shape, nearby);
-        }
+        // Not attached — do NOT auto-attach on every move.
+        // Auto-attach only happens on shape:added (initial creation).
         return;
       }
       // Already attached — detach only if center X leaves the timeline's horizontal range
