@@ -472,6 +472,34 @@ const UI = (() => {
       textColorBtn.appendChild(textColorInput);
       bar.appendChild(textColorBtn);
 
+      // Font family selector
+      const fontSelect = document.createElement('select');
+      fontSelect.className = 'ft-size-input';
+      fontSelect.style.width = '80px';
+      fontSelect.title = 'Font family';
+      const fontOptions = [
+        { value: 'MaruBuri, Inter, system-ui, sans-serif', label: 'MaruBuri' },
+        { value: 'Inter, system-ui, sans-serif', label: 'Inter' },
+        { value: 'system-ui, -apple-system, sans-serif', label: 'System UI' },
+        { value: 'Georgia, Times New Roman, serif', label: 'Serif' },
+        { value: 'Consolas, Courier New, monospace', label: 'Mono' }
+      ];
+      fontOptions.forEach(opt => {
+        const o = document.createElement('option');
+        o.value = opt.value;
+        o.textContent = opt.label;
+        if (opt.value === shape.textStyle.fontFamily) o.selected = true;
+        fontSelect.appendChild(o);
+      });
+      fontSelect.addEventListener('change', () => {
+        History.beginBatch();
+        shapes.forEach(s => {
+          History.execute(new History.ChangeStyleCommand(s.id, 'textStyle', { ...s.textStyle }, { ...s.textStyle, fontFamily: fontSelect.value }));
+        });
+        History.endBatch();
+      });
+      bar.appendChild(fontSelect);
+
       bar.appendChild(makeFtSep());
 
       // Text alignment buttons
@@ -632,6 +660,8 @@ const UI = (() => {
 
     if (shapes && shapes.length === 1) {
       buildShapeProperties(content, shapes[0]);
+    } else if (shapes && shapes.length > 1) {
+      buildMultiShapeProperties(content, shapes);
     } else if (connector) {
       buildConnectorProperties(content, connector);
     } else {
@@ -1055,6 +1085,120 @@ const UI = (() => {
       diagram.updateShape(shape.id, { rotation: v });
     })));
     container.appendChild(posSection);
+  }
+
+  function buildMultiShapeProperties(container, shapes) {
+    const count = shapes.length;
+    const infoLabel = document.createElement('div');
+    infoLabel.style.cssText = 'padding:6px 10px;font-size:11px;color:#888;border-bottom:1px solid #e0e0e4;margin-bottom:4px;';
+    infoLabel.textContent = `${count} shapes selected`;
+    container.appendChild(infoLabel);
+
+    // Use first shape as reference for current values
+    const ref = shapes[0];
+
+    // Style section
+    const styleSection = makePropsSection('Style');
+    styleSection.appendChild(makePropRow('Fill', makeColorInput(ref.style.fill, v => {
+      History.beginBatch();
+      shapes.forEach(s => {
+        History.execute(new History.ChangeStyleCommand(s.id, 'style', { ...s.style }, { ...s.style, fill: v }));
+      });
+      History.endBatch();
+    }, true)));
+    styleSection.appendChild(makePropRow('Stroke', makeColorInput(ref.style.stroke, v => {
+      History.beginBatch();
+      shapes.forEach(s => {
+        History.execute(new History.ChangeStyleCommand(s.id, 'style', { ...s.style }, { ...s.style, stroke: v }));
+      });
+      History.endBatch();
+    }, true)));
+    styleSection.appendChild(makePropRow('Width', makeNumberInput(ref.style.strokeWidth, v => {
+      History.beginBatch();
+      shapes.forEach(s => {
+        History.execute(new History.ChangeStyleCommand(s.id, 'style', { ...s.style }, { ...s.style, strokeWidth: v }));
+      });
+      History.endBatch();
+    })));
+    styleSection.appendChild(makePropRow('Opacity', makeRangeInput(ref.style.opacity, 0, 1, 0.05, v => {
+      History.beginBatch();
+      shapes.forEach(s => {
+        History.execute(new History.ChangeStyleCommand(s.id, 'style', { ...s.style }, { ...s.style, opacity: v }));
+      });
+      History.endBatch();
+    })));
+    container.appendChild(styleSection);
+
+    // Text section
+    const textSection = makePropsSection('Text');
+    textSection.appendChild(makePropRow('Size', makeNumberInput(ref.textStyle.fontSize, v => {
+      History.beginBatch();
+      shapes.forEach(s => {
+        History.execute(new History.ChangeStyleCommand(s.id, 'textStyle', { ...s.textStyle }, { ...s.textStyle, fontSize: v }));
+      });
+      History.endBatch();
+    })));
+    textSection.appendChild(makePropRow('Color', makeColorInput(ref.textStyle.color, v => {
+      History.beginBatch();
+      shapes.forEach(s => {
+        History.execute(new History.ChangeStyleCommand(s.id, 'textStyle', { ...s.textStyle }, { ...s.textStyle, color: v }));
+      });
+      History.endBatch();
+    })));
+
+    const fontWeightSelect = makeSelectInput(ref.textStyle.fontWeight, [
+      { value: 'normal', label: 'Normal' },
+      { value: 'bold', label: 'Bold' },
+      { value: '300', label: 'Light' }
+    ], v => {
+      History.beginBatch();
+      shapes.forEach(s => {
+        History.execute(new History.ChangeStyleCommand(s.id, 'textStyle', { ...s.textStyle }, { ...s.textStyle, fontWeight: v }));
+      });
+      History.endBatch();
+    });
+    textSection.appendChild(makePropRow('Weight', fontWeightSelect));
+
+    const fontFamilySelect = makeSelectInput(ref.textStyle.fontFamily, [
+      { value: 'MaruBuri, Inter, system-ui, sans-serif', label: 'MaruBuri' },
+      { value: 'Inter, system-ui, sans-serif', label: 'Inter' },
+      { value: 'system-ui, -apple-system, sans-serif', label: 'System UI' },
+      { value: 'Georgia, Times New Roman, serif', label: 'Serif' },
+      { value: 'Consolas, Courier New, monospace', label: 'Monospace' }
+    ], v => {
+      History.beginBatch();
+      shapes.forEach(s => {
+        History.execute(new History.ChangeStyleCommand(s.id, 'textStyle', { ...s.textStyle }, { ...s.textStyle, fontFamily: v }));
+      });
+      History.endBatch();
+    });
+    textSection.appendChild(makePropRow('Font', fontFamilySelect));
+
+    const fontStyleSelect = makeSelectInput(ref.textStyle.fontStyle || 'normal', [
+      { value: 'normal', label: 'Normal' },
+      { value: 'italic', label: 'Italic' }
+    ], v => {
+      History.beginBatch();
+      shapes.forEach(s => {
+        History.execute(new History.ChangeStyleCommand(s.id, 'textStyle', { ...s.textStyle }, { ...s.textStyle, fontStyle: v }));
+      });
+      History.endBatch();
+    });
+    textSection.appendChild(makePropRow('Style', fontStyleSelect));
+
+    const textAlignSelect = makeSelectInput(ref.textStyle.align || 'center', [
+      { value: 'left', label: 'Left' },
+      { value: 'center', label: 'Center' },
+      { value: 'right', label: 'Right' }
+    ], v => {
+      History.beginBatch();
+      shapes.forEach(s => {
+        History.execute(new History.ChangeStyleCommand(s.id, 'textStyle', { ...s.textStyle }, { ...s.textStyle, align: v }));
+      });
+      History.endBatch();
+    });
+    textSection.appendChild(makePropRow('Align', textAlignSelect));
+    container.appendChild(textSection);
   }
 
   function buildConnectorProperties(container, conn) {
