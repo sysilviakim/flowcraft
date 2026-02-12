@@ -319,7 +319,7 @@ const Model = (() => {
       text: '',
       textStyle: {
         fontFamily: 'MaruBuri, Inter, system-ui, sans-serif',
-        fontSize: 14,
+        fontSize: 10,
         fontWeight: 'normal',
         fontStyle: 'normal',
         textDecoration: 'none',
