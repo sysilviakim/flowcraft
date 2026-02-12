@@ -291,8 +291,11 @@ const Renderer = (() => {
         else { startY = shape.height / 2 - (lineCount - 1) * lineHeight / 2; }
         Utils.RichText.appendTspansToTextEl(textEl, richLines, textX, startY, lineHeight, shape.textStyle);
       } else {
-        // Plain text: word-wrap to shape width
-        const lines = Utils.wrapText(shape.text, maxTextW, shape.textStyle.fontSize, shape.textStyle.fontFamily, shape.textStyle.fontWeight);
+        // Plain text: word-wrap to shape width, trim trailing empty lines
+        const rawLines = Utils.wrapText(shape.text, maxTextW, shape.textStyle.fontSize, shape.textStyle.fontFamily, shape.textStyle.fontWeight);
+        // Trim trailing empty lines to avoid phantom vertical offset
+        while (rawLines.length > 1 && rawLines[rawLines.length - 1] === '') rawLines.pop();
+        const lines = rawLines;
         let startY;
         if (vAlign === 'top') { startY = pad + shape.textStyle.fontSize; }
         else if (vAlign === 'bottom') { startY = shape.height - pad - (lines.length - 1) * lineHeight; }
@@ -302,7 +305,8 @@ const Renderer = (() => {
             x: textX,
             dy: i === 0 ? '0' : lineHeight
           });
-          tspan.textContent = line;
+          // Use non-breaking space for empty lines so they still take vertical space
+          tspan.textContent = line || '\u00A0';
           if (i === 0) tspan.setAttribute('y', startY);
           textEl.appendChild(tspan);
         });

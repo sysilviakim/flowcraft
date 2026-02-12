@@ -1522,7 +1522,7 @@ const Tools = (() => {
       }
       // Normalize: sanitize HTML and convert to plain text if no formatting
       const rawHtml = editor.innerHTML;
-      const newText = Utils.RichText.normalizeText(rawHtml);
+      const newText = Utils.RichText.normalizeText(rawHtml, shape.textStyle.color);
       if (newText !== (shape.text || '')) {
         History.execute(new History.ChangeTextCommand(shape.id, shape.text || '', newText));
       }

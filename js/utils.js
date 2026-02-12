@@ -397,15 +397,61 @@ const Utils = (() => {
     }
 
     /**
+     * Normalize a color string to a comparable form.
+     * Converts rgb(r,g,b) and hex to lowercase 6-digit hex.
+     */
+    function normalizeColor(c) {
+      if (!c) return '';
+      c = c.trim().toLowerCase();
+      // rgb(r, g, b) → hex
+      const m = c.match(/^rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/);
+      if (m) {
+        return '#' + [m[1], m[2], m[3]].map(v => parseInt(v).toString(16).padStart(2, '0')).join('');
+      }
+      // 3-digit hex → 6-digit
+      if (/^#[0-9a-f]{3}$/.test(c)) {
+        return '#' + c[1] + c[1] + c[2] + c[2] + c[3] + c[3];
+      }
+      return c;
+    }
+
+    /**
+     * Strip spans whose only formatting is the default text color.
+     */
+    function stripDefaultColorSpans(html, defaultColor) {
+      if (!defaultColor) return html;
+      const div = document.createElement('div');
+      div.innerHTML = html;
+      const normDefault = normalizeColor(defaultColor);
+      div.querySelectorAll('span').forEach(span => {
+        const spanColor = span.style.color;
+        if (spanColor && normalizeColor(spanColor) === normDefault) {
+          // This span only has the default color — unwrap it
+          while (span.firstChild) {
+            span.parentNode.insertBefore(span.firstChild, span);
+          }
+          span.remove();
+        }
+      });
+      return div.innerHTML;
+    }
+
+    /**
      * Convert HTML back to plain text if it has no formatting.
      * Returns plain text if no formatting, or original HTML if it has formatting.
+     * @param {string} html - the raw HTML from contenteditable
+     * @param {string} [defaultColor] - the shape's default text color to strip
      */
-    function normalizeText(html) {
+    function normalizeText(html, defaultColor) {
       if (!isRichText(html)) {
         // Decode HTML entities (e.g. &amp; → &) from contenteditable
         return htmlToPlainText(html);
       }
-      const sanitized = sanitizeHtml(html);
+      let sanitized = sanitizeHtml(html);
+      // Strip spans that only carry the default text color
+      if (defaultColor) {
+        sanitized = stripDefaultColorSpans(sanitized, defaultColor);
+      }
       if (isPlainEquivalent(sanitized)) {
         return htmlToPlainText(sanitized);
       }
