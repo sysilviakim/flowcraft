@@ -592,11 +592,10 @@ const Shapes = (() => {
     ports: [],
     defaultStyle: { fill: '#d1bcd2', stroke: 'none', strokeWidth: 0 },
     defaultTextStyle: { fontSize: 8 },
-    icon: paletteIconMulti(`<rect x="3" y="11" width="30" height="14" rx="5" fill="#d1bcd2" stroke="none"/>
+    icon: paletteIconMulti(`<rect x="3" y="11" width="30" height="14" fill="#d1bcd2" stroke="none"/>
       <text x="18" y="21" text-anchor="middle" font-size="6" fill="#1a1a2e" stroke="none">Interval</text>`),
     render(s) {
-      const r = Math.min(12, s.width / 4, s.height / 4);
-      return `<rect x="0" y="0" width="${s.width}" height="${s.height}" rx="${r}"/>`;
+      return `<rect x="0" y="0" width="${s.width}" height="${s.height}"/>`;
     }
   });
 
