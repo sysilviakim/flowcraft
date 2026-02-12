@@ -150,7 +150,7 @@ const UI = (() => {
       categories = allCategories;
     }
 
-    const collapsedByDefault = ['Containers', 'Flowchart', 'UML', 'Network', 'Org Chart', 'ER Diagram', 'Mind Map'];
+    const collapsedByDefault = ['Containers', 'Timeline', 'UML', 'Network', 'Org Chart', 'ER Diagram', 'Mind Map'];
     let _dragSection = null;
     let _dragPlaceholder = null;
 
