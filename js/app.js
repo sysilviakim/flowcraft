@@ -186,7 +186,7 @@
 
     if (totalMs <= 0 || tl.width <= 0) return;
 
-    const taskName = shape.data.taskName || shape.text.split('\n')[0];
+    const taskName = shape.data.taskName || '';
 
     if (shape.type === 'timeline:milestone') {
       const cx = shape.x + shape.width / 2;
