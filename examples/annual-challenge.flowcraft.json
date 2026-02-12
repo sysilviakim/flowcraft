@@ -2,7 +2,7 @@
   "id": "diag_annual_2026",
   "name": "2026 Research Goals - Annual Challenge",
   "created": 1770800793279,
-  "modified": 1770869976585,
+  "modified": 1770872532139,
   "settings": {
     "gridSize": 20,
     "snapToGrid": false,
@@ -25,6 +25,120 @@
     }
   ],
   "shapes": [
+    {
+      "id": "shp_mlizs0et_5",
+      "type": "timeline:timeline",
+      "x": 137.00000000000023,
+      "y": 757,
+      "width": 973,
+      "height": 40,
+      "rotation": 0,
+      "text": "",
+      "textStyle": {
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
+        "fontSize": 9,
+        "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
+        "color": "#1a1a2e",
+        "align": "center",
+        "vAlign": "middle"
+      },
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#555555",
+        "strokeWidth": 2,
+        "strokeDash": "",
+        "opacity": 1,
+        "shadow": false
+      },
+      "layerId": "layer_default",
+      "groupId": null,
+      "containerId": null,
+      "locked": false,
+      "ports": [],
+      "data": {
+        "timelineType": "line",
+        "startDate": "2026-01-01",
+        "endDate": "2026-12-31"
+      }
+    },
+    {
+      "id": "shp_mlizrp79_4",
+      "type": "timeline:timeline",
+      "x": 137.00000000000023,
+      "y": 698,
+      "width": 973,
+      "height": 40,
+      "rotation": 0,
+      "text": "",
+      "textStyle": {
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
+        "fontSize": 9,
+        "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
+        "color": "#1a1a2e",
+        "align": "center",
+        "vAlign": "middle"
+      },
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#555555",
+        "strokeWidth": 2,
+        "strokeDash": "",
+        "opacity": 1,
+        "shadow": false
+      },
+      "layerId": "layer_default",
+      "groupId": null,
+      "containerId": null,
+      "locked": false,
+      "ports": [],
+      "data": {
+        "timelineType": "line",
+        "startDate": "2026-01-01",
+        "endDate": "2026-12-31"
+      }
+    },
+    {
+      "id": "shp_mlizrl3o_3",
+      "type": "timeline:timeline",
+      "x": 137.00000000000023,
+      "y": 636,
+      "width": 973,
+      "height": 40,
+      "rotation": 0,
+      "text": "",
+      "textStyle": {
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
+        "fontSize": 9,
+        "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
+        "color": "#1a1a2e",
+        "align": "center",
+        "vAlign": "middle"
+      },
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#555555",
+        "strokeWidth": 2,
+        "strokeDash": "",
+        "opacity": 1,
+        "shadow": false
+      },
+      "layerId": "layer_default",
+      "groupId": null,
+      "containerId": null,
+      "locked": false,
+      "ports": [],
+      "data": {
+        "timelineType": "line",
+        "startDate": "2026-01-01",
+        "endDate": "2026-12-31"
+      }
+    },
     {
       "id": "shp_mlix3cs5_2",
       "type": "timeline:timeline",
@@ -537,7 +651,7 @@
       "width": 218.3,
       "height": 34,
       "rotation": 0,
-      "text": "analyze survey + first draft\n+ ASPA presentation\n2/5 - 4/29",
+      "text": "analyze survey + first draft\n+ ASPA presentation\n2/9 - 5/1",
       "textStyle": {
         "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 8,
@@ -564,9 +678,9 @@
         "timelineInterval": true,
         "taskName": "analyze survey + first draft\n+ ASPA presentation",
         "rowIndex": 1,
-        "timelineId": "shp_timeline_main",
-        "startDate": "2026-02-05",
-        "endDate": "2026-04-29"
+        "timelineId": "shp_mlix3cs5_2",
+        "startDate": "2026-02-09",
+        "endDate": "2026-05-01"
       }
     },
     {
@@ -577,7 +691,7 @@
       "width": 202.5,
       "height": 34,
       "rotation": 0,
-      "text": "lit review + frame/design + IRB\n1/2 - 3/20",
+      "text": "lit review + frame/design + IRB\n1/6 - 3/23",
       "textStyle": {
         "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 8,
@@ -604,9 +718,9 @@
         "timelineInterval": true,
         "taskName": "lit review + frame/design + IRB",
         "rowIndex": 2,
-        "timelineId": "shp_timeline_main",
-        "startDate": "2026-01-02",
-        "endDate": "2026-03-20"
+        "timelineId": "shp_mlix3cs5_2",
+        "startDate": "2026-01-06",
+        "endDate": "2026-03-23"
       }
     },
     {
@@ -1334,6 +1448,44 @@
       "type": "timeline:timeline",
       "x": 137.00000000000023,
       "y": 512,
+      "width": 973,
+      "height": 40,
+      "rotation": 0,
+      "text": "",
+      "textStyle": {
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
+        "fontSize": 9,
+        "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
+        "color": "#1a1a2e",
+        "align": "center",
+        "vAlign": "middle"
+      },
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#555555",
+        "strokeWidth": 2,
+        "strokeDash": "",
+        "opacity": 1,
+        "shadow": false
+      },
+      "layerId": "layer_default",
+      "groupId": null,
+      "containerId": null,
+      "locked": false,
+      "ports": [],
+      "data": {
+        "timelineType": "line",
+        "startDate": "2026-01-01",
+        "endDate": "2026-12-31"
+      }
+    },
+    {
+      "id": "shp_mlizr85j_2",
+      "type": "timeline:timeline",
+      "x": 137.00000000000023,
+      "y": 574,
       "width": 973,
       "height": 40,
       "rotation": 0,

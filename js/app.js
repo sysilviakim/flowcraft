@@ -66,13 +66,34 @@
     const [,m,d] = iso.split('-').map(Number);
     return `${m}/${d}`;
   }
+  const _monthAbbr = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function formatMsDate(dateStr, fmt) {
+    if (!dateStr) return '';
+    const [y,m,d] = dateStr.split('-').map(Number);
+    switch (fmt) {
+      case 'D/M': return `${d}/${m}`;
+      case 'Mon D': return `${_monthAbbr[m-1]} ${d}`;
+      case 'D Mon': return `${d} ${_monthAbbr[m-1]}`;
+      case 'YYYY-MM-DD': return dateStr;
+      case 'M/D/YYYY': return `${m}/${d}/${y}`;
+      case 'M/D':
+      default: return `${m}/${d}`;
+    }
+  }
 
   function findOverlappingTimeline(shape) {
     const cx = shape.x + shape.width / 2;
-    return diagram.shapes.find(s =>
-      s.type === 'timeline:timeline' && s.id !== shape.id &&
-      cx >= s.x && cx <= s.x + s.width
-    ) || null;
+    const cy = shape.y + shape.height / 2;
+    const maxVerticalDist = 60; // must be within 60px vertically of the timeline
+    return diagram.shapes.find(s => {
+      if (s.type !== 'timeline:timeline' || s.id === shape.id) return false;
+      if (cx < s.x || cx > s.x + s.width) return false;
+      // Check vertical proximity: shape center must be near the timeline's vertical span
+      const tlTop = s.y;
+      const tlBot = s.y + s.height + (s.data && s.data.guideHeight || 0);
+      const dist = cy < tlTop ? tlTop - cy : cy > tlBot ? cy - tlBot : 0;
+      return dist <= maxVerticalDist;
+    }) || null;
   }
 
   function attachToTimeline(shape, tl) {
@@ -89,7 +110,9 @@
       const cx = shape.x + shape.width / 2;
       const dateMs = startMs + ((cx - tl.x) / tl.width) * totalMs;
       const dateStr = msToISO(dateMs);
-      const newText = taskName ? taskName + '\n' + isoToShort(dateStr) : isoToShort(dateStr);
+      const fmt = (shape.data && shape.data.dateFormat) || 'M/D';
+      const dateLbl = formatMsDate(dateStr, fmt);
+      const newText = taskName ? taskName + '\n' + dateLbl : dateLbl;
       diagram.updateShapeDeep(shape.id, {
         text: newText,
         data: { timelineInterval: true, timelineId: tl.id, startDate: dateStr, endDate: dateStr, taskName: taskName }
@@ -122,23 +145,21 @@
 
     // Handle interval or milestone shapes - auto-attach/detach from timelines
     if (shape.type === 'timeline:interval' || shape.type === 'timeline:milestone') {
-      const currentTlId = shape.data.timelineId || null;
-      const overlapping = findOverlappingTimeline(shape);
+      const isAttached = shape.data.timelineInterval && shape.data.timelineId;
+      const nearby = findOverlappingTimeline(shape);
 
-      if (overlapping && overlapping.data && overlapping.data.startDate && overlapping.data.endDate) {
-        if (!shape.data.timelineInterval || overlapping.id !== currentTlId) {
-          // First attachment or switched to different timeline
-          attachToTimeline(shape, overlapping);
-          return;
-        }
-        // Already attached to this timeline — fall through to legacy handler for date recalc
-      } else if (currentTlId) {
-        // Moved off timeline
+      if (!isAttached && nearby && nearby.data && nearby.data.startDate && nearby.data.endDate) {
+        // Not yet attached but near a timeline — attach
+        attachToTimeline(shape, nearby);
+        return;
+      }
+      if (isAttached && !nearby) {
+        // Was attached but moved away — detach
         detachFromTimeline(shape);
         return;
-      } else {
-        return; // Not on any timeline, nothing to do
       }
+      if (!isAttached) return; // Not attached, not near any timeline
+      // Already attached — fall through to date recalc
     }
 
     // Recalculate dates for any shape attached to a timeline
@@ -160,8 +181,10 @@
       const dateMs = startMs + ((cx - tl.x) / tl.width) * totalMs;
       const dateStr = msToISO(dateMs);
       if (dateStr !== shape.data.startDate) {
+        const fmt = (shape.data && shape.data.dateFormat) || 'M/D';
+        const dateLbl = formatMsDate(dateStr, fmt);
         diagram.updateShapeDeep(shape.id, {
-          text: taskName + '\n' + isoToShort(dateStr),
+          text: taskName ? taskName + '\n' + dateLbl : dateLbl,
           data: { startDate: dateStr, endDate: dateStr }
         });
       }

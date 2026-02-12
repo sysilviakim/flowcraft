@@ -590,28 +590,28 @@ const Shapes = (() => {
 
   register({
     category: 'Timeline', type: 'timeline:milestone', label: 'Milestone',
-    defaultSize: { width: 14, height: 30 },
+    defaultSize: { width: 20, height: 30 },
     ports: [],
     customText: true,
     defaultStyle: { fill: '#e74c3c', stroke: 'none', strokeWidth: 0 },
-    defaultTextStyle: { fontSize: 9 },
-    icon: paletteIconMulti(`<line x1="12" y1="4" x2="12" y2="32" stroke="#c0392b" stroke-width="2"/>
-      <polygon points="12,4 26,9 12,14" fill="#e74c3c" stroke="none"/>
-      <circle cx="12" cy="32" r="2" fill="#c0392b" stroke="none"/>`),
+    defaultTextStyle: { fontSize: 7 },
+    icon: paletteIconMulti(`<line x1="10" y1="4" x2="10" y2="32" stroke="#c0392b" stroke-width="2"/>
+      <polygon points="10,4 28,10 10,16" fill="#e74c3c" stroke="none"/>
+      <circle cx="10" cy="32" r="2" fill="#c0392b" stroke="none"/>`),
     render(s) {
       const w = s.width, h = s.height;
-      const flagH = h * 0.4;
-      const poleX = w / 2;
+      const flagH = h * 0.5;
+      const poleX = 2;
       const fill = s.style.fill || '#e74c3c';
-      const fontSize = (s.textStyle && s.textStyle.fontSize) || 9;
+      const fontSize = (s.textStyle && s.textStyle.fontSize) || 7;
       let svg = `<line x1="${poleX}" y1="0" x2="${poleX}" y2="${h}" stroke="${fill}" stroke-width="2" fill="none"/>`;
       svg += `<polygon points="${poleX},0 ${w},${flagH/2} ${poleX},${flagH}"/>`;
       svg += `<circle cx="${poleX}" cy="${h}" r="2.5" fill="${fill}" stroke="none"/>`;
       if (s.text) {
         const lines = s.text.split('\n');
-        const labelY = h + fontSize + 4;
+        const labelY = h + fontSize + 3;
         lines.forEach((line, i) => {
-          svg += `<text x="${poleX}" y="${labelY + i * (fontSize * 1.2)}" text-anchor="middle" fill="${(s.textStyle && s.textStyle.color) || '#333'}" stroke="none" font-size="${fontSize}" font-family="MaruBuri,Inter,sans-serif">${line}</text>`;
+          svg += `<text x="${poleX}" y="${labelY + i * (fontSize * 1.2)}" fill="${(s.textStyle && s.textStyle.color) || '#555'}" stroke="none" font-size="${fontSize}" font-family="MaruBuri,Inter,sans-serif">${line}</text>`;
         });
       }
       return svg;

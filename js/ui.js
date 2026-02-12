@@ -809,6 +809,24 @@ const UI = (() => {
           applyTimelineDateChange(shape, dateInput.value, dateInput.value);
         });
         dateSection.appendChild(makePropRow('Date', dateInput));
+
+        const dateFmtSelect = makeSelectInput((shape.data && shape.data.dateFormat) || 'M/D', [
+          { value: 'M/D', label: 'M/D' },
+          { value: 'D/M', label: 'D/M' },
+          { value: 'Mon D', label: 'Mon D' },
+          { value: 'D Mon', label: 'D Mon' },
+          { value: 'YYYY-MM-DD', label: 'YYYY-MM-DD' },
+          { value: 'M/D/YYYY', label: 'M/D/YYYY' }
+        ], v => {
+          const s = diagram.getShape(shape.id);
+          const lbl = formatMilestoneDate(s.data.startDate, v);
+          const taskName = s.data.taskName || '';
+          diagram.updateShapeDeep(shape.id, {
+            text: taskName ? taskName + '\n' + lbl : lbl,
+            data: { dateFormat: v }
+          });
+        });
+        dateSection.appendChild(makePropRow('Format', dateFmtSelect));
       } else {
         const startInput = document.createElement('input');
         startInput.type = 'date';
@@ -1576,6 +1594,22 @@ const UI = (() => {
     const endMs = new Date(ey, em-1, ed).getTime();
     const dateMs = new Date(dy, dm-1, dd).getTime();
     return tl.startX + ((dateMs - startMs) / (endMs - startMs)) * (tl.endX - tl.startX);
+  }
+
+  const MONTH_ABBR = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  function formatMilestoneDate(dateStr, fmt) {
+    if (!dateStr) return '';
+    const [y,m,d] = dateStr.split('-').map(Number);
+    switch (fmt) {
+      case 'D/M': return `${d}/${m}`;
+      case 'Mon D': return `${MONTH_ABBR[m-1]} ${d}`;
+      case 'D Mon': return `${d} ${MONTH_ABBR[m-1]}`;
+      case 'YYYY-MM-DD': return dateStr;
+      case 'M/D/YYYY': return `${m}/${d}/${y}`;
+      case 'M/D':
+      default: return `${m}/${d}`;
+    }
   }
 
   function formatDateLabel(startDate, endDate) {
