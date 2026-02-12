@@ -430,8 +430,8 @@ const Shapes = (() => {
         const num = lane.number || '';
         const name = lane.name || '';
 
-        // Lane background (uses shape fill; 'none' for transparent)
-        const laneBg = s.style.fill || '#ffffff';
+        // Lane background (per-lane fill, falls back to shape fill)
+        const laneBg = lane.fill || s.style.fill || '#ffffff';
         svg += `<rect x="${headerW}" y="${y}" width="${w - headerW}" height="${laneH}" fill="${laneBg}" stroke="none"/>`;
         // Number cell
         svg += `<rect x="0" y="${y}" width="${numW}" height="${laneH}" fill="${laneBg === 'none' ? 'none' : '#f5f5f8'}" stroke="none"/>`;
@@ -1102,8 +1102,9 @@ const Shapes = (() => {
           const ly = hh + laneH * i;
           // Lane header background
           svg += `<rect x="0" y="${ly}" width="${lhw}" height="${laneH}" fill="${lane.color || '#eeeeee'}" stroke="none"/>`;
-          // Lane body background
-          svg += `<rect x="${lhw}" y="${ly}" width="${w - lhw}" height="${laneH}" fill="${bgFill}" stroke="none"/>`;
+          // Lane body background (per-lane fill, falls back to shape fill)
+          const laneFill = lane.fill || bgFill;
+          svg += `<rect x="${lhw}" y="${ly}" width="${w - lhw}" height="${laneH}" fill="${laneFill}" stroke="none"/>`;
           // Lane label
           svg += `<text x="${lhw/2}" y="${ly + laneH/2}" text-anchor="middle" dominant-baseline="central" fill="#333" stroke="none" font-size="${Math.min(fs, 12)}" font-weight="${fw}" font-family="${ff}" font-style="${fst}" text-decoration="${td}">${lane.name || ''}</text>`;
           // Lane divider
@@ -1175,8 +1176,9 @@ const Shapes = (() => {
           const lx = laneW * i;
           // Lane column header background
           svg += `<rect x="${lx}" y="${hh}" width="${laneW}" height="${lhh}" fill="${lane.color || '#eeeeee'}" stroke="none"/>`;
-          // Lane body background
-          svg += `<rect x="${lx}" y="${hh + lhh}" width="${laneW}" height="${h - hh - lhh}" fill="${bgFill}" stroke="none"/>`;
+          // Lane body background (per-lane fill, falls back to shape fill)
+          const laneFill = lane.fill || bgFill;
+          svg += `<rect x="${lx}" y="${hh + lhh}" width="${laneW}" height="${h - hh - lhh}" fill="${laneFill}" stroke="none"/>`;
           // Lane label
           svg += `<text x="${lx + laneW/2}" y="${hh + lhh/2}" text-anchor="middle" dominant-baseline="central" fill="#333" stroke="none" font-size="${Math.min(fs, 12)}" font-weight="${fw}" font-family="${ff}" font-style="${fst}" text-decoration="${td}">${lane.name || ''}</text>`;
           // Lane divider

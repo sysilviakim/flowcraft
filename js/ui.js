@@ -62,7 +62,9 @@ const UI = (() => {
 
   function getRecentShapes() {
     try {
-      return JSON.parse(localStorage.getItem(RECENT_KEY)) || [];
+      const arr = JSON.parse(localStorage.getItem(RECENT_KEY)) || [];
+      // Deduplicate in case of corruption
+      return [...new Set(arr)];
     } catch (e) { return []; }
   }
 
@@ -1056,25 +1058,38 @@ const UI = (() => {
       if (shape.data && shape.data.lanes) {
         shape.data.lanes.forEach((lane, idx) => {
           const laneRow = document.createElement('div');
-          laneRow.style.cssText = 'display:flex;gap:4px;align-items:center;padding:2px 0;';
+          laneRow.style.cssText = 'display:flex;gap:3px;align-items:center;padding:2px 0;';
 
           const nameInput = document.createElement('input');
           nameInput.className = 'props-input';
-          nameInput.style.flex = '1';
+          nameInput.style.cssText = 'flex:1;min-width:0;';
           nameInput.value = lane.name || '';
           nameInput.title = 'Lane name';
           nameInput.addEventListener('change', () => {
-            const oldData = Utils.deepClone(shape.data);
             shape.data.lanes[idx].name = nameInput.value;
             diagram.updateShapeDeep(shape.id, { data: { lanes: shape.data.lanes } });
           });
 
-          // Color picker - show dropdown with swimlane palette
+          // Header color picker - show dropdown with swimlane palette
           const colorBtn = document.createElement('div');
-          colorBtn.style.cssText = `width:24px;height:20px;border:1px solid #ccc;border-radius:3px;cursor:pointer;background:${lane.color || '#eeeeee'};flex-shrink:0;`;
-          colorBtn.title = 'Lane color';
+          colorBtn.style.cssText = `width:28px;height:22px;border:1px solid #ccc;border-radius:3px;cursor:pointer;background:${lane.color || '#eeeeee'};flex-shrink:0;`;
+          colorBtn.title = 'Header color';
           colorBtn.addEventListener('click', () => {
             showLaneColorPicker(colorBtn, shape, idx);
+          });
+
+          // Fill color picker for lane body
+          const fillBtn = document.createElement('div');
+          const hasFill = lane.fill && lane.fill !== 'transparent';
+          fillBtn.style.cssText = `width:28px;height:22px;border:1px solid #ccc;border-radius:3px;cursor:pointer;flex-shrink:0;background:${hasFill ? lane.fill : '#fff'};`;
+          if (!hasFill) fillBtn.textContent = '\u2013';
+          fillBtn.style.textAlign = 'center';
+          fillBtn.style.fontSize = '10px';
+          fillBtn.style.lineHeight = '20px';
+          fillBtn.style.color = '#999';
+          fillBtn.title = 'Lane fill color';
+          fillBtn.addEventListener('click', () => {
+            showLaneColorPicker(fillBtn, shape, idx, 'fill');
           });
 
           const removeBtn = document.createElement('button');
@@ -1088,7 +1103,7 @@ const UI = (() => {
             updatePropertiesPanel([diagram.getShape(shape.id)], null);
           });
 
-          laneRow.append(nameInput, colorBtn, removeBtn);
+          laneRow.append(nameInput, colorBtn, fillBtn, removeBtn);
           containerSection.appendChild(laneRow);
         });
 
@@ -1112,7 +1127,7 @@ const UI = (() => {
       const lanesSection = makePropsSection('Lanes');
       shape.data.lanes.forEach((lane, idx) => {
         const laneRow = document.createElement('div');
-        laneRow.style.cssText = 'display:flex;gap:4px;align-items:center;padding:2px 0;';
+        laneRow.style.cssText = 'display:flex;gap:3px;align-items:center;padding:2px 0;';
 
         const numInput = document.createElement('input');
         numInput.className = 'props-input';
@@ -1126,7 +1141,7 @@ const UI = (() => {
 
         const nameInput = document.createElement('input');
         nameInput.className = 'props-input';
-        nameInput.style.flex = '1';
+        nameInput.style.cssText = 'flex:1;min-width:0;';
         nameInput.value = (lane.name || '').replace(/\n/g, ' ');
         nameInput.title = 'Name';
         nameInput.addEventListener('change', () => {
@@ -1134,18 +1149,31 @@ const UI = (() => {
           diagram.updateShapeDeep(shape.id, { data: { lanes: shape.data.lanes } });
         });
 
+        // Header color picker
         const colorInput = document.createElement('input');
         colorInput.type = 'color';
-        colorInput.style.cssText = 'width:24px;height:20px;border:none;padding:0;cursor:pointer;';
+        colorInput.style.cssText = 'width:28px;height:22px;border:none;padding:0;cursor:pointer;flex-shrink:0;';
         colorInput.value = lane.color || '#ffffff';
+        colorInput.title = 'Header color';
         colorInput.addEventListener('input', () => {
           shape.data.lanes[idx].color = colorInput.value;
           diagram.updateShapeDeep(shape.id, { data: { lanes: shape.data.lanes } });
         });
 
+        // Fill color picker for lane body
+        const fillInput = document.createElement('input');
+        fillInput.type = 'color';
+        fillInput.style.cssText = 'width:28px;height:22px;border:none;padding:0;cursor:pointer;flex-shrink:0;';
+        fillInput.value = colorToHex6(lane.fill || shape.style.fill || '#ffffff');
+        fillInput.title = 'Lane fill color';
+        fillInput.addEventListener('input', () => {
+          shape.data.lanes[idx].fill = fillInput.value;
+          diagram.updateShapeDeep(shape.id, { data: { lanes: shape.data.lanes } });
+        });
+
         const removeBtn = document.createElement('button');
         removeBtn.textContent = '\u00d7';
-        removeBtn.style.cssText = 'width:20px;height:20px;border:none;background:#eee;cursor:pointer;border-radius:3px;font-size:12px;line-height:1;';
+        removeBtn.style.cssText = 'width:20px;height:20px;border:none;background:#eee;cursor:pointer;border-radius:3px;font-size:12px;line-height:1;flex-shrink:0;';
         removeBtn.title = 'Remove lane';
         removeBtn.addEventListener('click', () => {
           shape.data.lanes.splice(idx, 1);
@@ -1154,7 +1182,7 @@ const UI = (() => {
           updatePropertiesPanel([diagram.getShape(shape.id)], null);
         });
 
-        laneRow.append(numInput, nameInput, colorInput, removeBtn);
+        laneRow.append(numInput, nameInput, colorInput, fillInput, removeBtn);
         lanesSection.appendChild(laneRow);
       });
 
@@ -1719,7 +1747,8 @@ const UI = (() => {
   }
 
   // ===== Lane Color Picker =====
-  function showLaneColorPicker(anchorEl, shape, laneIdx) {
+  function showLaneColorPicker(anchorEl, shape, laneIdx, property) {
+    const prop = property || 'color';
     const existing = document.querySelector('.lane-color-picker');
     if (existing) existing.remove();
 
@@ -1727,11 +1756,27 @@ const UI = (() => {
     picker.className = 'lane-color-picker';
     picker.style.cssText = 'position:fixed;z-index:10001;background:#fff;border:1px solid #ddd;border-radius:8px;padding:8px;box-shadow:0 4px 16px rgba(0,0,0,0.12);display:grid;grid-template-columns:repeat(6,24px);gap:4px;';
 
+    // For fill property, add a "None" (transparent) option
+    if (prop === 'fill') {
+      const noneSwatch = document.createElement('div');
+      const isNone = !shape.data.lanes[laneIdx].fill || shape.data.lanes[laneIdx].fill === 'transparent';
+      noneSwatch.style.cssText = `width:24px;height:24px;border-radius:4px;cursor:pointer;background:linear-gradient(45deg,#ddd 25%,transparent 25%,transparent 75%,#ddd 75%),linear-gradient(45deg,#ddd 25%,transparent 25%,transparent 75%,#ddd 75%);background-size:8px 8px;background-position:0 0,4px 4px;border:2px solid ${isNone ? '#333' : 'transparent'};`;
+      noneSwatch.title = 'None (transparent)';
+      noneSwatch.addEventListener('click', () => {
+        delete shape.data.lanes[laneIdx].fill;
+        diagram.updateShapeDeep(shape.id, { data: { lanes: shape.data.lanes } });
+        updatePropertiesPanel([diagram.getShape(shape.id)], null);
+        picker.remove();
+      });
+      picker.appendChild(noneSwatch);
+    }
+
     Shapes.SWIMLANE_COLORS.forEach(color => {
+      const currentVal = shape.data.lanes[laneIdx][prop] || '';
       const swatch = document.createElement('div');
-      swatch.style.cssText = `width:24px;height:24px;border-radius:4px;cursor:pointer;background:${color};border:2px solid ${color === (shape.data.lanes[laneIdx].color || '') ? '#333' : 'transparent'};`;
+      swatch.style.cssText = `width:24px;height:24px;border-radius:4px;cursor:pointer;background:${color};border:2px solid ${color === currentVal ? '#333' : 'transparent'};`;
       swatch.addEventListener('click', () => {
-        shape.data.lanes[laneIdx].color = color;
+        shape.data.lanes[laneIdx][prop] = color;
         diagram.updateShapeDeep(shape.id, { data: { lanes: shape.data.lanes } });
         updatePropertiesPanel([diagram.getShape(shape.id)], null);
         picker.remove();
@@ -1761,6 +1806,8 @@ const UI = (() => {
       History.clear();
       Renderer.setPan(0, 0);
       Renderer.setZoom(1);
+      // Clear auto-save so reopening browser starts fresh
+      try { localStorage.removeItem('flowcraft-autosave'); } catch(e) {}
     }
   }
 

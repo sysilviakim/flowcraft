@@ -658,12 +658,30 @@ const Tools = (() => {
           targetYs.add(o.y);
           targetYs.add(o.y + o.height / 2);
           targetYs.add(o.y + o.height);
-          // Swim lane snap targets: lane boundaries and lane centers
-          if (o.type === 'flowchart:swim-lane' && o.data && o.data.lanes && o.data.lanes.length > 0) {
-            const laneH = o.height / o.data.lanes.length;
-            for (let i = 0; i < o.data.lanes.length; i++) {
-              targetYs.add(o.y + laneH * i + laneH / 2);  // lane center
-              if (i > 0) targetYs.add(o.y + laneH * i);    // lane divider
+          // Swim lane snap targets: visible divider lines only (not invisible centers)
+          if (o.data && o.data.lanes && o.data.lanes.length > 0) {
+            if (o.type === 'flowchart:swim-lane') {
+              const laneH = o.height / o.data.lanes.length;
+              for (let i = 1; i < o.data.lanes.length; i++) {
+                targetYs.add(o.y + laneH * i);
+              }
+            } else if (o.type === 'container:swimlane-h') {
+              const hh = (o.data.headerHeight) || 32;
+              const bodyH = o.height - hh;
+              const laneH = bodyH / o.data.lanes.length;
+              targetYs.add(o.y + hh);  // header bottom
+              for (let i = 1; i < o.data.lanes.length; i++) {
+                targetYs.add(o.y + hh + laneH * i);
+              }
+            } else if (o.type === 'container:swimlane-v') {
+              const hh = (o.data.headerHeight) || 32;
+              const lhh = (o.data.laneHeaderHeight) || 30;
+              const laneW = o.width / o.data.lanes.length;
+              targetYs.add(o.y + hh);       // header bottom
+              targetYs.add(o.y + hh + lhh); // lane header bottom
+              for (let i = 1; i < o.data.lanes.length; i++) {
+                targetXs.add(o.x + laneW * i);
+              }
             }
           }
         });
@@ -750,6 +768,46 @@ const Tools = (() => {
         const fRefXs = [fgx1, fgx1 + gw / 2, fgx2];
         const fRefYs = [fgy1, fgy1 + gh / 2, fgy2];
 
+        // Helper: get all snap X points for a shape (edges + swimlane internals)
+        function getShapeSnapXs(o) {
+          const xs = [o.x, o.x + o.width / 2, o.x + o.width];
+          // Vertical swimlane dividers only (no invisible lane centers)
+          if (o.data && o.data.lanes && o.data.lanes.length > 0 && o.type === 'container:swimlane-v') {
+            const laneW = o.width / o.data.lanes.length;
+            for (let i = 1; i < o.data.lanes.length; i++) {
+              xs.push(o.x + laneW * i);
+            }
+          }
+          return xs;
+        }
+        // Helper: get all snap Y points for a shape (edges + swimlane internals)
+        function getShapeSnapYs(o) {
+          const ys = [o.y, o.y + o.height / 2, o.y + o.height];
+          // Swim lane divider lines only (no invisible lane centers)
+          if (o.data && o.data.lanes && o.data.lanes.length > 0) {
+            if (o.type === 'flowchart:swim-lane') {
+              const laneH = o.height / o.data.lanes.length;
+              for (let i = 1; i < o.data.lanes.length; i++) {
+                ys.push(o.y + laneH * i);
+              }
+            } else if (o.type === 'container:swimlane-h') {
+              const hh = (o.data.headerHeight) || 32;
+              const bodyH = o.height - hh;
+              const laneH = bodyH / o.data.lanes.length;
+              ys.push(o.y + hh);  // header bottom divider
+              for (let i = 1; i < o.data.lanes.length; i++) {
+                ys.push(o.y + hh + laneH * i);
+              }
+            } else if (o.type === 'container:swimlane-v') {
+              const hh = (o.data.headerHeight) || 32;
+              const lhh = (o.data.laneHeaderHeight) || 30;
+              ys.push(o.y + hh);       // header bottom
+              ys.push(o.y + hh + lhh); // lane header bottom
+            }
+          }
+          return ys;
+        }
+
         // Show vertical guides for every X alignment
         const shownXGuides = new Set();
         for (const rx of fRefXs) {
@@ -758,8 +816,7 @@ const Tools = (() => {
               shownXGuides.add(tx);
               let minY = fgy1, maxY = fgy2;
               otherShapes.forEach(o => {
-                const ox = [o.x, o.x + o.width / 2, o.x + o.width];
-                if (ox.some(v => Math.abs(v - tx) < 0.5)) {
+                if (getShapeSnapXs(o).some(v => Math.abs(v - tx) < 0.5)) {
                   minY = Math.min(minY, o.y);
                   maxY = Math.max(maxY, o.y + o.height);
                 }
@@ -777,8 +834,7 @@ const Tools = (() => {
               shownYGuides.add(ty);
               let minX = fgx1, maxX = fgx2;
               otherShapes.forEach(o => {
-                const oy = [o.y, o.y + o.height / 2, o.y + o.height];
-                if (oy.some(v => Math.abs(v - ty) < 0.5)) {
+                if (getShapeSnapYs(o).some(v => Math.abs(v - ty) < 0.5)) {
                   minX = Math.min(minX, o.x);
                   maxX = Math.max(maxX, o.x + o.width);
                 }
@@ -962,7 +1018,8 @@ const Tools = (() => {
 
       if (this._rotating && selectedShapes.length === 1) {
         const shape = selectedShapes[0];
-        History.execute(new History.ResizeShapeCommand(
+        // Use record (not execute) since drag already applied the rotation
+        History.record(new History.ResizeShapeCommand(
           shape.id,
           { ...this._startBounds },
           { x: shape.x, y: shape.y, width: shape.width, height: shape.height, rotation: shape.rotation }
@@ -973,7 +1030,8 @@ const Tools = (() => {
 
       if (this._resizing && selectedShapes.length === 1) {
         const shape = selectedShapes[0];
-        History.execute(new History.ResizeShapeCommand(
+        // Use record (not execute) since drag already applied the resize
+        History.record(new History.ResizeShapeCommand(
           shape.id,
           this._startBounds,
           { x: shape.x, y: shape.y, width: shape.width, height: shape.height }
