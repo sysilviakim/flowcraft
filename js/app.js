@@ -81,18 +81,20 @@
     }
   }
 
-  // Strict check for new attachment: horizontal overlap + vertical proximity
+  // Strict check for new attachment: horizontal overlap + interval must vertically
+  // overlap the timeline's own row (y to y+height), not merely the guide area.
+  // This prevents intervals sandwiched between two timelines from auto-attaching.
   function findNearbyTimeline(shape) {
     const cx = shape.x + shape.width / 2;
-    const cy = shape.y + shape.height / 2;
-    const maxVerticalDist = 60;
+    const shapeTop = shape.y;
+    const shapeBot = shape.y + shape.height;
     return diagram.shapes.find(s => {
       if (s.type !== 'timeline:timeline' || s.id === shape.id) return false;
       if (cx < s.x || cx > s.x + s.width) return false;
-      const tlTop = s.y;
-      const tlBot = s.y + s.height + (s.data && s.data.guideHeight || 0);
-      const dist = cy < tlTop ? tlTop - cy : cy > tlBot ? cy - tlBot : 0;
-      return dist <= maxVerticalDist;
+      // Require the interval to vertically overlap the timeline's row band
+      const rowTop = s.y;
+      const rowBot = s.y + s.height;
+      return shapeBot > rowTop && shapeTop < rowBot;
     }) || null;
   }
 
@@ -157,8 +159,11 @@
       const isAttached = shape.data.timelineInterval && shape.data.timelineId;
 
       if (!isAttached) {
-        // Not attached — do NOT auto-attach on every move.
-        // Auto-attach only happens on shape:added (initial creation).
+        // Not yet attached — check if overlapping a timeline's row
+        const nearby = findNearbyTimeline(shape);
+        if (nearby && nearby.data && nearby.data.startDate && nearby.data.endDate) {
+          attachToTimeline(shape, nearby);
+        }
         return;
       }
       // Already attached — detach only if center X leaves the timeline's horizontal range
