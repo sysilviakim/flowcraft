@@ -1,4 +1,4 @@
-# FlowCraft
+# FlowCraft <img src="logo.svg" align="right" height="138" />
 
 A free, local, browser-based diagramming application. No server, no signup, no external dependencies — just open `index.html` in your browser and start diagramming.
 
@@ -40,6 +40,9 @@ No build step, no dependencies, no internet connection required.
 | Ctrl+Arrow | Nudge selected by 1px |
 | Space+Drag | Pan canvas |
 | Scroll wheel | Zoom |
+| Ctrl+B | Bold |
+| Ctrl+I | Italic |
+| Ctrl+U | Underline |
 | Double-click | Edit shape text |
 
 ## Shape Categories
@@ -59,8 +62,12 @@ Diagrams are saved as `.flowcraft.json` files — plain JSON that's easy to insp
 
 ## License
 
-Copyright (C) 2026 Silvia Kim
+Copyright (C) 2026 Seo-young Silvia Kim
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
 See [LICENSE](https://www.gnu.org/licenses/agpl-3.0.html) for details.
+
+## Support
+
+If you find FlowCraft useful, consider buying me a coffee: [buymeacoffee.com/sysilviakim](https://buymeacoffee.com/sysilviakim)
