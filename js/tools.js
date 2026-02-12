@@ -1421,44 +1421,77 @@ const Tools = (() => {
 
     const screenPos = Renderer.canvasToScreen(editX, editY);
 
-    const textarea = document.createElement('textarea');
-    textarea.className = 'text-edit-overlay';
-    textarea.value = shape.text || '';
-    textarea.style.left = (screenPos.x + containerEl.offsetLeft) + 'px';
-    textarea.style.top = (screenPos.y + containerEl.offsetTop) + 'px';
-    textarea.style.width = (editW * zoom) + 'px';
-    textarea.style.height = (editH * zoom) + 'px';
-    textarea.style.fontSize = (shape.textStyle.fontSize * zoom) + 'px';
-    textarea.style.fontFamily = shape.textStyle.fontFamily;
-    textarea.style.fontWeight = shape.textStyle.fontWeight;
-    textarea.style.fontStyle = shape.textStyle.fontStyle || 'normal';
-    textarea.style.textDecoration = shape.textStyle.textDecoration || 'none';
-    textarea.style.color = shape.textStyle.color;
-    textarea.style.textAlign = def.customText ? 'center' : shape.textStyle.align;
+    const editor = document.createElement('div');
+    editor.className = 'text-edit-overlay';
+    editor.setAttribute('contenteditable', 'true');
+    // Load existing text: rich HTML or convert plain text
+    const currentText = shape.text || '';
+    if (Utils.RichText.isRichText(currentText)) {
+      editor.innerHTML = currentText;
+    } else {
+      editor.innerHTML = Utils.RichText.plainTextToHtml(currentText);
+    }
+    editor.style.left = (screenPos.x + containerEl.offsetLeft) + 'px';
+    editor.style.top = (screenPos.y + containerEl.offsetTop) + 'px';
+    editor.style.width = (editW * zoom) + 'px';
+    editor.style.minHeight = (editH * zoom) + 'px';
+    editor.style.fontSize = (shape.textStyle.fontSize * zoom) + 'px';
+    editor.style.fontFamily = shape.textStyle.fontFamily;
+    editor.style.fontWeight = shape.textStyle.fontWeight;
+    editor.style.fontStyle = shape.textStyle.fontStyle || 'normal';
+    editor.style.textDecoration = shape.textStyle.textDecoration || 'none';
+    editor.style.color = shape.textStyle.color;
+    editor.style.textAlign = def.customText ? 'center' : shape.textStyle.align;
 
-    document.body.appendChild(textarea);
-    textarea.focus();
-    textarea.select();
+    document.body.appendChild(editor);
+    editor.focus();
+    // Select all content
+    const sel = window.getSelection();
+    const range = document.createRange();
+    range.selectNodeContents(editor);
+    sel.removeAllRanges();
+    sel.addRange(range);
+
+    let cancelled = false;
 
     const finish = () => {
-      const newText = textarea.value;
+      if (cancelled) {
+        editor.remove();
+        return;
+      }
+      // Normalize: sanitize HTML and convert to plain text if no formatting
+      const rawHtml = editor.innerHTML;
+      const newText = Utils.RichText.normalizeText(rawHtml);
       if (newText !== (shape.text || '')) {
         History.execute(new History.ChangeTextCommand(shape.id, shape.text || '', newText));
       }
-      textarea.remove();
+      editor.remove();
     };
 
-    textarea.addEventListener('blur', finish);
-    textarea.addEventListener('keydown', e => {
+    editor.addEventListener('blur', finish);
+    editor.addEventListener('keydown', e => {
       if (e.key === 'Escape') {
-        textarea.value = shape.text || '';
-        textarea.blur();
+        cancelled = true;
+        editor.blur();
       }
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        textarea.blur();
+        editor.blur();
       }
       e.stopPropagation();
+    });
+
+    // Sanitize pasted HTML to only allowed tags
+    editor.addEventListener('paste', e => {
+      e.preventDefault();
+      const html = e.clipboardData.getData('text/html');
+      const text = e.clipboardData.getData('text/plain');
+      if (html) {
+        const clean = Utils.RichText.sanitizeHtml(html);
+        document.execCommand('insertHTML', false, clean);
+      } else if (text) {
+        document.execCommand('insertText', false, text);
+      }
     });
   }
 
