@@ -237,6 +237,18 @@ const Shapes = (() => {
   // FLOWCHART SHAPES
   // ============================================================
   register({
+    category: 'Flowchart', type: 'flowchart:text', label: 'Text',
+    defaultSize: { width: 160, height: 40 },
+    ports: stdPorts(),
+    icon: paletteIconMulti('<text x="18" y="22" text-anchor="middle" font-size="14" font-family="MaruBuri,Inter,sans-serif" fill="#1a7a4c" stroke="none" font-weight="600">Text</text>'),
+    defaultStyle: { fill: 'none', stroke: 'none', strokeWidth: 0, opacity: 1 },
+    defaultTextStyle: { align: 'left', vAlign: 'top' },
+    render(s) {
+      return `<rect x="0" y="0" width="${s.width}" height="${s.height}" fill="none" stroke="none"/>`;
+    }
+  });
+
+  register({
     category: 'Flowchart', type: 'flowchart:process', label: 'Process',
     defaultSize: { width: 140, height: 70 },
     ports: stdPorts(),

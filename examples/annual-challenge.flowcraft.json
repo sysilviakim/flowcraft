@@ -2,7 +2,7 @@
   "id": "diag_annual_2026",
   "name": "2026 Research Goals - Annual Challenge",
   "created": 1770800793279,
-  "modified": 1770872532139,
+  "modified": 1770874189950,
   "settings": {
     "gridSize": 20,
     "snapToGrid": false,
@@ -25,6 +25,275 @@
     }
   ],
   "shapes": [
+    {
+      "id": "shp_swim_lanes",
+      "type": "flowchart:swim-lane",
+      "x": 22,
+      "y": 250,
+      "width": 1088,
+      "height": 806,
+      "rotation": 0,
+      "text": "",
+      "textStyle": {
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
+        "fontSize": 11,
+        "fontWeight": "bold",
+        "fontStyle": "normal",
+        "textDecoration": "none",
+        "color": "#1a1a2e",
+        "align": "center",
+        "vAlign": "middle"
+      },
+      "style": {
+        "fill": "none",
+        "stroke": "#d0d0d8",
+        "strokeWidth": 0.5,
+        "strokeDash": "",
+        "opacity": 1,
+        "shadow": false
+      },
+      "layerId": "layer_default",
+      "groupId": null,
+      "locked": false,
+      "ports": [],
+      "data": {
+        "lanes": [
+          {
+            "number": "01",
+            "name": "petition\nquality",
+            "color": "#b391b5",
+            "textColor": "#333333"
+          },
+          {
+            "number": "02",
+            "name": "K-petition",
+            "color": "#d1bcd2",
+            "textColor": "#333333"
+          },
+          {
+            "number": "03",
+            "name": "language",
+            "color": "#f9d2de",
+            "textColor": "#333333"
+          },
+          {
+            "number": "04",
+            "name": "grassroot\nfunding",
+            "color": "#ffbbb1",
+            "textColor": "#333333"
+          },
+          {
+            "number": "05",
+            "name": "VBM\ntrust",
+            "color": "#ffdba9",
+            "textColor": "#333333"
+          },
+          {
+            "number": "06",
+            "name": "affective\npolar.",
+            "color": "#ffeca9",
+            "textColor": "#333333"
+          },
+          {
+            "number": "07",
+            "name": "ideology\nmismatch",
+            "color": "#c3f7c8",
+            "textColor": "#333333"
+          },
+          {
+            "number": "08",
+            "name": "data\ntrust\nbook",
+            "color": "#99d5ca",
+            "textColor": "#333333"
+          },
+          {
+            "number": "09",
+            "name": "VR\nattrition",
+            "color": "#c7e8ac",
+            "textColor": "#333333"
+          },
+          {
+            "number": "10",
+            "name": "rankingQ\npackage\nCRAN",
+            "color": "#b8f5ed",
+            "textColor": "#333333"
+          },
+          {
+            "number": "11",
+            "name": "discrete\nmeasure\nerror",
+            "color": "#c1e4f7",
+            "textColor": "#333333"
+          },
+          {
+            "number": "12",
+            "name": "epistemic",
+            "color": "#85c2ed",
+            "textColor": "#333333"
+          },
+          {
+            "number": "13",
+            "name": "reshoring",
+            "color": "#1071e5",
+            "textColor": "#ffffff"
+          }
+        ],
+        "numberWidth": 28,
+        "nameWidth": 85,
+        "laneHeight": 62
+      }
+    },
+    {
+      "id": "shp_mlizu3af_9",
+      "type": "timeline:timeline",
+      "x": 137.00000000000023,
+      "y": 1008,
+      "width": 973,
+      "height": 40,
+      "rotation": 0,
+      "text": "",
+      "textStyle": {
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
+        "fontSize": 9,
+        "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
+        "color": "#1a1a2e",
+        "align": "center",
+        "vAlign": "middle"
+      },
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#555555",
+        "strokeWidth": 2,
+        "strokeDash": "",
+        "opacity": 1,
+        "shadow": false
+      },
+      "layerId": "layer_default",
+      "groupId": null,
+      "containerId": null,
+      "locked": false,
+      "ports": [],
+      "data": {
+        "timelineType": "line",
+        "startDate": "2026-01-01",
+        "endDate": "2026-12-31"
+      }
+    },
+    {
+      "id": "shp_mliztvt1_8",
+      "type": "timeline:timeline",
+      "x": 137.00000000000023,
+      "y": 946,
+      "width": 973,
+      "height": 40,
+      "rotation": 0,
+      "text": "",
+      "textStyle": {
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
+        "fontSize": 9,
+        "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
+        "color": "#1a1a2e",
+        "align": "center",
+        "vAlign": "middle"
+      },
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#555555",
+        "strokeWidth": 2,
+        "strokeDash": "",
+        "opacity": 1,
+        "shadow": false
+      },
+      "layerId": "layer_default",
+      "groupId": null,
+      "containerId": null,
+      "locked": false,
+      "ports": [],
+      "data": {
+        "timelineType": "line",
+        "startDate": "2026-01-01",
+        "endDate": "2026-12-31"
+      }
+    },
+    {
+      "id": "shp_mliztjad_7",
+      "type": "timeline:timeline",
+      "x": 137.00000000000023,
+      "y": 883,
+      "width": 973,
+      "height": 40,
+      "rotation": 0,
+      "text": "",
+      "textStyle": {
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
+        "fontSize": 9,
+        "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
+        "color": "#1a1a2e",
+        "align": "center",
+        "vAlign": "middle"
+      },
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#555555",
+        "strokeWidth": 2,
+        "strokeDash": "",
+        "opacity": 1,
+        "shadow": false
+      },
+      "layerId": "layer_default",
+      "groupId": null,
+      "containerId": null,
+      "locked": false,
+      "ports": [],
+      "data": {
+        "timelineType": "line",
+        "startDate": "2026-01-01",
+        "endDate": "2026-12-31"
+      }
+    },
+    {
+      "id": "shp_mlizt8qd_6",
+      "type": "timeline:timeline",
+      "x": 137,
+      "y": 820,
+      "width": 973,
+      "height": 40,
+      "rotation": 0,
+      "text": "",
+      "textStyle": {
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
+        "fontSize": 9,
+        "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
+        "color": "#1a1a2e",
+        "align": "center",
+        "vAlign": "middle"
+      },
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#555555",
+        "strokeWidth": 2,
+        "strokeDash": "",
+        "opacity": 1,
+        "shadow": false
+      },
+      "layerId": "layer_default",
+      "groupId": null,
+      "containerId": null,
+      "locked": false,
+      "ports": [],
+      "data": {
+        "timelineType": "line",
+        "startDate": "2026-01-01",
+        "endDate": "2026-12-31"
+      }
+    },
     {
       "id": "shp_mlizs0et_5",
       "type": "timeline:timeline",
@@ -365,7 +634,7 @@
       "width": 245,
       "height": 108,
       "rotation": 0,
-      "text": "Winter\n(student coauthor projects)\n- reshoring submit\n- ideologies submit\n- grassroots submit to PoBE\n- language prereg + IRB\n- epistemic analyze + writeup\n- discrete intro + theory\n- restart VFProject",
+      "text": "<b>Q1</b><br>- reshoring submit<br>- ideologies submit<br>- grassroots submit to PoBE<br>- language prereg + IRB<br>- epistemic analyze + writeup<br>- discrete intro + theory<br>- restart VFProject",
       "textStyle": {
         "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 9,
@@ -377,7 +646,7 @@
         "vAlign": "top"
       },
       "style": {
-        "fill": "#ffffff",
+        "fill": "none",
         "stroke": "#ffffff",
         "strokeWidth": 0,
         "strokeDash": "",
@@ -398,7 +667,7 @@
       "width": 240,
       "height": 108,
       "rotation": 0,
-      "text": "Spring\n- rankingQ CRAN submit\n- discrete IRB\n- language survey launch\n- epistemic submit\n- VR attribution replicate +\n  expand\n- K-petition analyze",
+      "text": "<b>Q2</b><br>- rankingQ CRAN submit<br>- discrete IRB<br>- language survey launch<br>- epistemic submit<br>- VR attribution replicate +<br>  expand<br>- K-petition analyze",
       "textStyle": {
         "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 9,
@@ -410,7 +679,7 @@
         "vAlign": "top"
       },
       "style": {
-        "fill": "#ffffff",
+        "fill": "none",
         "stroke": "#ffffff",
         "strokeWidth": 0,
         "strokeDash": "",
@@ -431,7 +700,7 @@
       "width": 240,
       "height": 108,
       "rotation": 0,
-      "text": "Summer\n- discrete survey launch\n- language analyze and first\n  draft\n- VR attrition submit\n- VBM trust restart and submit\n- K-petition first draft",
+      "text": "<b>Q3</b><br>- discrete survey launch<br>- language analyze and first<br>  draft<br>- VR attrition submit<br>- VBM trust restart and submit<br>- K-petition first draft",
       "textStyle": {
         "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 9,
@@ -443,7 +712,7 @@
         "vAlign": "top"
       },
       "style": {
-        "fill": "#ffffff",
+        "fill": "none",
         "stroke": "#ffffff",
         "strokeWidth": 0,
         "strokeDash": "",
@@ -464,7 +733,7 @@
       "width": 220,
       "height": 108,
       "rotation": 0,
-      "text": "Fall/Winter\n- discrete first draft",
+      "text": "<b>Q4<br></b>- discrete first draft",
       "textStyle": {
         "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 9,
@@ -476,7 +745,7 @@
         "vAlign": "top"
       },
       "style": {
-        "fill": "#ffffff",
+        "fill": "none",
         "stroke": "#ffffff",
         "strokeWidth": 0,
         "strokeDash": "",
@@ -524,123 +793,6 @@
         "startDate": "2026-01-01",
         "endDate": "2026-12-31",
         "guideHeight": 818
-      }
-    },
-    {
-      "id": "shp_swim_lanes",
-      "type": "flowchart:swim-lane",
-      "x": 22,
-      "y": 250,
-      "width": 1088,
-      "height": 806,
-      "rotation": 0,
-      "text": "",
-      "textStyle": {
-        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
-        "fontSize": 11,
-        "fontWeight": "bold",
-        "fontStyle": "normal",
-        "textDecoration": "none",
-        "color": "#1a1a2e",
-        "align": "center",
-        "vAlign": "middle"
-      },
-      "style": {
-        "fill": "none",
-        "stroke": "#d0d0d8",
-        "strokeWidth": 0.5,
-        "strokeDash": "",
-        "opacity": 1,
-        "shadow": false
-      },
-      "layerId": "layer_default",
-      "groupId": null,
-      "locked": false,
-      "ports": [],
-      "data": {
-        "lanes": [
-          {
-            "number": "01",
-            "name": "petition\nquality",
-            "color": "#b391b5",
-            "textColor": "#333333"
-          },
-          {
-            "number": "02",
-            "name": "K-petition",
-            "color": "#d1bcd2",
-            "textColor": "#333333"
-          },
-          {
-            "number": "03",
-            "name": "language",
-            "color": "#f9d2de",
-            "textColor": "#333333"
-          },
-          {
-            "number": "04",
-            "name": "grassroot\nfunding",
-            "color": "#ffbbb1",
-            "textColor": "#333333"
-          },
-          {
-            "number": "05",
-            "name": "VBM\ntrust",
-            "color": "#ffdba9",
-            "textColor": "#333333"
-          },
-          {
-            "number": "06",
-            "name": "affective\npolar.",
-            "color": "#ffeca9",
-            "textColor": "#333333"
-          },
-          {
-            "number": "07",
-            "name": "ideology\nmismatch",
-            "color": "#c3f7c8",
-            "textColor": "#333333"
-          },
-          {
-            "number": "08",
-            "name": "data\ntrust\nbook",
-            "color": "#99d5ca",
-            "textColor": "#333333"
-          },
-          {
-            "number": "09",
-            "name": "VR\nattrition",
-            "color": "#c7e8ac",
-            "textColor": "#333333"
-          },
-          {
-            "number": "10",
-            "name": "rankingQ\npackage\nCRAN",
-            "color": "#b8f5ed",
-            "textColor": "#333333"
-          },
-          {
-            "number": "11",
-            "name": "discrete\nmeasure\nerror",
-            "color": "#c1e4f7",
-            "textColor": "#333333"
-          },
-          {
-            "number": "12",
-            "name": "epistemic",
-            "color": "#85c2ed",
-            "textColor": "#333333"
-          },
-          {
-            "number": "13",
-            "name": "reshoring",
-            "color": "#1071e5",
-            "textColor": "#ffffff"
-          }
-        ],
-        "numberWidth": 28,
-        "nameWidth": 85,
-        "laneHeight": 62
       }
     },
     {
