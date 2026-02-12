@@ -319,37 +319,57 @@ const UI = (() => {
       const shape = shapes[0];
 
       // Fill color
+      const fillIsNone = !shape.style.fill || shape.style.fill === 'none' || shape.style.fill === 'transparent';
       const fillBtn = document.createElement('div');
-      fillBtn.className = 'ft-color';
-      fillBtn.style.backgroundColor = shape.style.fill;
-      fillBtn.title = 'Fill color';
+      fillBtn.className = 'ft-color' + (fillIsNone ? ' ft-color-none' : '');
+      if (!fillIsNone) fillBtn.style.backgroundColor = shape.style.fill;
+      fillBtn.title = 'Fill color (right-click for transparent)';
       const fillInput = document.createElement('input');
       fillInput.type = 'color';
-      fillInput.value = shape.style.fill || '#ffffff';
+      fillInput.value = fillIsNone ? '#ffffff' : (shape.style.fill || '#ffffff');
       fillInput.addEventListener('input', () => {
         shapes.forEach(s => {
           History.execute(new History.ChangeStyleCommand(s.id, 'style', { ...s.style }, { ...s.style, fill: fillInput.value }));
         });
         fillBtn.style.backgroundColor = fillInput.value;
+        fillBtn.classList.remove('ft-color-none');
       });
       fillBtn.appendChild(fillInput);
+      fillBtn.addEventListener('contextmenu', e => {
+        e.preventDefault();
+        const isNone = fillBtn.classList.toggle('ft-color-none');
+        shapes.forEach(s => {
+          History.execute(new History.ChangeStyleCommand(s.id, 'style', { ...s.style }, { ...s.style, fill: isNone ? 'none' : fillInput.value }));
+        });
+        if (!isNone) fillBtn.style.backgroundColor = fillInput.value;
+      });
       bar.appendChild(fillBtn);
 
       // Stroke color
+      const strokeIsNone = !shape.style.stroke || shape.style.stroke === 'none' || shape.style.stroke === 'transparent';
       const strokeBtn = document.createElement('div');
-      strokeBtn.className = 'ft-color';
-      strokeBtn.style.backgroundColor = shape.style.stroke;
-      strokeBtn.title = 'Stroke color';
+      strokeBtn.className = 'ft-color' + (strokeIsNone ? ' ft-color-none' : '');
+      if (!strokeIsNone) strokeBtn.style.backgroundColor = shape.style.stroke;
+      strokeBtn.title = 'Stroke color (right-click for transparent)';
       const strokeInput = document.createElement('input');
       strokeInput.type = 'color';
-      strokeInput.value = shape.style.stroke || '#000000';
+      strokeInput.value = strokeIsNone ? '#000000' : (shape.style.stroke || '#000000');
       strokeInput.addEventListener('input', () => {
         shapes.forEach(s => {
           History.execute(new History.ChangeStyleCommand(s.id, 'style', { ...s.style }, { ...s.style, stroke: strokeInput.value }));
         });
         strokeBtn.style.backgroundColor = strokeInput.value;
+        strokeBtn.classList.remove('ft-color-none');
       });
       strokeBtn.appendChild(strokeInput);
+      strokeBtn.addEventListener('contextmenu', e => {
+        e.preventDefault();
+        const isNone = strokeBtn.classList.toggle('ft-color-none');
+        shapes.forEach(s => {
+          History.execute(new History.ChangeStyleCommand(s.id, 'style', { ...s.style }, { ...s.style, stroke: isNone ? 'none' : strokeInput.value }));
+        });
+        if (!isNone) strokeBtn.style.backgroundColor = strokeInput.value;
+      });
       bar.appendChild(strokeBtn);
 
       bar.appendChild(makeFtSep());
@@ -616,11 +636,11 @@ const UI = (() => {
     const fillOnChange = v => {
       History.execute(new History.ChangeStyleCommand(shape.id, 'style', { ...shape.style }, { ...shape.style, fill: v }));
     };
-    styleSection.appendChild(makePropRow('Fill', makeColorInput(shape.style.fill, fillOnChange)));
+    styleSection.appendChild(makePropRow('Fill', makeColorInput(shape.style.fill, fillOnChange, true)));
     styleSection.appendChild(makeColorSwatchPicker(shape.style.fill, fillOnChange));
     styleSection.appendChild(makePropRow('Stroke', makeColorInput(shape.style.stroke, v => {
       History.execute(new History.ChangeStyleCommand(shape.id, 'style', { ...shape.style }, { ...shape.style, stroke: v }));
-    })));
+    }, true)));
     styleSection.appendChild(makePropRow('Width', makeNumberInput(shape.style.strokeWidth, v => {
       History.execute(new History.ChangeStyleCommand(shape.id, 'style', { ...shape.style }, { ...shape.style, strokeWidth: v }));
     })));
@@ -1237,13 +1257,32 @@ const UI = (() => {
     return input;
   }
 
-  function makeColorInput(value, onChange) {
+  function makeColorInput(value, onChange, allowNone) {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'display:flex;align-items:center;gap:4px;';
     const input = document.createElement('input');
     input.type = 'color';
     input.className = 'props-input';
-    input.value = value || '#000000';
+    const isNone = !value || value === 'none' || value === 'transparent';
+    input.value = isNone ? '#ffffff' : value;
+    input.disabled = isNone;
+    if (isNone) input.style.opacity = '0.3';
     input.addEventListener('input', () => onChange(input.value));
-    return input;
+    wrap.appendChild(input);
+    if (allowNone) {
+      const noneBtn = document.createElement('button');
+      noneBtn.className = 'color-none-btn' + (isNone ? ' active' : '');
+      noneBtn.textContent = 'None';
+      noneBtn.title = 'Transparent (no color)';
+      noneBtn.addEventListener('click', () => {
+        const nowNone = noneBtn.classList.toggle('active');
+        input.disabled = nowNone;
+        input.style.opacity = nowNone ? '0.3' : '1';
+        onChange(nowNone ? 'none' : input.value);
+      });
+      wrap.appendChild(noneBtn);
+    }
+    return wrap;
   }
 
   // 10 hues × 4 shades color palette

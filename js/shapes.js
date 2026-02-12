@@ -549,20 +549,21 @@ const Shapes = (() => {
       }
 
       // Block timeline (default): filled rectangle bar with ticks
+      const labelY = h + fontSize + 2;
       let svg = `<rect x="0" y="0" width="${w}" height="${h}" rx="2"/>`;
       if (s.data && s.data.startDate && s.data.endDate) {
         const sd = parseD(s.data.startDate), ed = parseD(s.data.endDate);
         const startMs = sd.getTime(), endMs = ed.getTime(), totalMs = endMs - startMs;
         if (totalMs > 0) {
-          if (showLabels) svg += `<text x="3" y="${h-4}" fill="#555555" stroke="none" font-size="${fontSize}" font-family="MaruBuri,Inter,sans-serif">${formatDate(sd)}</text>`;
+          if (showLabels) svg += `<text x="3" y="${labelY}" fill="#555555" stroke="none" font-size="${fontSize}" font-family="MaruBuri,Inter,sans-serif">${formatDate(sd)}</text>`;
           const ticks = generateTicks(sd, ed);
           ticks.forEach(tick => {
             const x = ((tick.getTime() - startMs) / totalMs) * w;
             svg += `<line x1="${x}" y1="0" x2="${x}" y2="${h}" fill="none" stroke-width="0.5" opacity="0.5"/>`;
             if (guideH > 0) svg += `<line x1="${x}" y1="${h}" x2="${x}" y2="${h + guideH}" fill="none" stroke="#d0d0d8" stroke-width="0.8" opacity="0.4"/>`;
-            if (showLabels) svg += `<text x="${x+3}" y="${h-4}" fill="#555555" stroke="none" font-size="${fontSize}" font-family="MaruBuri,Inter,sans-serif">${formatDate(tick)}</text>`;
+            if (showLabels) svg += `<text x="${x+3}" y="${labelY}" fill="#555555" stroke="none" font-size="${fontSize}" font-family="MaruBuri,Inter,sans-serif">${formatDate(tick)}</text>`;
           });
-          if (showLabels) svg += `<text x="${w-3}" y="${h-4}" fill="#555555" stroke="none" font-size="${fontSize}" font-family="MaruBuri,Inter,sans-serif" text-anchor="end">${formatDate(ed)}</text>`;
+          if (showLabels) svg += `<text x="${w-3}" y="${labelY}" fill="#555555" stroke="none" font-size="${fontSize}" font-family="MaruBuri,Inter,sans-serif" text-anchor="end">${formatDate(ed)}</text>`;
         }
       }
       return svg;
