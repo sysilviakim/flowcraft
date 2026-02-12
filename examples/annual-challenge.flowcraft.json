@@ -35,9 +35,11 @@
       "rotation": 0,
       "text": "2026 Research Goals",
       "textStyle": {
-        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 24,
         "fontWeight": "bold",
+        "fontStyle": "normal",
+        "textDecoration": "none",
         "color": "#1a1a2e",
         "align": "center",
         "vAlign": "middle"
@@ -66,9 +68,11 @@
       "rotation": 0,
       "text": "Silvia Kim  |  February 12, 2026",
       "textStyle": {
-        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 11,
         "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
         "color": "#666666",
         "align": "center",
         "vAlign": "middle"
@@ -97,9 +101,11 @@
       "rotation": 0,
       "text": "Winter\n(student coauthor projects)\n- reshoring submit\n- ideologies submit\n- grassroots submit to PoBE\n- language prereg + IRB\n- epistemic analyze + writeup\n- discrete intro + theory\n- restart VFProject",
       "textStyle": {
-        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 9,
         "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
         "color": "#333333",
         "align": "left",
         "vAlign": "top"
@@ -128,9 +134,11 @@
       "rotation": 0,
       "text": "Spring\n- rankingQ CRAN submit\n- discrete IRB\n- language survey launch\n- epistemic submit\n- VR attribution replicate +\n  expand\n- K-petition analyze",
       "textStyle": {
-        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 9,
         "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
         "color": "#333333",
         "align": "left",
         "vAlign": "top"
@@ -159,9 +167,11 @@
       "rotation": 0,
       "text": "Summer\n- discrete survey launch\n- language analyze and first\n  draft\n- VR attrition submit\n- VBM trust restart and submit\n- K-petition first draft",
       "textStyle": {
-        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 9,
         "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
         "color": "#333333",
         "align": "left",
         "vAlign": "top"
@@ -190,9 +200,11 @@
       "rotation": 0,
       "text": "Fall/Winter\n- discrete first draft",
       "textStyle": {
-        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 9,
         "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
         "color": "#333333",
         "align": "left",
         "vAlign": "top"
@@ -221,9 +233,11 @@
       "rotation": 0,
       "text": "",
       "textStyle": {
-        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
         "color": "#1a1a2e",
         "align": "center",
         "vAlign": "middle"
@@ -256,9 +270,11 @@
       "rotation": 0,
       "text": "",
       "textStyle": {
-        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 11,
         "fontWeight": "bold",
+        "fontStyle": "normal",
+        "textDecoration": "none",
         "color": "#1a1a2e",
         "align": "center",
         "vAlign": "middle"
@@ -371,9 +387,11 @@
       "rotation": 0,
       "text": "analyze survey + first draft\n+ ASPA presentation\n2/5 - 4/29",
       "textStyle": {
-        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 8,
         "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
         "color": "#1a1a2e",
         "align": "center",
         "vAlign": "middle"
@@ -409,9 +427,11 @@
       "rotation": 0,
       "text": "lit review + frame/design + IRB\n1/2 - 3/20",
       "textStyle": {
-        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 8,
         "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
         "color": "#1a1a2e",
         "align": "center",
         "vAlign": "middle"
@@ -447,9 +467,11 @@
       "rotation": 0,
       "text": "survey firm contact +\nlaunch survey\n3/21 - 5/14",
       "textStyle": {
-        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 8,
         "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
         "color": "#1a1a2e",
         "align": "center",
         "vAlign": "middle"
@@ -485,9 +507,11 @@
       "rotation": 0,
       "text": "analyze data\n5/15 - 6/28",
       "textStyle": {
-        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 8,
         "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
         "color": "#1a1a2e",
         "align": "center",
         "vAlign": "middle"
@@ -523,9 +547,11 @@
       "rotation": 0,
       "text": "lit review fix + resubmit\n2/16 - 4/10",
       "textStyle": {
-        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 8,
         "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
         "color": "#1a1a2e",
         "align": "center",
         "vAlign": "middle"
@@ -561,9 +587,11 @@
       "rotation": 0,
       "text": "revise + submit\n1/21 - 3/11",
       "textStyle": {
-        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 8,
         "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
         "color": "#1a1a2e",
         "align": "center",
         "vAlign": "middle"
@@ -599,9 +627,11 @@
       "rotation": 0,
       "text": "continue writing\n4/23 - 9/12",
       "textStyle": {
-        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 8,
         "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
         "color": "#1a1a2e",
         "align": "center",
         "vAlign": "middle"
@@ -637,9 +667,11 @@
       "rotation": 0,
       "text": "refactor old code +\nrerun with new data\n1/26 - 3/16",
       "textStyle": {
-        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 8,
         "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
         "color": "#1a1a2e",
         "align": "center",
         "vAlign": "middle"
@@ -675,9 +707,11 @@
       "rotation": 0,
       "text": "finish revision\n3/17 - 5/30",
       "textStyle": {
-        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 8,
         "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
         "color": "#1a1a2e",
         "align": "center",
         "vAlign": "middle"
@@ -713,9 +747,11 @@
       "rotation": 0,
       "text": "submit\n6/1 - 6/30",
       "textStyle": {
-        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 8,
         "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
         "color": "#1a1a2e",
         "align": "center",
         "vAlign": "middle"
@@ -751,9 +787,11 @@
       "rotation": 0,
       "text": "lit review, framing, theory\n1/16 - 3/21",
       "textStyle": {
-        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 8,
         "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
         "color": "#1a1a2e",
         "align": "center",
         "vAlign": "middle"
@@ -789,9 +827,11 @@
       "rotation": 0,
       "text": "survey design + IRB\n3/22 - 5/29",
       "textStyle": {
-        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 8,
         "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
         "color": "#1a1a2e",
         "align": "center",
         "vAlign": "middle"
@@ -827,9 +867,11 @@
       "rotation": 0,
       "text": "launch survey\n5/30 - 7/7",
       "textStyle": {
-        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 8,
         "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
         "color": "#1a1a2e",
         "align": "center",
         "vAlign": "middle"
@@ -865,9 +907,11 @@
       "rotation": 0,
       "text": "first draft\n7/8 - 8/14",
       "textStyle": {
-        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 8,
         "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
         "color": "#1a1a2e",
         "align": "center",
         "vAlign": "middle"
@@ -903,9 +947,11 @@
       "rotation": 0,
       "text": "initial analyze + first draft\n1/2 - 3/15",
       "textStyle": {
-        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 8,
         "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
         "color": "#1a1a2e",
         "align": "center",
         "vAlign": "middle"
@@ -941,9 +987,11 @@
       "rotation": 0,
       "text": "SWERP presentation\n3/16 - 5/19",
       "textStyle": {
-        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 8,
         "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
         "color": "#1a1a2e",
         "align": "center",
         "vAlign": "middle"
@@ -979,9 +1027,11 @@
       "rotation": 0,
       "text": "revise and present for\nSNU-Princeton + APSA\n5/20 - 9/14",
       "textStyle": {
-        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 8,
         "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
         "color": "#1a1a2e",
         "align": "center",
         "vAlign": "middle"
@@ -1017,9 +1067,11 @@
       "rotation": 0,
       "text": "github setup + replication +\ncheck fuzzy matching\n1/21 - 3/15",
       "textStyle": {
-        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 8,
         "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
         "color": "#ffffff",
         "align": "center",
         "vAlign": "middle"
@@ -1055,9 +1107,11 @@
       "rotation": 0,
       "text": "revision\n3/16 - 4/15",
       "textStyle": {
-        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 8,
         "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
         "color": "#ffffff",
         "align": "center",
         "vAlign": "middle"
@@ -1093,9 +1147,11 @@
       "rotation": 0,
       "text": "submit\n4/16 - 5/15",
       "textStyle": {
-        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 8,
         "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
         "color": "#ffffff",
         "align": "center",
         "vAlign": "middle"
