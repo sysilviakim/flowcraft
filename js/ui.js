@@ -58,7 +58,7 @@ const UI = (() => {
 
   // ===== RECENTLY USED SHAPES =====
   const RECENT_KEY = 'flowcraft-recent-shapes';
-  const MAX_RECENT = 8;
+  const MAX_RECENT = 10;
 
   function getRecentShapes() {
     try {
