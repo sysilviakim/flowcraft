@@ -775,9 +775,33 @@ const UI = (() => {
     styleSection.appendChild(makePropRow('Width', makeNumberInput(shape.style.strokeWidth, v => {
       History.execute(new History.ChangeStyleCommand(shape.id, 'style', { ...shape.style }, { ...shape.style, strokeWidth: v }));
     })));
-    styleSection.appendChild(makePropRow('Opacity', makeRangeInput(shape.style.opacity, 0, 1, 0.05, v => {
-      History.execute(new History.ChangeStyleCommand(shape.id, 'style', { ...shape.style }, { ...shape.style, opacity: v }));
-    })));
+    {
+      const opWrap = document.createElement('div');
+      opWrap.style.cssText = 'display:flex;align-items:center;gap:4px;';
+      const opSlider = makeRangeInput(shape.style.opacity, 0, 1, 0.05, v => {
+        History.execute(new History.ChangeStyleCommand(shape.id, 'style', { ...shape.style }, { ...shape.style, opacity: v }));
+        opLabel.textContent = Math.round(v * 100) + '%';
+        halfBtn.classList.toggle('active', Math.abs(v - 0.5) < 0.01);
+      });
+      const opLabel = document.createElement('span');
+      opLabel.style.cssText = 'font-size:10px;color:var(--text-secondary);min-width:30px;text-align:right;';
+      opLabel.textContent = Math.round(shape.style.opacity * 100) + '%';
+      const halfBtn = document.createElement('button');
+      halfBtn.className = 'color-half-btn' + (Math.abs(shape.style.opacity - 0.5) < 0.01 ? ' active' : '');
+      halfBtn.textContent = '50%';
+      halfBtn.title = 'Toggle 50% opacity';
+      halfBtn.addEventListener('click', () => {
+        const newOp = Math.abs(shape.style.opacity - 0.5) < 0.01 ? 1 : 0.5;
+        History.execute(new History.ChangeStyleCommand(shape.id, 'style', { ...shape.style }, { ...shape.style, opacity: newOp }));
+        opSlider.value = newOp;
+        opLabel.textContent = Math.round(newOp * 100) + '%';
+        halfBtn.classList.toggle('active', newOp === 0.5);
+      });
+      opWrap.appendChild(opSlider);
+      opWrap.appendChild(opLabel);
+      opWrap.appendChild(halfBtn);
+      styleSection.appendChild(makePropRow('Opacity', opWrap));
+    }
 
     const dashSelect = makeSelectInput(shape.style.strokeDash || '', [
       { value: '', label: 'Solid' },
@@ -1207,13 +1231,41 @@ const UI = (() => {
       });
       History.endBatch();
     })));
-    styleSection.appendChild(makePropRow('Opacity', makeRangeInput(ref.style.opacity, 0, 1, 0.05, v => {
-      History.beginBatch();
-      shapes.forEach(s => {
-        History.execute(new History.ChangeStyleCommand(s.id, 'style', { ...s.style }, { ...s.style, opacity: v }));
+    {
+      const opWrap = document.createElement('div');
+      opWrap.style.cssText = 'display:flex;align-items:center;gap:4px;';
+      const opSlider = makeRangeInput(ref.style.opacity, 0, 1, 0.05, v => {
+        History.beginBatch();
+        shapes.forEach(s => {
+          History.execute(new History.ChangeStyleCommand(s.id, 'style', { ...s.style }, { ...s.style, opacity: v }));
+        });
+        History.endBatch();
+        opLabel.textContent = Math.round(v * 100) + '%';
+        halfBtn.classList.toggle('active', Math.abs(v - 0.5) < 0.01);
       });
-      History.endBatch();
-    })));
+      const opLabel = document.createElement('span');
+      opLabel.style.cssText = 'font-size:10px;color:var(--text-secondary);min-width:30px;text-align:right;';
+      opLabel.textContent = Math.round(ref.style.opacity * 100) + '%';
+      const halfBtn = document.createElement('button');
+      halfBtn.className = 'color-half-btn' + (Math.abs(ref.style.opacity - 0.5) < 0.01 ? ' active' : '');
+      halfBtn.textContent = '50%';
+      halfBtn.title = 'Toggle 50% opacity';
+      halfBtn.addEventListener('click', () => {
+        const newOp = Math.abs(ref.style.opacity - 0.5) < 0.01 ? 1 : 0.5;
+        History.beginBatch();
+        shapes.forEach(s => {
+          History.execute(new History.ChangeStyleCommand(s.id, 'style', { ...s.style }, { ...s.style, opacity: newOp }));
+        });
+        History.endBatch();
+        opSlider.value = newOp;
+        opLabel.textContent = Math.round(newOp * 100) + '%';
+        halfBtn.classList.toggle('active', newOp === 0.5);
+      });
+      opWrap.appendChild(opSlider);
+      opWrap.appendChild(opLabel);
+      opWrap.appendChild(halfBtn);
+      styleSection.appendChild(makePropRow('Opacity', opWrap));
+    }
     container.appendChild(styleSection);
 
     // Text section
@@ -1551,9 +1603,7 @@ const UI = (() => {
     const wrap = document.createElement('div');
     wrap.style.cssText = 'display:flex;align-items:center;gap:4px;';
     const isNone = !value || value === 'none' || value === 'transparent';
-    const hasAlpha = !isNone && typeof value === 'string' && value.length === 9 && value[0] === '#';
     const hex6 = colorToHex6(value);
-    let alphaActive = hasAlpha;
 
     const input = document.createElement('input');
     input.type = 'color';
@@ -1566,34 +1616,14 @@ const UI = (() => {
     const hexInput = document.createElement('input');
     hexInput.type = 'text';
     hexInput.className = 'props-input color-hex-input';
-    hexInput.value = isNone ? '' : (value || '');
+    hexInput.value = isNone ? '' : colorToHex6(value);
     hexInput.placeholder = '#hex';
     hexInput.disabled = isNone;
     if (isNone) hexInput.style.opacity = '0.3';
 
-    // 50% transparency toggle
-    const halfBtn = document.createElement('button');
-    halfBtn.className = 'color-half-btn' + (alphaActive ? ' active' : '');
-    halfBtn.textContent = '50%';
-    halfBtn.title = 'Half transparency';
-
-    function buildColor() {
-      return alphaActive ? input.value + '80' : input.value;
-    }
-
-    function emitColor() {
-      const c = buildColor();
-      hexInput.value = c;
-      onChange(c);
-    }
-
-    input.addEventListener('input', emitColor);
-
-    halfBtn.addEventListener('click', () => {
-      if (input.disabled) return;
-      alphaActive = !alphaActive;
-      halfBtn.classList.toggle('active');
-      emitColor();
+    input.addEventListener('input', () => {
+      hexInput.value = input.value;
+      onChange(input.value);
     });
 
     hexInput.addEventListener('change', () => {
@@ -1601,14 +1631,6 @@ const UI = (() => {
       if (!v.startsWith('#')) v = '#' + v;
       if (/^#[0-9a-fA-F]{6}$/i.test(v)) {
         input.value = v;
-        alphaActive = false;
-        halfBtn.classList.remove('active');
-        hexInput.value = v;
-        onChange(v);
-      } else if (/^#[0-9a-fA-F]{8}$/i.test(v)) {
-        input.value = v.slice(0, 7);
-        alphaActive = true;
-        halfBtn.classList.add('active');
         hexInput.value = v;
         onChange(v);
       }
@@ -1616,7 +1638,6 @@ const UI = (() => {
 
     wrap.appendChild(input);
     wrap.appendChild(hexInput);
-    wrap.appendChild(halfBtn);
 
     if (allowNone) {
       const noneBtn = document.createElement('button');
@@ -1633,9 +1654,8 @@ const UI = (() => {
           hexInput.value = '';
           onChange('none');
         } else {
-          const c = buildColor();
-          hexInput.value = c;
-          onChange(c);
+          hexInput.value = input.value;
+          onChange(input.value);
         }
       });
       wrap.appendChild(noneBtn);
