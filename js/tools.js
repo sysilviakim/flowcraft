@@ -649,6 +649,13 @@ const Tools = (() => {
           targetYs.add(o.y);
           targetYs.add(o.y + o.height / 2);
           targetYs.add(o.y + o.height);
+          // Swim lane mid-lane snap targets
+          if (o.type === 'flowchart:swim-lane' && o.data && o.data.lanes && o.data.lanes.length > 0) {
+            const laneH = o.height / o.data.lanes.length;
+            for (let i = 0; i < o.data.lanes.length; i++) {
+              targetYs.add(o.y + laneH * i + laneH / 2);
+            }
+          }
         });
 
         // Find best X snap (shape-to-shape only — overrides grid if close enough)
@@ -972,12 +979,12 @@ const Tools = (() => {
 
       if (this._dragging) {
         stopAutoPan();
-        // Record move commands
+        // Record move commands (use record, not execute, since drag already applied positions)
         History.beginBatch();
         selectedShapes.forEach((shape, i) => {
           const offset = this._dragOffsets[i];
           if (shape.x !== offset.startX || shape.y !== offset.startY) {
-            History.execute(new History.MoveShapeCommand(
+            History.record(new History.MoveShapeCommand(
               shape.id, offset.startX, offset.startY, shape.x, shape.y
             ));
           }

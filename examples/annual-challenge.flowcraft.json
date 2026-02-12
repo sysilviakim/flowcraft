@@ -6,7 +6,7 @@
   "settings": {
     "gridSize": 20,
     "snapToGrid": false,
-    "showGrid": false,
+    "showGrid": true,
     "canvasColor": "#ffffff",
     "timeline": {
       "startDate": "2026-01-01",

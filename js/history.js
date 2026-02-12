@@ -49,6 +49,17 @@ const History = (() => {
     notify();
   }
 
+  // Record a command without executing it (for actions already applied, e.g. drag moves)
+  function record(cmd) {
+    if (batchCommands) {
+      batchCommands.push(cmd);
+      return;
+    }
+    undoStack.push(cmd);
+    redoStack = [];
+    notify();
+  }
+
   function undo() {
     if (undoStack.length === 0) return;
     const cmd = undoStack.pop();
@@ -293,7 +304,7 @@ const History = (() => {
   }
 
   return {
-    init, setOnChange, execute, undo, redo, canUndo, canRedo,
+    init, setOnChange, execute, record, undo, redo, canUndo, canRedo,
     beginBatch, endBatch, cancelBatch, clear,
     AddShapeCommand, RemoveShapeCommand, MoveShapeCommand, ResizeShapeCommand,
     ChangeStyleCommand, ChangeTextCommand,

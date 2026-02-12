@@ -302,6 +302,7 @@ const Model = (() => {
       this._shapeMap.clear();
       this._connectorMap.clear();
       this.layers = [{ id: 'layer_default', name: 'Layer 1', visible: true, locked: false, order: 0 }];
+      this.settings = { gridSize: 40, snapToGrid: true, showGrid: true, canvasColor: '#ffffff' };
       this.name = 'Untitled Diagram';
       this.emit('diagram:cleared');
       this.emit('changed');
