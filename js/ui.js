@@ -104,6 +104,7 @@ const UI = (() => {
       item.className = 'palette-item';
       item.setAttribute('draggable', 'true');
       item.setAttribute('data-shape-type', def.type);
+      item.setAttribute('title', def.label);
       item.innerHTML = `${def.icon}<span class="palette-item-label">${def.label}</span>`;
 
       item.addEventListener('dragstart', e => {
@@ -231,7 +232,8 @@ const UI = (() => {
         item.className = 'palette-item';
         item.setAttribute('draggable', 'true');
         item.setAttribute('data-shape-type', def.type);
-        item.innerHTML = `${def.icon}<span class="palette-item-label">${def.label}</span>`;
+        item.setAttribute('title', def.label);
+      item.innerHTML = `${def.icon}<span class="palette-item-label">${def.label}</span>`;
 
         // Drag start — shape drag for canvas drop
         item.addEventListener('dragstart', e => {
