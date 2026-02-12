@@ -122,6 +122,16 @@ const UI = (() => {
   }
 
   // ===== SHAPE PALETTE =====
+  const CATEGORY_ORDER_KEY = 'flowcraft-category-order';
+
+  function getSavedCategoryOrder() {
+    try { return JSON.parse(localStorage.getItem(CATEGORY_ORDER_KEY)); } catch (e) { return null; }
+  }
+
+  function saveCategoryOrder(order) {
+    localStorage.setItem(CATEGORY_ORDER_KEY, JSON.stringify(order));
+  }
+
   function buildPalette() {
     const palette = document.getElementById('palette');
     Utils.removeChildren(palette);
@@ -129,18 +139,87 @@ const UI = (() => {
     // Build recent shapes section first
     buildRecentSection();
 
-    const categories = Shapes.getCategories();
+    const allCategories = Shapes.getCategories();
+    const savedOrder = getSavedCategoryOrder();
+    // Use saved order if available, appending any new categories at the end
+    let categories;
+    if (savedOrder) {
+      categories = savedOrder.filter(c => allCategories.includes(c));
+      allCategories.forEach(c => { if (!categories.includes(c)) categories.push(c); });
+    } else {
+      categories = allCategories;
+    }
+
+    const collapsedByDefault = ['UML', 'Network', 'Org Chart', 'ER Diagram', 'Mind Map'];
+    let _dragSection = null;
+    let _dragPlaceholder = null;
+
     categories.forEach(cat => {
       const section = document.createElement('div');
-      const collapsedByDefault = ['UML', 'Network', 'Org Chart', 'ER Diagram', 'Mind Map'];
       section.className = 'palette-section' + (collapsedByDefault.includes(cat) ? ' collapsed' : '');
+      section.setAttribute('data-category', cat);
 
       const header = document.createElement('div');
       header.className = 'palette-header';
-      header.innerHTML = `<span>${cat}</span><span class="arrow">&#9662;</span>`;
-      header.addEventListener('click', () => {
+      header.setAttribute('draggable', 'true');
+      header.innerHTML = `<span class="palette-drag-handle">&#9776;</span><span>${cat}</span><span class="arrow">&#9662;</span>`;
+      header.addEventListener('click', (e) => {
+        // Don't toggle if we just finished a drag
+        if (header._wasDragging) { header._wasDragging = false; return; }
         section.classList.toggle('collapsed');
       });
+
+      // Section drag-and-drop reordering
+      header.addEventListener('dragstart', e => {
+        // Prevent shape item drags from triggering section reorder
+        if (e.target !== header) return;
+        _dragSection = section;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/x-palette-section', cat);
+        section.style.opacity = '0.4';
+        _dragPlaceholder = document.createElement('div');
+        _dragPlaceholder.className = 'palette-section-placeholder';
+      });
+
+      header.addEventListener('dragend', e => {
+        section.style.opacity = '';
+        if (_dragPlaceholder && _dragPlaceholder.parentNode) {
+          _dragPlaceholder.parentNode.removeChild(_dragPlaceholder);
+        }
+        _dragSection = null;
+        _dragPlaceholder = null;
+        header._wasDragging = true;
+        // Save new order
+        const sections = palette.querySelectorAll('.palette-section[data-category]');
+        const newOrder = Array.from(sections).map(s => s.getAttribute('data-category'));
+        saveCategoryOrder(newOrder);
+      });
+
+      section.addEventListener('dragover', e => {
+        if (!_dragSection || _dragSection === section) return;
+        // Only handle section reorder drags, not shape drags
+        if (!e.dataTransfer.types.includes('text/x-palette-section')) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        const rect = section.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+        if (e.clientY < midY) {
+          palette.insertBefore(_dragPlaceholder, section);
+        } else {
+          palette.insertBefore(_dragPlaceholder, section.nextSibling);
+        }
+      });
+
+      section.addEventListener('drop', e => {
+        if (!_dragSection || _dragSection === section) return;
+        if (!e.dataTransfer.types.includes('text/x-palette-section')) return;
+        e.preventDefault();
+        if (_dragPlaceholder && _dragPlaceholder.parentNode) {
+          palette.insertBefore(_dragSection, _dragPlaceholder);
+          _dragPlaceholder.parentNode.removeChild(_dragPlaceholder);
+        }
+      });
+
       section.appendChild(header);
 
       const grid = document.createElement('div');
@@ -154,8 +233,9 @@ const UI = (() => {
         item.setAttribute('data-shape-type', def.type);
         item.innerHTML = `${def.icon}<span class="palette-item-label">${def.label}</span>`;
 
-        // Drag start
+        // Drag start — shape drag for canvas drop
         item.addEventListener('dragstart', e => {
+          e.stopPropagation(); // Don't trigger section drag
           e.dataTransfer.setData('text/plain', def.type);
           e.dataTransfer.effectAllowed = 'copy';
         });
