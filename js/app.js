@@ -43,7 +43,15 @@
     // Center the canvas initially
     const rect = canvasContainer.getBoundingClientRect();
     Renderer.setPan(rect.width / 2, rect.height / 2);
+  } else {
+    // Fit to content on initial load
+    Renderer.fitToContent();
   }
+
+  // Fit to content whenever a diagram is loaded from file
+  diagram.on('diagram:loaded', () => {
+    setTimeout(() => Renderer.fitToContent(), 50);
+  });
 
   // Track recently used shapes
   diagram.on('shape:added', shape => {
