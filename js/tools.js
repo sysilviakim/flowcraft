@@ -181,13 +181,22 @@ const Tools = (() => {
 
     svgEl.addEventListener('wheel', e => {
       e.preventDefault();
-      const rect = containerEl.getBoundingClientRect();
-      const cx = e.clientX - rect.left;
-      const cy = e.clientY - rect.top;
-      const delta = e.deltaY > 0 ? 0.9 : 1.1;
-      const newZoom = Renderer.getZoom() * delta;
-      Renderer.setZoom(newZoom, cx, cy);
-      if (onToolChanged) onToolChanged(currentToolName); // update zoom display
+      if (e.ctrlKey || e.metaKey) {
+        // Ctrl+scroll: zoom
+        const rect = containerEl.getBoundingClientRect();
+        const cx = e.clientX - rect.left;
+        const cy = e.clientY - rect.top;
+        const delta = e.deltaY > 0 ? 0.9 : 1.1;
+        const newZoom = Renderer.getZoom() * delta;
+        Renderer.setZoom(newZoom, cx, cy);
+        if (onToolChanged) onToolChanged(currentToolName);
+      } else {
+        // Scroll: pan (shift+scroll for horizontal)
+        const pan = Renderer.getPan();
+        const dx = e.shiftKey ? -e.deltaY : -e.deltaX;
+        const dy = e.shiftKey ? 0 : -e.deltaY;
+        Renderer.setPan(pan.x + dx, pan.y + dy);
+      }
     }, { passive: false });
 
     svgEl.addEventListener('dblclick', e => {
