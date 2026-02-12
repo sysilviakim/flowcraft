@@ -611,6 +611,31 @@ const UI = (() => {
       bar.appendChild(alignCenter);
       bar.appendChild(alignRight);
 
+      // Vertical alignment buttons
+      const vAlignTop = makeFtBtn('<svg viewBox="0 0 24 24"><line x1="4" y1="4" x2="20" y2="4" stroke-width="2"/><line x1="12" y1="8" x2="12" y2="20"/><polyline points="8,12 12,8 16,12"/></svg>', 'Align top');
+      const vAlignMid = makeFtBtn('<svg viewBox="0 0 24 24"><line x1="4" y1="12" x2="20" y2="12" stroke-width="2"/><polyline points="8,8 12,4 16,8"/><polyline points="8,16 12,20 16,16"/></svg>', 'Align middle');
+      const vAlignBot = makeFtBtn('<svg viewBox="0 0 24 24"><line x1="4" y1="20" x2="20" y2="20" stroke-width="2"/><line x1="12" y1="4" x2="12" y2="16"/><polyline points="8,12 12,16 16,12"/></svg>', 'Align bottom');
+      const currentVAlign = shape.textStyle.vAlign || 'middle';
+      if (currentVAlign === 'top') vAlignTop.classList.add('active');
+      else if (currentVAlign === 'middle') vAlignMid.classList.add('active');
+      else if (currentVAlign === 'bottom') vAlignBot.classList.add('active');
+      const setVAlign = (val) => {
+        History.beginBatch();
+        shapes.forEach(s => {
+          History.execute(new History.ChangeStyleCommand(s.id, 'textStyle', { ...s.textStyle }, { ...s.textStyle, vAlign: val }));
+        });
+        History.endBatch();
+        vAlignTop.classList.toggle('active', val === 'top');
+        vAlignMid.classList.toggle('active', val === 'middle');
+        vAlignBot.classList.toggle('active', val === 'bottom');
+      };
+      vAlignTop.addEventListener('click', () => setVAlign('top'));
+      vAlignMid.addEventListener('click', () => setVAlign('middle'));
+      vAlignBot.addEventListener('click', () => setVAlign('bottom'));
+      bar.appendChild(vAlignTop);
+      bar.appendChild(vAlignMid);
+      bar.appendChild(vAlignBot);
+
       bar.appendChild(makeFtSep());
 
       // Duplicate
@@ -618,10 +643,14 @@ const UI = (() => {
       dupBtn.addEventListener('click', () => Tools.duplicateSelected());
       bar.appendChild(dupBtn);
 
-      // Bring to front
+      // Bring to front / Send to back
       const frontBtn = makeFtBtn('<svg viewBox="0 0 24 24"><rect x="2" y="2" width="8" height="8" rx="1" opacity=".4"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg>', 'Bring to front');
       frontBtn.addEventListener('click', () => { diagram.bringToFront(shape.id); });
       bar.appendChild(frontBtn);
+
+      const backBtn = makeFtBtn('<svg viewBox="0 0 24 24"><rect x="8" y="8" width="8" height="8" rx="1" opacity=".4"/><rect x="2" y="2" width="8" height="8" rx="1"/></svg>', 'Send to back');
+      backBtn.addEventListener('click', () => { diagram.sendToBack(shape.id); });
+      bar.appendChild(backBtn);
 
       bar.appendChild(makeFtSep());
 
