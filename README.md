@@ -2,6 +2,8 @@
 
 A free, local, browser-based diagramming application. No server, no signup, no external dependencies---just open `index.html` in your browser and start diagramming.
 
+If you find FlowCraft useful, consider buying me a coffee: [buymeacoffee.com/sysilviakim](https://buymeacoffee.com/sysilviakim)
+
 ## Features
 
 - **Multiple diagram types**: Flowcharts, UML, network diagrams, org charts, mind maps, ER diagrams, timelines, and more
@@ -65,6 +67,3 @@ This program is free software: you can redistribute it and/or modify it under th
 
 See [LICENSE](https://www.gnu.org/licenses/agpl-3.0.html) for details.
 
-## Support
-
-If you find FlowCraft useful, consider buying me a coffee: [buymeacoffee.com/sysilviakim](https://buymeacoffee.com/sysilviakim)
