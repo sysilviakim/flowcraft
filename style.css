@@ -888,6 +888,23 @@ html, body {
   opacity: 0.9;
 }
 
+.floating-toolbar .ft-none-toggle {
+  width: 22px;
+  height: 22px;
+  padding: 2px;
+  margin-left: -2px;
+  opacity: 0.5;
+}
+.floating-toolbar .ft-none-toggle.active {
+  opacity: 1;
+  background: #e57373;
+  color: #fff;
+}
+.floating-toolbar .ft-none-toggle svg {
+  width: 14px;
+  height: 14px;
+}
+
 .floating-toolbar .ft-size-input {
   width: 40px;
   height: 26px;

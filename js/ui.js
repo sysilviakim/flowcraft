@@ -323,7 +323,7 @@ const UI = (() => {
       const fillBtn = document.createElement('div');
       fillBtn.className = 'ft-color' + (fillIsNone ? ' ft-color-none' : '');
       if (!fillIsNone) fillBtn.style.backgroundColor = shape.style.fill;
-      fillBtn.title = 'Fill color (right-click for transparent)';
+      fillBtn.title = 'Fill color';
       const fillInput = document.createElement('input');
       fillInput.type = 'color';
       fillInput.value = fillIsNone ? '#ffffff' : (shape.style.fill || '#ffffff');
@@ -333,24 +333,32 @@ const UI = (() => {
         });
         fillBtn.style.backgroundColor = fillInput.value;
         fillBtn.classList.remove('ft-color-none');
+        fillNoneBtn.classList.remove('active');
       });
       fillBtn.appendChild(fillInput);
-      fillBtn.addEventListener('contextmenu', e => {
-        e.preventDefault();
-        const isNone = fillBtn.classList.toggle('ft-color-none');
-        shapes.forEach(s => {
-          History.execute(new History.ChangeStyleCommand(s.id, 'style', { ...s.style }, { ...s.style, fill: isNone ? 'none' : fillInput.value }));
-        });
-        if (!isNone) fillBtn.style.backgroundColor = fillInput.value;
-      });
       bar.appendChild(fillBtn);
+
+      // Fill transparent toggle
+      const fillNoneBtn = makeFtBtn('<svg viewBox="0 0 24 24"><line x1="4" y1="4" x2="20" y2="20" stroke-width="2"/><rect x="3" y="3" width="18" height="18" rx="2" fill="none"/></svg>', 'No fill');
+      fillNoneBtn.classList.add('ft-none-toggle');
+      if (fillIsNone) fillNoneBtn.classList.add('active');
+      fillNoneBtn.addEventListener('click', () => {
+        const turning = !fillNoneBtn.classList.contains('active');
+        fillNoneBtn.classList.toggle('active', turning);
+        fillBtn.classList.toggle('ft-color-none', turning);
+        shapes.forEach(s => {
+          History.execute(new History.ChangeStyleCommand(s.id, 'style', { ...s.style }, { ...s.style, fill: turning ? 'none' : fillInput.value }));
+        });
+        if (!turning) fillBtn.style.backgroundColor = fillInput.value;
+      });
+      bar.appendChild(fillNoneBtn);
 
       // Stroke color
       const strokeIsNone = !shape.style.stroke || shape.style.stroke === 'none' || shape.style.stroke === 'transparent';
       const strokeBtn = document.createElement('div');
       strokeBtn.className = 'ft-color' + (strokeIsNone ? ' ft-color-none' : '');
       if (!strokeIsNone) strokeBtn.style.backgroundColor = shape.style.stroke;
-      strokeBtn.title = 'Stroke color (right-click for transparent)';
+      strokeBtn.title = 'Stroke color';
       const strokeInput = document.createElement('input');
       strokeInput.type = 'color';
       strokeInput.value = strokeIsNone ? '#000000' : (shape.style.stroke || '#000000');
@@ -360,17 +368,25 @@ const UI = (() => {
         });
         strokeBtn.style.backgroundColor = strokeInput.value;
         strokeBtn.classList.remove('ft-color-none');
+        strokeNoneBtn.classList.remove('active');
       });
       strokeBtn.appendChild(strokeInput);
-      strokeBtn.addEventListener('contextmenu', e => {
-        e.preventDefault();
-        const isNone = strokeBtn.classList.toggle('ft-color-none');
-        shapes.forEach(s => {
-          History.execute(new History.ChangeStyleCommand(s.id, 'style', { ...s.style }, { ...s.style, stroke: isNone ? 'none' : strokeInput.value }));
-        });
-        if (!isNone) strokeBtn.style.backgroundColor = strokeInput.value;
-      });
       bar.appendChild(strokeBtn);
+
+      // Stroke transparent toggle
+      const strokeNoneBtn = makeFtBtn('<svg viewBox="0 0 24 24"><line x1="4" y1="4" x2="20" y2="20" stroke-width="2"/><rect x="3" y="3" width="18" height="18" rx="2" fill="none"/></svg>', 'No stroke');
+      strokeNoneBtn.classList.add('ft-none-toggle');
+      if (strokeIsNone) strokeNoneBtn.classList.add('active');
+      strokeNoneBtn.addEventListener('click', () => {
+        const turning = !strokeNoneBtn.classList.contains('active');
+        strokeNoneBtn.classList.toggle('active', turning);
+        strokeBtn.classList.toggle('ft-color-none', turning);
+        shapes.forEach(s => {
+          History.execute(new History.ChangeStyleCommand(s.id, 'style', { ...s.style }, { ...s.style, stroke: turning ? 'none' : strokeInput.value }));
+        });
+        if (!turning) strokeBtn.style.backgroundColor = strokeInput.value;
+      });
+      bar.appendChild(strokeNoneBtn);
 
       bar.appendChild(makeFtSep());
 
