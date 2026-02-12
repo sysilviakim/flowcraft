@@ -48,6 +48,13 @@
   // Track recently used shapes
   diagram.on('shape:added', shape => {
     if (shape && shape.type) UI.addRecentShape(shape.type);
+    // Auto-attach interval/milestone to timeline on creation
+    if (shape && (shape.type === 'timeline:interval' || shape.type === 'timeline:milestone')) {
+      const tl = findOverlappingTimeline(shape);
+      if (tl && tl.data && tl.data.startDate && tl.data.endDate) {
+        attachToTimeline(shape, tl);
+      }
+    }
   });
 
   // Auto-update timeline interval dates when shapes are moved/resized
