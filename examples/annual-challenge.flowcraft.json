@@ -2,7 +2,7 @@
   "id": "diag_annual_2026",
   "name": "2026 Research Goals - Annual Challenge",
   "created": 1770800793279,
-  "modified": 1770868213638,
+  "modified": 1770869976585,
   "settings": {
     "gridSize": 20,
     "snapToGrid": false,
@@ -25,6 +25,158 @@
     }
   ],
   "shapes": [
+    {
+      "id": "shp_mlix3cs5_2",
+      "type": "timeline:timeline",
+      "x": 137,
+      "y": 263,
+      "width": 973,
+      "height": 40,
+      "rotation": 0,
+      "text": "",
+      "textStyle": {
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
+        "fontSize": 9,
+        "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
+        "color": "#1a1a2e",
+        "align": "center",
+        "vAlign": "middle"
+      },
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#555555",
+        "strokeWidth": 2,
+        "strokeDash": "",
+        "opacity": 1,
+        "shadow": false
+      },
+      "layerId": "layer_default",
+      "groupId": null,
+      "containerId": null,
+      "locked": false,
+      "ports": [],
+      "data": {
+        "timelineType": "line",
+        "startDate": "2026-01-01",
+        "endDate": "2026-12-31"
+      }
+    },
+    {
+      "id": "shp_mliy80t4_2",
+      "type": "timeline:timeline",
+      "x": 137,
+      "y": 326,
+      "width": 973,
+      "height": 40,
+      "rotation": 0,
+      "text": "",
+      "textStyle": {
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
+        "fontSize": 9,
+        "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
+        "color": "#1a1a2e",
+        "align": "center",
+        "vAlign": "middle"
+      },
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#555555",
+        "strokeWidth": 2,
+        "strokeDash": "",
+        "opacity": 1,
+        "shadow": false
+      },
+      "layerId": "layer_default",
+      "groupId": null,
+      "containerId": null,
+      "locked": false,
+      "ports": [],
+      "data": {
+        "timelineType": "line",
+        "startDate": "2026-01-01",
+        "endDate": "2026-12-31"
+      }
+    },
+    {
+      "id": "shp_mliy8eyx_3",
+      "type": "timeline:timeline",
+      "x": 137.00000000000009,
+      "y": 388,
+      "width": 973,
+      "height": 40,
+      "rotation": 0,
+      "text": "",
+      "textStyle": {
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
+        "fontSize": 9,
+        "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
+        "color": "#1a1a2e",
+        "align": "center",
+        "vAlign": "middle"
+      },
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#555555",
+        "strokeWidth": 2,
+        "strokeDash": "",
+        "opacity": 1,
+        "shadow": false
+      },
+      "layerId": "layer_default",
+      "groupId": null,
+      "containerId": null,
+      "locked": false,
+      "ports": [],
+      "data": {
+        "timelineType": "line",
+        "startDate": "2026-01-01",
+        "endDate": "2026-12-31"
+      }
+    },
+    {
+      "id": "shp_mliy8mb6_4",
+      "type": "timeline:timeline",
+      "x": 137.00000000000009,
+      "y": 450,
+      "width": 973,
+      "height": 40,
+      "rotation": 0,
+      "text": "",
+      "textStyle": {
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
+        "fontSize": 9,
+        "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
+        "color": "#1a1a2e",
+        "align": "center",
+        "vAlign": "middle"
+      },
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#555555",
+        "strokeWidth": 2,
+        "strokeDash": "",
+        "opacity": 1,
+        "shadow": false
+      },
+      "layerId": "layer_default",
+      "groupId": null,
+      "containerId": null,
+      "locked": false,
+      "ports": [],
+      "data": {
+        "timelineType": "line",
+        "startDate": "2026-01-01",
+        "endDate": "2026-12-31"
+      }
+    },
     {
       "id": "shp_1",
       "type": "basic:rectangle",
@@ -225,7 +377,7 @@
     },
     {
       "id": "shp_timeline_main",
-      "type": "flowchart:timeline",
+      "type": "timeline:timeline",
       "x": 137,
       "y": 210,
       "width": 964,
@@ -379,7 +531,7 @@
     },
     {
       "id": "shp_20",
-      "type": "basic:rounded-rect",
+      "type": "timeline:interval",
       "x": 242.1,
       "y": 326,
       "width": 218.3,
@@ -419,7 +571,7 @@
     },
     {
       "id": "shp_21",
-      "type": "basic:rounded-rect",
+      "type": "timeline:interval",
       "x": 152.6,
       "y": 388,
       "width": 202.5,
@@ -459,7 +611,7 @@
     },
     {
       "id": "shp_22",
-      "type": "basic:rounded-rect",
+      "type": "timeline:interval",
       "x": 357.8,
       "y": 388,
       "width": 142,
@@ -499,7 +651,7 @@
     },
     {
       "id": "shp_23",
-      "type": "basic:rounded-rect",
+      "type": "timeline:interval",
       "x": 502.4,
       "y": 388,
       "width": 115.8,
@@ -539,13 +691,13 @@
     },
     {
       "id": "shp_24",
-      "type": "basic:rounded-rect",
+      "type": "timeline:interval",
       "x": 271,
       "y": 450,
       "width": 139.4,
       "height": 34,
       "rotation": 0,
-      "text": "lit review fix + resubmit\n2/16 - 4/10",
+      "text": "lit review fix + resubmit\n2/20 - 4/14",
       "textStyle": {
         "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
         "fontSize": 8,
@@ -573,13 +725,13 @@
         "taskName": "lit review fix + resubmit",
         "rowIndex": 3,
         "timelineId": "shp_timeline_main",
-        "startDate": "2026-02-16",
-        "endDate": "2026-04-10"
+        "startDate": "2026-02-20",
+        "endDate": "2026-04-14"
       }
     },
     {
       "id": "shp_25",
-      "type": "basic:rounded-rect",
+      "type": "timeline:interval",
       "x": 202.6,
       "y": 636,
       "width": 128.9,
@@ -619,7 +771,7 @@
     },
     {
       "id": "shp_26",
-      "type": "basic:rounded-rect",
+      "type": "timeline:interval",
       "x": 444.6,
       "y": 698,
       "width": 373.5,
@@ -659,7 +811,7 @@
     },
     {
       "id": "shp_33",
-      "type": "basic:rounded-rect",
+      "type": "timeline:interval",
       "x": 215.8,
       "y": 760,
       "width": 128.9,
@@ -699,7 +851,7 @@
     },
     {
       "id": "shp_34",
-      "type": "basic:rounded-rect",
+      "type": "timeline:interval",
       "x": 347.3,
       "y": 760,
       "width": 194.6,
@@ -739,7 +891,7 @@
     },
     {
       "id": "shp_35",
-      "type": "basic:rounded-rect",
+      "type": "timeline:interval",
       "x": 547.2,
       "y": 760,
       "width": 76.3,
@@ -779,7 +931,7 @@
     },
     {
       "id": "shp_27",
-      "type": "basic:rounded-rect",
+      "type": "timeline:interval",
       "x": 189.5,
       "y": 884,
       "width": 168.3,
@@ -819,7 +971,7 @@
     },
     {
       "id": "shp_36",
-      "type": "basic:rounded-rect",
+      "type": "timeline:interval",
       "x": 360.4,
       "y": 884,
       "width": 178.9,
@@ -859,7 +1011,7 @@
     },
     {
       "id": "shp_37",
-      "type": "basic:rounded-rect",
+      "type": "timeline:interval",
       "x": 541.9,
       "y": 884,
       "width": 99.9,
@@ -899,7 +1051,7 @@
     },
     {
       "id": "shp_38",
-      "type": "basic:rounded-rect",
+      "type": "timeline:interval",
       "x": 644.5,
       "y": 884,
       "width": 97.3,
@@ -939,7 +1091,7 @@
     },
     {
       "id": "shp_28",
-      "type": "basic:rounded-rect",
+      "type": "timeline:interval",
       "x": 152.6,
       "y": 946,
       "width": 189.4,
@@ -979,7 +1131,7 @@
     },
     {
       "id": "shp_29",
-      "type": "basic:rounded-rect",
+      "type": "timeline:interval",
       "x": 344.6,
       "y": 946,
       "width": 168.3,
@@ -1019,7 +1171,7 @@
     },
     {
       "id": "shp_30",
-      "type": "basic:rounded-rect",
+      "type": "timeline:interval",
       "x": 515.6,
       "y": 946,
       "width": 307.7,
@@ -1059,7 +1211,7 @@
     },
     {
       "id": "shp_31",
-      "type": "basic:rounded-rect",
+      "type": "timeline:interval",
       "x": 202.6,
       "y": 1008,
       "width": 139.4,
@@ -1099,7 +1251,7 @@
     },
     {
       "id": "shp_32",
-      "type": "basic:rounded-rect",
+      "type": "timeline:interval",
       "x": 344.6,
       "y": 1008,
       "width": 78.9,
@@ -1139,7 +1291,7 @@
     },
     {
       "id": "shp_39",
-      "type": "basic:rounded-rect",
+      "type": "timeline:interval",
       "x": 426.2,
       "y": 1008,
       "width": 76.3,
@@ -1178,10 +1330,10 @@
       }
     },
     {
-      "id": "shp_mlix3cs5_2",
-      "type": "flowchart:timeline",
-      "x": 137,
-      "y": 262,
+      "id": "shp_mliy8ryr_5",
+      "type": "timeline:timeline",
+      "x": 137.00000000000023,
+      "y": 512,
       "width": 973,
       "height": 40,
       "rotation": 0,

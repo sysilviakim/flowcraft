@@ -60,9 +60,82 @@
     return `${m}/${d}`;
   }
 
-  diagram.on('shape:changed', (shape) => {
-    if (!shape || !shape.data || !shape.data.timelineInterval || !shape.data.timelineId) return;
+  function findOverlappingTimeline(shape) {
+    const cx = shape.x + shape.width / 2;
+    return diagram.shapes.find(s =>
+      s.type === 'timeline:timeline' && s.id !== shape.id &&
+      cx >= s.x && cx <= s.x + s.width
+    ) || null;
+  }
 
+  function attachToTimeline(shape, tl) {
+    const parseD = ds => { const [y,m,d] = ds.split('-').map(Number); return new Date(y,m-1,d).getTime(); };
+    const startMs = parseD(tl.data.startDate);
+    const endMs = parseD(tl.data.endDate);
+    const totalMs = endMs - startMs;
+    if (totalMs <= 0 || tl.width <= 0) return;
+
+    const taskName = shape.data.taskName || shape.text.split('\n')[0] || '';
+
+    if (shape.type === 'timeline:milestone') {
+      // Milestone = single date at center X
+      const cx = shape.x + shape.width / 2;
+      const dateMs = startMs + ((cx - tl.x) / tl.width) * totalMs;
+      const dateStr = msToISO(dateMs);
+      const newText = taskName ? taskName + '\n' + isoToShort(dateStr) : isoToShort(dateStr);
+      diagram.updateShapeDeep(shape.id, {
+        text: newText,
+        data: { timelineInterval: true, timelineId: tl.id, startDate: dateStr, endDate: dateStr, taskName: taskName }
+      });
+    } else {
+      // Interval = date range
+      const barStartMs = startMs + ((shape.x - tl.x) / tl.width) * totalMs;
+      const barEndMs = startMs + ((shape.x + shape.width - tl.x) / tl.width) * totalMs;
+      const newStart = msToISO(barStartMs);
+      const newEnd = msToISO(barEndMs);
+      const dateLbl = isoToShort(newStart) + ' - ' + isoToShort(newEnd);
+      const newText = taskName ? taskName + '\n' + dateLbl : dateLbl;
+      diagram.updateShapeDeep(shape.id, {
+        text: newText,
+        data: { timelineInterval: true, timelineId: tl.id, startDate: newStart, endDate: newEnd, taskName: taskName }
+      });
+    }
+  }
+
+  function detachFromTimeline(shape) {
+    const taskName = shape.data.taskName || shape.text.split('\n')[0] || '';
+    diagram.updateShapeDeep(shape.id, {
+      text: taskName,
+      data: { timelineInterval: false, timelineId: null, startDate: null, endDate: null }
+    });
+  }
+
+  diagram.on('shape:changed', (shape) => {
+    if (!shape || !shape.data) return;
+
+    // Handle interval or milestone shapes - auto-attach/detach from timelines
+    if (shape.type === 'timeline:interval' || shape.type === 'timeline:milestone') {
+      const currentTlId = shape.data.timelineId || null;
+      const overlapping = findOverlappingTimeline(shape);
+
+      if (overlapping && overlapping.data && overlapping.data.startDate && overlapping.data.endDate) {
+        if (!shape.data.timelineInterval || overlapping.id !== currentTlId) {
+          // First attachment or switched to different timeline
+          attachToTimeline(shape, overlapping);
+          return;
+        }
+        // Already attached to this timeline — fall through to legacy handler for date recalc
+      } else if (currentTlId) {
+        // Moved off timeline
+        detachFromTimeline(shape);
+        return;
+      } else {
+        return; // Not on any timeline, nothing to do
+      }
+    }
+
+    // Recalculate dates for any shape attached to a timeline
+    if (!shape.data.timelineInterval || !shape.data.timelineId) return;
     const tl = diagram.getShape(shape.data.timelineId);
     if (!tl || !tl.data || !tl.data.startDate || !tl.data.endDate) return;
 
@@ -73,18 +146,30 @@
 
     if (totalMs <= 0 || tl.width <= 0) return;
 
-    const barStartMs = startMs + ((shape.x - tl.x) / tl.width) * totalMs;
-    const barEndMs = startMs + ((shape.x + shape.width - tl.x) / tl.width) * totalMs;
+    const taskName = shape.data.taskName || shape.text.split('\n')[0];
 
-    const newStart = msToISO(barStartMs);
-    const newEnd = msToISO(barEndMs);
+    if (shape.type === 'timeline:milestone') {
+      const cx = shape.x + shape.width / 2;
+      const dateMs = startMs + ((cx - tl.x) / tl.width) * totalMs;
+      const dateStr = msToISO(dateMs);
+      if (dateStr !== shape.data.startDate) {
+        diagram.updateShapeDeep(shape.id, {
+          text: taskName + '\n' + isoToShort(dateStr),
+          data: { startDate: dateStr, endDate: dateStr }
+        });
+      }
+    } else {
+      const barStartMs = startMs + ((shape.x - tl.x) / tl.width) * totalMs;
+      const barEndMs = startMs + ((shape.x + shape.width - tl.x) / tl.width) * totalMs;
+      const newStart = msToISO(barStartMs);
+      const newEnd = msToISO(barEndMs);
 
-    if (newStart !== shape.data.startDate || newEnd !== shape.data.endDate) {
-      const taskName = shape.data.taskName || shape.text.split('\n')[0];
-      diagram.updateShapeDeep(shape.id, {
-        text: taskName + '\n' + isoToShort(newStart) + ' - ' + isoToShort(newEnd),
-        data: { startDate: newStart, endDate: newEnd }
-      });
+      if (newStart !== shape.data.startDate || newEnd !== shape.data.endDate) {
+        diagram.updateShapeDeep(shape.id, {
+          text: taskName + '\n' + isoToShort(newStart) + ' - ' + isoToShort(newEnd),
+          data: { startDate: newStart, endDate: newEnd }
+        });
+      }
     }
   });
 

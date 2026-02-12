@@ -454,8 +454,11 @@ const Shapes = (() => {
     }
   });
 
+  // ============================================================
+  // TIMELINE SHAPES
+  // ============================================================
   register({
-    category: 'Flowchart', type: 'flowchart:timeline', label: 'Timeline',
+    category: 'Timeline', type: 'timeline:timeline', label: 'Timeline',
     defaultSize: { width: 800, height: 40 },
     ports: [],
     defaultData() {
@@ -568,6 +571,36 @@ const Shapes = (() => {
         }
       }
       return svg;
+    }
+  });
+
+  register({
+    category: 'Timeline', type: 'timeline:interval', label: 'Interval',
+    defaultSize: { width: 140, height: 34 },
+    ports: [],
+    defaultStyle: { fill: '#d1bcd2', stroke: 'none', strokeWidth: 0 },
+    defaultTextStyle: { fontSize: 8 },
+    icon: paletteIconMulti(`<rect x="3" y="11" width="30" height="14" rx="5" fill="#d1bcd2" stroke="none"/>
+      <text x="18" y="21" text-anchor="middle" font-size="6" fill="#1a1a2e" stroke="none">Interval</text>`),
+    render(s) {
+      const r = Math.min(12, s.width / 4, s.height / 4);
+      return `<rect x="0" y="0" width="${s.width}" height="${s.height}" rx="${r}"/>`;
+    }
+  });
+
+  register({
+    category: 'Timeline', type: 'timeline:milestone', label: 'Milestone',
+    defaultSize: { width: 16, height: 32 },
+    ports: [],
+    defaultStyle: { fill: '#e74c3c', stroke: 'none', strokeWidth: 0 },
+    icon: paletteIconMulti(`<polygon points="18,6 28,16 18,26 8,16" fill="#e74c3c" stroke="none"/>
+      <line x1="18" y1="16" x2="18" y2="32" stroke="#e74c3c" stroke-width="1.5"/>`),
+    render(s) {
+      const w = s.width, h = s.height;
+      const dh = w; // diamond height = width
+      const cx = w / 2;
+      return `<polygon points="${cx},0 ${w},${dh/2} ${cx},${dh} 0,${dh/2}"/>` +
+             `<line x1="${cx}" y1="${dh/2}" x2="${cx}" y2="${h}" stroke="${s.style.fill || '#e74c3c'}" stroke-width="2" fill="none"/>`;
     }
   });
 

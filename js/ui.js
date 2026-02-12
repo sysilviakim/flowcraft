@@ -547,18 +547,21 @@ const UI = (() => {
     const container = Renderer.getContainer();
     const containerRect = container.getBoundingClientRect();
 
-    let cx, cy;
+    let cx, cyTop, cyBottom;
     if (shapes && shapes.length > 0) {
       const bounds = Utils.getBoundingRect(shapes);
-      const screen = Renderer.canvasToScreen(bounds.x + bounds.width / 2, bounds.y);
-      cx = screen.x + containerRect.left;
-      cy = screen.y + containerRect.top;
+      const screenTop = Renderer.canvasToScreen(bounds.x + bounds.width / 2, bounds.y);
+      const screenBot = Renderer.canvasToScreen(bounds.x + bounds.width / 2, bounds.y + bounds.height);
+      cx = screenTop.x + containerRect.left;
+      cyTop = screenTop.y + containerRect.top;
+      cyBottom = screenBot.y + containerRect.top;
     } else if (connector && connector.points && connector.points.length >= 2) {
       const midIdx = Math.floor(connector.points.length / 2);
       const pt = connector.points[midIdx];
       const screen = Renderer.canvasToScreen(pt.x, pt.y);
       cx = screen.x + containerRect.left;
-      cy = screen.y + containerRect.top;
+      cyTop = screen.y + containerRect.top;
+      cyBottom = cyTop;
     } else {
       hideFloatingToolbar();
       return;
@@ -566,11 +569,11 @@ const UI = (() => {
 
     const barRect = _floatingToolbar.getBoundingClientRect();
     let left = cx - barRect.width / 2;
-    let top = cy - barRect.height - 12;
+    let top = cyTop - barRect.height - 12;
 
     // Keep within viewport
     left = Math.max(4, Math.min(left, window.innerWidth - barRect.width - 4));
-    if (top < 4) top = cy + 12; // flip below if too high
+    if (top < 4) top = cyBottom + 12; // flip below shape if too high
 
     _floatingToolbar.style.left = left + 'px';
     _floatingToolbar.style.top = top + 'px';
@@ -724,7 +727,7 @@ const UI = (() => {
     container.appendChild(textSection);
 
     // Timeline shape guide height
-    if (shape.type === 'flowchart:timeline') {
+    if (shape.type === 'timeline:timeline') {
       const tlSection = makePropsSection('Timeline');
 
       const typeSelect = makeSelectInput((shape.data && shape.data.timelineType) || 'block', [
@@ -792,27 +795,41 @@ const UI = (() => {
       container.appendChild(tlSection);
     }
 
-    // Timeline interval date attributes
-    if (shape.data && shape.data.timelineInterval && shape.data.startDate && shape.data.endDate) {
-      const dateSection = makePropsSection('Timeline Dates');
+    // Timeline interval/milestone date attributes
+    if (shape.data && shape.data.timelineInterval && shape.data.startDate) {
+      const isMilestone = shape.type === 'timeline:milestone';
+      const dateSection = makePropsSection(isMilestone ? 'Milestone Date' : 'Timeline Dates');
 
-      const startInput = document.createElement('input');
-      startInput.type = 'date';
-      startInput.className = 'props-input';
-      startInput.value = shape.data.startDate;
-      startInput.addEventListener('change', () => {
-        applyTimelineDateChange(shape, startInput.value, shape.data.endDate);
-      });
-      dateSection.appendChild(makePropRow('Start', startInput));
+      if (isMilestone) {
+        const dateInput = document.createElement('input');
+        dateInput.type = 'date';
+        dateInput.className = 'props-input';
+        dateInput.value = shape.data.startDate;
+        dateInput.addEventListener('change', () => {
+          applyTimelineDateChange(shape, dateInput.value, dateInput.value);
+        });
+        dateSection.appendChild(makePropRow('Date', dateInput));
+      } else {
+        const startInput = document.createElement('input');
+        startInput.type = 'date';
+        startInput.className = 'props-input';
+        startInput.value = shape.data.startDate;
+        startInput.addEventListener('change', () => {
+          applyTimelineDateChange(shape, startInput.value, shape.data.endDate);
+        });
+        dateSection.appendChild(makePropRow('Start', startInput));
 
-      const endInput = document.createElement('input');
-      endInput.type = 'date';
-      endInput.className = 'props-input';
-      endInput.value = shape.data.endDate;
-      endInput.addEventListener('change', () => {
-        applyTimelineDateChange(shape, shape.data.startDate, endInput.value);
-      });
-      dateSection.appendChild(makePropRow('End', endInput));
+        if (shape.data.endDate) {
+          const endInput = document.createElement('input');
+          endInput.type = 'date';
+          endInput.className = 'props-input';
+          endInput.value = shape.data.endDate;
+          endInput.addEventListener('change', () => {
+            applyTimelineDateChange(shape, shape.data.startDate, endInput.value);
+          });
+          dateSection.appendChild(makePropRow('End', endInput));
+        }
+      }
 
       if (shape.data.taskName) {
         const nameInput = document.createElement('input');
@@ -820,7 +837,7 @@ const UI = (() => {
         nameInput.value = shape.data.taskName;
         nameInput.addEventListener('change', () => {
           const s = diagram.getShape(shape.id);
-          const dateLbl = formatDateLabel(s.data.startDate, s.data.endDate);
+          const dateLbl = isMilestone ? formatDateLabel(s.data.startDate, s.data.startDate) : formatDateLabel(s.data.startDate, s.data.endDate);
           diagram.updateShapeDeep(shape.id, {
             text: nameInput.value + '\n' + dateLbl,
             data: { taskName: nameInput.value }
@@ -1563,6 +1580,7 @@ const UI = (() => {
 
   function formatDateLabel(startDate, endDate) {
     const [,sm,sd] = startDate.split('-').map(Number);
+    if (startDate === endDate) return `${sm}/${sd}`;
     const [,em,ed] = endDate.split('-').map(Number);
     return `${sm}/${sd} - ${em}/${ed}`;
   }

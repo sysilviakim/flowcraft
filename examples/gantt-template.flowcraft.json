@@ -207,7 +207,7 @@
     },
     {
       "id": "shp_timeline_main",
-      "type": "flowchart:timeline",
+      "type": "timeline:timeline",
       "x": 150,
       "y": 196,
       "width": 960,
