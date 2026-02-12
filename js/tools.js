@@ -535,6 +535,62 @@ const Tools = (() => {
           if (newBounds.height < gs) newBounds.height = gs;
         }
 
+        // Shape-to-shape snapping during resize
+        const resizeSnapThreshold = 10;
+        const otherForResize = diagram.shapes.filter(s => s.id !== shape.id);
+        const resizeGuides = [];
+        const targetXsR = new Set(), targetYsR = new Set();
+        otherForResize.forEach(o => {
+          targetXsR.add(o.x); targetXsR.add(o.x + o.width);
+          targetYsR.add(o.y); targetYsR.add(o.y + o.height);
+        });
+        if (h.includes('r')) {
+          const right = newBounds.x + newBounds.width;
+          for (const tx of targetXsR) {
+            if (Math.abs(right - tx) < resizeSnapThreshold) {
+              newBounds.width = tx - newBounds.x;
+              resizeGuides.push({ x: tx });
+              break;
+            }
+          }
+        }
+        if (h.includes('l')) {
+          for (const tx of targetXsR) {
+            if (Math.abs(newBounds.x - tx) < resizeSnapThreshold) {
+              const oldRight = newBounds.x + newBounds.width;
+              newBounds.x = tx;
+              newBounds.width = oldRight - tx;
+              resizeGuides.push({ x: tx });
+              break;
+            }
+          }
+        }
+        if (h.includes('b')) {
+          const bottom = newBounds.y + newBounds.height;
+          for (const ty of targetYsR) {
+            if (Math.abs(bottom - ty) < resizeSnapThreshold) {
+              newBounds.height = ty - newBounds.y;
+              resizeGuides.push({ y: ty });
+              break;
+            }
+          }
+        }
+        if (h.includes('t')) {
+          for (const ty of targetYsR) {
+            if (Math.abs(newBounds.y - ty) < resizeSnapThreshold) {
+              const oldBottom = newBounds.y + newBounds.height;
+              newBounds.y = ty;
+              newBounds.height = oldBottom - ty;
+              resizeGuides.push({ y: ty });
+              break;
+            }
+          }
+        }
+        Renderer.showAlignmentGuides(resizeGuides.map(g => g.x !== undefined
+          ? { x1: g.x, y1: newBounds.y - 50, x2: g.x, y2: newBounds.y + newBounds.height + 50 }
+          : { x1: newBounds.x - 50, y1: g.y, x2: newBounds.x + newBounds.width + 50, y2: g.y }
+        ));
+
         diagram.updateShape(shape.id, newBounds);
         Connectors.updateConnectorsForShape(diagram, shape.id);
         Renderer.showSelectionHandles(selectedShapes);
@@ -1077,6 +1133,8 @@ const Tools = (() => {
       const shape = Model.createShape(drawShapeType, pos.x, pos.y, 1, 1);
       shape.ports = def.ports || Shapes.stdPorts();
       if (def.defaultData) shape.data = def.defaultData();
+      if (def.defaultStyle) Object.assign(shape.style, def.defaultStyle);
+      if (def.defaultTextStyle) Object.assign(shape.textStyle, def.defaultTextStyle);
       this._previewShape = shape;
       diagram.addShape(shape);
     },
@@ -1824,6 +1882,8 @@ const Tools = (() => {
     if (def.defaultData) {
       shape.data = def.defaultData();
     }
+    if (def.defaultStyle) Object.assign(shape.style, def.defaultStyle);
+    if (def.defaultTextStyle) Object.assign(shape.textStyle, def.defaultTextStyle);
     History.execute(new History.AddShapeCommand(shape));
     const newShape = diagram.getShape(shape.id);
     if (newShape) {

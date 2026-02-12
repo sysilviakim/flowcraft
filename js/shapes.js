@@ -462,12 +462,14 @@ const Shapes = (() => {
       return { timelineType: 'line', startDate: `${y}-01-01`, endDate: `${y}-12-31` };
     },
     icon: paletteIconMulti(`<circle cx="2" cy="17" r="2" fill="#999" stroke="none"/>
-      <line x1="2" y1="17" x2="33" y2="17" stroke="#1a7a4c" stroke-width="1.2"/>
-      <polygon points="35,17 32,14.5 32,19.5" fill="#1a7a4c" stroke="none"/>
-      <line x1="9" y1="13" x2="9" y2="21" stroke="#1a7a4c" stroke-width="0.7" opacity="0.6"/>
-      <line x1="16" y1="13" x2="16" y2="21" stroke="#1a7a4c" stroke-width="0.7" opacity="0.6"/>
-      <line x1="23" y1="13" x2="23" y2="21" stroke="#1a7a4c" stroke-width="0.7" opacity="0.6"/>
-      <line x1="30" y1="13" x2="30" y2="21" stroke="#1a7a4c" stroke-width="0.7" opacity="0.6"/>`),
+      <line x1="2" y1="17" x2="33" y2="17" stroke="#555555" stroke-width="1.2"/>
+      <polygon points="35,17 32,14.5 32,19.5" fill="#555555" stroke="none"/>
+      <line x1="9" y1="13" x2="9" y2="21" stroke="#555555" stroke-width="0.7" opacity="0.6"/>
+      <line x1="16" y1="13" x2="16" y2="21" stroke="#555555" stroke-width="0.7" opacity="0.6"/>
+      <line x1="23" y1="13" x2="23" y2="21" stroke="#555555" stroke-width="0.7" opacity="0.6"/>
+      <line x1="30" y1="13" x2="30" y2="21" stroke="#555555" stroke-width="0.7" opacity="0.6"/>`),
+    defaultStyle: { stroke: '#555555' },
+    defaultTextStyle: { fontSize: 9 },
     render(s) {
       const w = s.width, h = s.height;
       const guideH = (s.data && s.data.guideHeight) || 0;
@@ -475,6 +477,7 @@ const Shapes = (() => {
       const markers = (s.data && s.data.markers) || 'months';
       const labelFormat = (s.data && s.data.labelFormat) || 'M/D';
       const showLabels = tlType === 'block' ? (s.data && s.data.showLabels !== false) : !!(s.data && s.data.showLabels);
+      const fontSize = (s.textStyle && s.textStyle.fontSize) || 9;
 
       const parseD = ds => { const [y,m,d] = ds.split('-').map(Number); return new Date(y,m-1,d); };
 
@@ -531,15 +534,15 @@ const Shapes = (() => {
           const startMs = sd.getTime(), endMs = ed.getTime(), totalMs = endMs - startMs;
           if (totalMs > 0) {
             const lineW = w - arrowSize;
-            if (showLabels) svg += `<text x="6" y="${midY - tickH - 4}" fill="#555555" stroke="none" font-size="9" font-family="MaruBuri,Inter,sans-serif">${formatDate(sd)}</text>`;
+            if (showLabels) svg += `<text x="6" y="${midY - tickH - 4}" fill="#555555" stroke="none" font-size="${fontSize}" font-family="MaruBuri,Inter,sans-serif">${formatDate(sd)}</text>`;
             const ticks = generateTicks(sd, ed);
             ticks.forEach(tick => {
               const x = ((tick.getTime() - startMs) / totalMs) * lineW;
               svg += `<line x1="${x}" y1="${midY - tickH}" x2="${x}" y2="${midY + tickH}" fill="none" stroke="${strokeColor}" stroke-width="0.5" opacity="0.5"/>`;
               if (guideH > 0) svg += `<line x1="${x}" y1="${midY + tickH}" x2="${x}" y2="${h + guideH}" fill="none" stroke="#d0d0d8" stroke-width="0.8" opacity="0.4"/>`;
-              if (showLabels) svg += `<text x="${x+3}" y="${midY - tickH - 4}" fill="#555555" stroke="none" font-size="9" font-family="MaruBuri,Inter,sans-serif">${formatDate(tick)}</text>`;
+              if (showLabels) svg += `<text x="${x+3}" y="${midY - tickH - 4}" fill="#555555" stroke="none" font-size="${fontSize}" font-family="MaruBuri,Inter,sans-serif">${formatDate(tick)}</text>`;
             });
-            if (showLabels) svg += `<text x="${lineW - 3}" y="${midY - tickH - 4}" fill="#555555" stroke="none" font-size="9" font-family="MaruBuri,Inter,sans-serif" text-anchor="end">${formatDate(ed)}</text>`;
+            if (showLabels) svg += `<text x="${lineW - 3}" y="${midY - tickH - 4}" fill="#555555" stroke="none" font-size="${fontSize}" font-family="MaruBuri,Inter,sans-serif" text-anchor="end">${formatDate(ed)}</text>`;
           }
         }
         return svg;
@@ -551,15 +554,15 @@ const Shapes = (() => {
         const sd = parseD(s.data.startDate), ed = parseD(s.data.endDate);
         const startMs = sd.getTime(), endMs = ed.getTime(), totalMs = endMs - startMs;
         if (totalMs > 0) {
-          if (showLabels) svg += `<text x="3" y="${h-4}" fill="#555555" stroke="none" font-size="9" font-family="MaruBuri,Inter,sans-serif">${formatDate(sd)}</text>`;
+          if (showLabels) svg += `<text x="3" y="${h-4}" fill="#555555" stroke="none" font-size="${fontSize}" font-family="MaruBuri,Inter,sans-serif">${formatDate(sd)}</text>`;
           const ticks = generateTicks(sd, ed);
           ticks.forEach(tick => {
             const x = ((tick.getTime() - startMs) / totalMs) * w;
             svg += `<line x1="${x}" y1="0" x2="${x}" y2="${h}" fill="none" stroke-width="0.5" opacity="0.5"/>`;
             if (guideH > 0) svg += `<line x1="${x}" y1="${h}" x2="${x}" y2="${h + guideH}" fill="none" stroke="#d0d0d8" stroke-width="0.8" opacity="0.4"/>`;
-            if (showLabels) svg += `<text x="${x+3}" y="${h-4}" fill="#555555" stroke="none" font-size="9" font-family="MaruBuri,Inter,sans-serif">${formatDate(tick)}</text>`;
+            if (showLabels) svg += `<text x="${x+3}" y="${h-4}" fill="#555555" stroke="none" font-size="${fontSize}" font-family="MaruBuri,Inter,sans-serif">${formatDate(tick)}</text>`;
           });
-          if (showLabels) svg += `<text x="${w-3}" y="${h-4}" fill="#555555" stroke="none" font-size="9" font-family="MaruBuri,Inter,sans-serif" text-anchor="end">${formatDate(ed)}</text>`;
+          if (showLabels) svg += `<text x="${w-3}" y="${h-4}" fill="#555555" stroke="none" font-size="${fontSize}" font-family="MaruBuri,Inter,sans-serif" text-anchor="end">${formatDate(ed)}</text>`;
         }
       }
       return svg;

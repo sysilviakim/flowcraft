@@ -2,12 +2,18 @@
   "id": "diag_annual_2026",
   "name": "2026 Research Goals - Annual Challenge",
   "created": 1770800793279,
-  "modified": 1770800793279,
+  "modified": 1770868213638,
   "settings": {
     "gridSize": 20,
     "snapToGrid": false,
     "showGrid": false,
-    "canvasColor": "#ffffff"
+    "canvasColor": "#ffffff",
+    "timeline": {
+      "startDate": "2026-01-01",
+      "endDate": "2026-12-31",
+      "startX": 150,
+      "endX": 1110
+    }
   },
   "layers": [
     {
@@ -58,7 +64,7 @@
       "width": 1100,
       "height": 20,
       "rotation": 0,
-      "text": "Silvia Kim  |  February 11, 2026",
+      "text": "Silvia Kim  |  February 12, 2026",
       "textStyle": {
         "fontFamily": "Inter, system-ui, sans-serif",
         "fontSize": 11,
@@ -84,8 +90,8 @@
     {
       "id": "shp_3",
       "type": "basic:rectangle",
-      "x": 22,
-      "y": 82,
+      "x": 137,
+      "y": 92,
       "width": 245,
       "height": 108,
       "rotation": 0,
@@ -115,8 +121,8 @@
     {
       "id": "shp_4",
       "type": "basic:rectangle",
-      "x": 277,
-      "y": 82,
+      "x": 390.19999999999993,
+      "y": 92,
       "width": 240,
       "height": 108,
       "rotation": 0,
@@ -146,8 +152,8 @@
     {
       "id": "shp_5",
       "type": "basic:rectangle",
-      "x": 527,
-      "y": 82,
+      "x": 638.35,
+      "y": 92,
       "width": 240,
       "height": 108,
       "rotation": 0,
@@ -177,8 +183,8 @@
     {
       "id": "shp_6",
       "type": "basic:rectangle",
-      "x": 777,
-      "y": 82,
+      "x": 886,
+      "y": 92,
       "width": 220,
       "height": 108,
       "rotation": 0,
@@ -208,10 +214,10 @@
     {
       "id": "shp_timeline_main",
       "type": "flowchart:timeline",
-      "x": 150,
-      "y": 196,
-      "width": 960,
-      "height": 42,
+      "x": 137,
+      "y": 210,
+      "width": 964,
+      "height": 20,
       "rotation": 0,
       "text": "",
       "textStyle": {
@@ -223,8 +229,8 @@
         "vAlign": "middle"
       },
       "style": {
-        "fill": "#7cb342",
-        "stroke": "#5a8a2a",
+        "fill": "#f0f4c3",
+        "stroke": "#ffffff",
         "strokeWidth": 1,
         "strokeDash": "",
         "opacity": 1,
@@ -273,13 +279,13 @@
         "lanes": [
           {
             "number": "01",
-            "name": "K-petition",
+            "name": "petition\nquality",
             "color": "#b391b5",
             "textColor": "#333333"
           },
           {
             "number": "02",
-            "name": "petition\nquality",
+            "name": "K-petition",
             "color": "#d1bcd2",
             "textColor": "#333333"
           },
@@ -358,12 +364,12 @@
     {
       "id": "shp_20",
       "type": "basic:rounded-rect",
-      "x": 305.2,
+      "x": 242.1,
       "y": 326,
-      "width": 215.7,
+      "width": 218.3,
       "height": 34,
       "rotation": 0,
-      "text": "analyze survey data\n3/1 - 5/22",
+      "text": "analyze survey + first draft\n+ ASPA presentation\n2/5 - 4/29",
       "textStyle": {
         "fontFamily": "Inter, system-ui, sans-serif",
         "fontSize": 8,
@@ -386,11 +392,11 @@
       "ports": [],
       "data": {
         "timelineInterval": true,
-        "taskName": "analyze survey data",
+        "taskName": "analyze survey + first draft\n+ ASPA presentation",
         "rowIndex": 1,
         "timelineId": "shp_timeline_main",
-        "startDate": "2026-03-01",
-        "endDate": "2026-05-22"
+        "startDate": "2026-02-05",
+        "endDate": "2026-04-29"
       }
     },
     {
@@ -398,10 +404,10 @@
       "type": "basic:rounded-rect",
       "x": 152.6,
       "y": 388,
-      "width": 197.3,
+      "width": 202.5,
       "height": 34,
       "rotation": 0,
-      "text": "lit review + frame/design + IRB\n1/2 - 3/18",
+      "text": "lit review + frame/design + IRB\n1/2 - 3/20",
       "textStyle": {
         "fontFamily": "Inter, system-ui, sans-serif",
         "fontSize": 8,
@@ -428,7 +434,7 @@
         "rowIndex": 2,
         "timelineId": "shp_timeline_main",
         "startDate": "2026-01-02",
-        "endDate": "2026-03-18"
+        "endDate": "2026-03-20"
       }
     },
     {
@@ -472,12 +478,12 @@
     {
       "id": "shp_23",
       "type": "basic:rounded-rect",
-      "x": 507.7,
+      "x": 502.4,
       "y": 388,
-      "width": 110.5,
+      "width": 115.8,
       "height": 34,
       "rotation": 0,
-      "text": "analyze data\n5/17 - 6/28",
+      "text": "analyze data\n5/15 - 6/28",
       "textStyle": {
         "fontFamily": "Inter, system-ui, sans-serif",
         "fontSize": 8,
@@ -503,19 +509,19 @@
         "taskName": "analyze data",
         "rowIndex": 2,
         "timelineId": "shp_timeline_main",
-        "startDate": "2026-05-17",
+        "startDate": "2026-05-15",
         "endDate": "2026-06-28"
       }
     },
     {
       "id": "shp_24",
       "type": "basic:rounded-rect",
-      "x": 202.6,
+      "x": 271,
       "y": 450,
       "width": 139.4,
       "height": 34,
       "rotation": 0,
-      "text": "lit review fix + resubmit\n1/21 - 3/15",
+      "text": "lit review fix + resubmit\n2/16 - 4/10",
       "textStyle": {
         "fontFamily": "Inter, system-ui, sans-serif",
         "fontSize": 8,
@@ -541,8 +547,8 @@
         "taskName": "lit review fix + resubmit",
         "rowIndex": 3,
         "timelineId": "shp_timeline_main",
-        "startDate": "2026-01-21",
-        "endDate": "2026-03-15"
+        "startDate": "2026-02-16",
+        "endDate": "2026-04-10"
       }
     },
     {
@@ -622,6 +628,120 @@
       }
     },
     {
+      "id": "shp_33",
+      "type": "basic:rounded-rect",
+      "x": 215.8,
+      "y": 760,
+      "width": 128.9,
+      "height": 34,
+      "rotation": 0,
+      "text": "refactor old code +\nrerun with new data\n1/26 - 3/16",
+      "textStyle": {
+        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontSize": 8,
+        "fontWeight": "normal",
+        "color": "#1a1a2e",
+        "align": "center",
+        "vAlign": "middle"
+      },
+      "style": {
+        "fill": "#c7e8ac",
+        "stroke": "none",
+        "strokeWidth": 0,
+        "strokeDash": "",
+        "opacity": 1,
+        "shadow": false
+      },
+      "layerId": "layer_default",
+      "groupId": null,
+      "locked": false,
+      "ports": [],
+      "data": {
+        "timelineInterval": true,
+        "taskName": "refactor old code +\nrerun with new data",
+        "rowIndex": 8,
+        "timelineId": "shp_timeline_main",
+        "startDate": "2026-01-26",
+        "endDate": "2026-03-16"
+      }
+    },
+    {
+      "id": "shp_34",
+      "type": "basic:rounded-rect",
+      "x": 347.3,
+      "y": 760,
+      "width": 194.6,
+      "height": 34,
+      "rotation": 0,
+      "text": "finish revision\n3/17 - 5/30",
+      "textStyle": {
+        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontSize": 8,
+        "fontWeight": "normal",
+        "color": "#1a1a2e",
+        "align": "center",
+        "vAlign": "middle"
+      },
+      "style": {
+        "fill": "#c7e8ac",
+        "stroke": "none",
+        "strokeWidth": 0,
+        "strokeDash": "",
+        "opacity": 1,
+        "shadow": false
+      },
+      "layerId": "layer_default",
+      "groupId": null,
+      "locked": false,
+      "ports": [],
+      "data": {
+        "timelineInterval": true,
+        "taskName": "finish revision",
+        "rowIndex": 8,
+        "timelineId": "shp_timeline_main",
+        "startDate": "2026-03-17",
+        "endDate": "2026-05-30"
+      }
+    },
+    {
+      "id": "shp_35",
+      "type": "basic:rounded-rect",
+      "x": 547.2,
+      "y": 760,
+      "width": 76.3,
+      "height": 34,
+      "rotation": 0,
+      "text": "submit\n6/1 - 6/30",
+      "textStyle": {
+        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontSize": 8,
+        "fontWeight": "normal",
+        "color": "#1a1a2e",
+        "align": "center",
+        "vAlign": "middle"
+      },
+      "style": {
+        "fill": "#c7e8ac",
+        "stroke": "none",
+        "strokeWidth": 0,
+        "strokeDash": "",
+        "opacity": 1,
+        "shadow": false
+      },
+      "layerId": "layer_default",
+      "groupId": null,
+      "locked": false,
+      "ports": [],
+      "data": {
+        "timelineInterval": true,
+        "taskName": "submit",
+        "rowIndex": 8,
+        "timelineId": "shp_timeline_main",
+        "startDate": "2026-06-01",
+        "endDate": "2026-06-30"
+      }
+    },
+    {
       "id": "shp_27",
       "type": "basic:rounded-rect",
       "x": 189.5,
@@ -660,6 +780,120 @@
       }
     },
     {
+      "id": "shp_36",
+      "type": "basic:rounded-rect",
+      "x": 360.4,
+      "y": 884,
+      "width": 178.9,
+      "height": 34,
+      "rotation": 0,
+      "text": "survey design + IRB\n3/22 - 5/29",
+      "textStyle": {
+        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontSize": 8,
+        "fontWeight": "normal",
+        "color": "#1a1a2e",
+        "align": "center",
+        "vAlign": "middle"
+      },
+      "style": {
+        "fill": "#c1e4f7",
+        "stroke": "none",
+        "strokeWidth": 0,
+        "strokeDash": "",
+        "opacity": 1,
+        "shadow": false
+      },
+      "layerId": "layer_default",
+      "groupId": null,
+      "locked": false,
+      "ports": [],
+      "data": {
+        "timelineInterval": true,
+        "taskName": "survey design + IRB",
+        "rowIndex": 10,
+        "timelineId": "shp_timeline_main",
+        "startDate": "2026-03-22",
+        "endDate": "2026-05-29"
+      }
+    },
+    {
+      "id": "shp_37",
+      "type": "basic:rounded-rect",
+      "x": 541.9,
+      "y": 884,
+      "width": 99.9,
+      "height": 34,
+      "rotation": 0,
+      "text": "launch survey\n5/30 - 7/7",
+      "textStyle": {
+        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontSize": 8,
+        "fontWeight": "normal",
+        "color": "#1a1a2e",
+        "align": "center",
+        "vAlign": "middle"
+      },
+      "style": {
+        "fill": "#c1e4f7",
+        "stroke": "none",
+        "strokeWidth": 0,
+        "strokeDash": "",
+        "opacity": 1,
+        "shadow": false
+      },
+      "layerId": "layer_default",
+      "groupId": null,
+      "locked": false,
+      "ports": [],
+      "data": {
+        "timelineInterval": true,
+        "taskName": "launch survey",
+        "rowIndex": 10,
+        "timelineId": "shp_timeline_main",
+        "startDate": "2026-05-30",
+        "endDate": "2026-07-07"
+      }
+    },
+    {
+      "id": "shp_38",
+      "type": "basic:rounded-rect",
+      "x": 644.5,
+      "y": 884,
+      "width": 97.3,
+      "height": 34,
+      "rotation": 0,
+      "text": "first draft\n7/8 - 8/14",
+      "textStyle": {
+        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontSize": 8,
+        "fontWeight": "normal",
+        "color": "#1a1a2e",
+        "align": "center",
+        "vAlign": "middle"
+      },
+      "style": {
+        "fill": "#c1e4f7",
+        "stroke": "none",
+        "strokeWidth": 0,
+        "strokeDash": "",
+        "opacity": 1,
+        "shadow": false
+      },
+      "layerId": "layer_default",
+      "groupId": null,
+      "locked": false,
+      "ports": [],
+      "data": {
+        "timelineInterval": true,
+        "taskName": "first draft",
+        "rowIndex": 10,
+        "timelineId": "shp_timeline_main",
+        "startDate": "2026-07-08",
+        "endDate": "2026-08-14"
+      }
+    },
+    {
       "id": "shp_28",
       "type": "basic:rounded-rect",
       "x": 152.6,
@@ -667,7 +901,7 @@
       "width": 189.4,
       "height": 34,
       "rotation": 0,
-      "text": "initial analyze\n1/2 - 3/15",
+      "text": "initial analyze + first draft\n1/2 - 3/15",
       "textStyle": {
         "fontFamily": "Inter, system-ui, sans-serif",
         "fontSize": 8,
@@ -690,7 +924,7 @@
       "ports": [],
       "data": {
         "timelineInterval": true,
-        "taskName": "initial analyze",
+        "taskName": "initial analyze + first draft",
         "rowIndex": 11,
         "timelineId": "shp_timeline_main",
         "startDate": "2026-01-02",
@@ -743,7 +977,7 @@
       "width": 307.7,
       "height": 34,
       "rotation": 0,
-      "text": "revise and present for SNU-Princeton + APSA\n5/20 - 9/14",
+      "text": "revise and present for\nSNU-Princeton + APSA\n5/20 - 9/14",
       "textStyle": {
         "fontFamily": "Inter, system-ui, sans-serif",
         "fontSize": 8,
@@ -766,7 +1000,7 @@
       "ports": [],
       "data": {
         "timelineInterval": true,
-        "taskName": "revise and present for SNU-Princeton + APSA",
+        "taskName": "revise and present for\nSNU-Princeton + APSA",
         "rowIndex": 11,
         "timelineId": "shp_timeline_main",
         "startDate": "2026-05-20",
@@ -778,10 +1012,10 @@
       "type": "basic:rounded-rect",
       "x": 202.6,
       "y": 1008,
-      "width": 73.6,
+      "width": 139.4,
       "height": 34,
       "rotation": 0,
-      "text": "github setup\n+ replication\n1/21 - 2/18",
+      "text": "github setup + replication +\ncheck fuzzy matching\n1/21 - 3/15",
       "textStyle": {
         "fontFamily": "Inter, system-ui, sans-serif",
         "fontSize": 8,
@@ -804,22 +1038,22 @@
       "ports": [],
       "data": {
         "timelineInterval": true,
-        "taskName": "github setup\n+ replication",
+        "taskName": "github setup + replication +\ncheck fuzzy matching",
         "rowIndex": 12,
         "timelineId": "shp_timeline_main",
         "startDate": "2026-01-21",
-        "endDate": "2026-02-18"
+        "endDate": "2026-03-15"
       }
     },
     {
       "id": "shp_32",
       "type": "basic:rounded-rect",
-      "x": 278.9,
+      "x": 344.6,
       "y": 1008,
-      "width": 73.6,
+      "width": 78.9,
       "height": 34,
       "rotation": 0,
-      "text": "submit to B&P\n2/19 - 3/19",
+      "text": "revision\n3/16 - 4/15",
       "textStyle": {
         "fontFamily": "Inter, system-ui, sans-serif",
         "fontSize": 8,
@@ -842,11 +1076,87 @@
       "ports": [],
       "data": {
         "timelineInterval": true,
-        "taskName": "submit to B&P",
+        "taskName": "revision",
         "rowIndex": 12,
         "timelineId": "shp_timeline_main",
-        "startDate": "2026-02-19",
-        "endDate": "2026-03-19"
+        "startDate": "2026-03-16",
+        "endDate": "2026-04-15"
+      }
+    },
+    {
+      "id": "shp_39",
+      "type": "basic:rounded-rect",
+      "x": 426.2,
+      "y": 1008,
+      "width": 76.3,
+      "height": 34,
+      "rotation": 0,
+      "text": "submit\n4/16 - 5/15",
+      "textStyle": {
+        "fontFamily": "Inter, system-ui, sans-serif",
+        "fontSize": 8,
+        "fontWeight": "normal",
+        "color": "#ffffff",
+        "align": "center",
+        "vAlign": "middle"
+      },
+      "style": {
+        "fill": "#1071e5",
+        "stroke": "none",
+        "strokeWidth": 0,
+        "strokeDash": "",
+        "opacity": 1,
+        "shadow": false
+      },
+      "layerId": "layer_default",
+      "groupId": null,
+      "locked": false,
+      "ports": [],
+      "data": {
+        "timelineInterval": true,
+        "taskName": "submit",
+        "rowIndex": 12,
+        "timelineId": "shp_timeline_main",
+        "startDate": "2026-04-16",
+        "endDate": "2026-05-15"
+      }
+    },
+    {
+      "id": "shp_mlix3cs5_2",
+      "type": "flowchart:timeline",
+      "x": 137,
+      "y": 262,
+      "width": 973,
+      "height": 40,
+      "rotation": 0,
+      "text": "",
+      "textStyle": {
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
+        "fontSize": 9,
+        "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
+        "color": "#1a1a2e",
+        "align": "center",
+        "vAlign": "middle"
+      },
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#555555",
+        "strokeWidth": 2,
+        "strokeDash": "",
+        "opacity": 1,
+        "shadow": false
+      },
+      "layerId": "layer_default",
+      "groupId": null,
+      "containerId": null,
+      "locked": false,
+      "ports": [],
+      "data": {
+        "timelineType": "line",
+        "startDate": "2026-01-01",
+        "endDate": "2026-12-31"
       }
     }
   ],
