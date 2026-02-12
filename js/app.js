@@ -50,7 +50,7 @@
     if (shape && shape.type) UI.addRecentShape(shape.type);
     // Auto-attach interval/milestone to timeline on creation
     if (shape && (shape.type === 'timeline:interval' || shape.type === 'timeline:milestone')) {
-      const tl = findOverlappingTimeline(shape);
+      const tl = findNearbyTimeline(shape);
       if (tl && tl.data && tl.data.startDate && tl.data.endDate) {
         attachToTimeline(shape, tl);
       }
@@ -81,19 +81,28 @@
     }
   }
 
-  function findOverlappingTimeline(shape) {
+  // Strict check for new attachment: horizontal overlap + vertical proximity
+  function findNearbyTimeline(shape) {
     const cx = shape.x + shape.width / 2;
     const cy = shape.y + shape.height / 2;
-    const maxVerticalDist = 60; // must be within 60px vertically of the timeline
+    const maxVerticalDist = 60;
     return diagram.shapes.find(s => {
       if (s.type !== 'timeline:timeline' || s.id === shape.id) return false;
       if (cx < s.x || cx > s.x + s.width) return false;
-      // Check vertical proximity: shape center must be near the timeline's vertical span
       const tlTop = s.y;
       const tlBot = s.y + s.height + (s.data && s.data.guideHeight || 0);
       const dist = cy < tlTop ? tlTop - cy : cy > tlBot ? cy - tlBot : 0;
       return dist <= maxVerticalDist;
     }) || null;
+  }
+
+  // Loose check: is shape's center X still within its attached timeline's horizontal range?
+  function isStillOnTimeline(shape) {
+    if (!shape.data || !shape.data.timelineId) return false;
+    const tl = diagram.getShape(shape.data.timelineId);
+    if (!tl) return false;
+    const cx = shape.x + shape.width / 2;
+    return cx >= tl.x && cx <= tl.x + tl.width;
   }
 
   function attachToTimeline(shape, tl) {
@@ -146,20 +155,21 @@
     // Handle interval or milestone shapes - auto-attach/detach from timelines
     if (shape.type === 'timeline:interval' || shape.type === 'timeline:milestone') {
       const isAttached = shape.data.timelineInterval && shape.data.timelineId;
-      const nearby = findOverlappingTimeline(shape);
 
-      if (!isAttached && nearby && nearby.data && nearby.data.startDate && nearby.data.endDate) {
-        // Not yet attached but near a timeline — attach
-        attachToTimeline(shape, nearby);
+      if (!isAttached) {
+        // Not yet attached — check if near a timeline (strict: horizontal + vertical)
+        const nearby = findNearbyTimeline(shape);
+        if (nearby && nearby.data && nearby.data.startDate && nearby.data.endDate) {
+          attachToTimeline(shape, nearby);
+        }
         return;
       }
-      if (isAttached && !nearby) {
-        // Was attached but moved away — detach
+      // Already attached — detach only if center X leaves the timeline's horizontal range
+      if (!isStillOnTimeline(shape)) {
         detachFromTimeline(shape);
         return;
       }
-      if (!isAttached) return; // Not attached, not near any timeline
-      // Already attached — fall through to date recalc
+      // Still on timeline — fall through to date recalc
     }
 
     // Recalculate dates for any shape attached to a timeline
