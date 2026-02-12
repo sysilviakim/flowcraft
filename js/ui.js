@@ -878,6 +878,15 @@ const UI = (() => {
     });
     textSection.appendChild(makePropRow('Align', textAlignSelect));
 
+    const vAlignSelect = makeSelectInput(shape.textStyle.vAlign || 'middle', [
+      { value: 'top', label: 'Top' },
+      { value: 'middle', label: 'Middle' },
+      { value: 'bottom', label: 'Bottom' }
+    ], v => {
+      History.execute(new History.ChangeStyleCommand(shape.id, 'textStyle', { ...shape.textStyle }, { ...shape.textStyle, vAlign: v }));
+    });
+    textSection.appendChild(makePropRow('V-Align', vAlignSelect));
+
     container.appendChild(textSection);
 
     // Timeline shape guide height
@@ -1361,6 +1370,19 @@ const UI = (() => {
       History.endBatch();
     });
     textSection.appendChild(makePropRow('Align', textAlignSelect));
+
+    const vAlignSelect = makeSelectInput(ref.textStyle.vAlign || 'middle', [
+      { value: 'top', label: 'Top' },
+      { value: 'middle', label: 'Middle' },
+      { value: 'bottom', label: 'Bottom' }
+    ], v => {
+      History.beginBatch();
+      shapes.forEach(s => {
+        History.execute(new History.ChangeStyleCommand(s.id, 'textStyle', { ...s.textStyle }, { ...s.textStyle, vAlign: v }));
+      });
+      History.endBatch();
+    });
+    textSection.appendChild(makePropRow('V-Align', vAlignSelect));
     container.appendChild(textSection);
   }
 

@@ -279,6 +279,8 @@ const Renderer = (() => {
 
       const lineHeight = shape.textStyle.fontSize * 1.3;
 
+      const maxTextW = shape.width - pad * 2;
+
       if (Utils.RichText.isRichText(shape.text)) {
         // Rich text: parse HTML into styled runs and create per-run tspans
         const richLines = Utils.RichText.parseHtmlToRuns(shape.text);
@@ -289,8 +291,8 @@ const Renderer = (() => {
         else { startY = shape.height / 2 - (lineCount - 1) * lineHeight / 2; }
         Utils.RichText.appendTspansToTextEl(textEl, richLines, textX, startY, lineHeight, shape.textStyle);
       } else {
-        // Plain text: simple multi-line support
-        const lines = shape.text.split('\n');
+        // Plain text: word-wrap to shape width
+        const lines = Utils.wrapText(shape.text, maxTextW, shape.textStyle.fontSize, shape.textStyle.fontFamily, shape.textStyle.fontWeight);
         let startY;
         if (vAlign === 'top') { startY = pad + shape.textStyle.fontSize; }
         else if (vAlign === 'bottom') { startY = shape.height - pad - (lines.length - 1) * lineHeight; }

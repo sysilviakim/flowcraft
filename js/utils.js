@@ -419,11 +419,43 @@ const Utils = (() => {
     };
   })();
 
+  // ===== Text Wrapping =====
+  const _measureCanvas = document.createElement('canvas');
+  const _measureCtx = _measureCanvas.getContext('2d');
+
+  function measureTextWidth(text, fontSize, fontFamily, fontWeight) {
+    _measureCtx.font = `${fontWeight || 'normal'} ${fontSize}px ${fontFamily || 'sans-serif'}`;
+    return _measureCtx.measureText(text).width;
+  }
+
+  function wrapText(text, maxWidth, fontSize, fontFamily, fontWeight) {
+    if (!text || maxWidth <= 0) return [text || ''];
+    const lines = text.split('\n');
+    const wrapped = [];
+    for (const line of lines) {
+      if (line === '') { wrapped.push(''); continue; }
+      const words = line.split(/(\s+)/);
+      let current = '';
+      for (const word of words) {
+        const test = current + word;
+        if (current && measureTextWidth(test, fontSize, fontFamily, fontWeight) > maxWidth) {
+          wrapped.push(current);
+          current = word.replace(/^\s+/, '');
+        } else {
+          current = test;
+        }
+      }
+      if (current) wrapped.push(current);
+    }
+    return wrapped.length ? wrapped : [''];
+  }
+
   return {
     uid, distance, midpoint, clamp, snapToGrid,
     pointInRect, rectsOverlap, rectContains, expandRect, getBoundingRect,
     lineIntersectsRect, lineSegmentIntersection, rotatePoint, manhattan,
     hexToRgb, rgbToHex, svgEl, htmlEl, removeChildren,
-    EventEmitter, debounce, deepClone, RichText
+    EventEmitter, debounce, deepClone, RichText,
+    measureTextWidth, wrapText
   };
 })();
