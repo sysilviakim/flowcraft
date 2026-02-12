@@ -58,6 +58,7 @@
   });
 
   // Auto-update timeline interval dates when shapes are moved/resized
+  const MILESTONE_POLE_X = 2; // Must match poleX in shapes.js milestone render
   function msToISO(ms) {
     const dt = new Date(ms);
     return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
@@ -114,11 +115,14 @@
     const totalMs = endMs - startMs;
     if (totalMs <= 0 || tl.width <= 0) return;
 
-    const taskName = shape.data.taskName || shape.text.split('\n')[0] || '';
+    // For milestones, label is empty by default; for intervals, fall back to first text line
+    const taskName = shape.type === 'timeline:milestone'
+      ? (shape.data.taskName != null ? shape.data.taskName : '')
+      : (shape.data.taskName || shape.text.split('\n')[0] || '');
 
     if (shape.type === 'timeline:milestone') {
-      // Milestone = single date at center X
-      const cx = shape.x + shape.width / 2;
+      // Milestone = single date at pole X (not center)
+      const cx = shape.x + MILESTONE_POLE_X;
       const dateMs = startMs + ((cx - tl.x) / tl.width) * totalMs;
       const dateStr = msToISO(dateMs);
       const fmt = (shape.data && shape.data.dateFormat) || 'M/D';
@@ -144,7 +148,9 @@
   }
 
   function detachFromTimeline(shape) {
-    const taskName = shape.data.taskName || shape.text.split('\n')[0] || '';
+    const taskName = shape.type === 'timeline:milestone'
+      ? (shape.data.taskName != null ? shape.data.taskName : '')
+      : (shape.data.taskName || shape.text.split('\n')[0] || '');
     diagram.updateShapeDeep(shape.id, {
       text: taskName,
       data: { timelineInterval: false, timelineId: null, startDate: null, endDate: null }
@@ -189,15 +195,28 @@
     const taskName = shape.data.taskName || '';
 
     if (shape.type === 'timeline:milestone') {
-      const cx = shape.x + shape.width / 2;
+      const cx = shape.x + MILESTONE_POLE_X;
       const dateMs = startMs + ((cx - tl.x) / tl.width) * totalMs;
       const dateStr = msToISO(dateMs);
-      if (dateStr !== shape.data.startDate) {
-        const fmt = (shape.data && shape.data.dateFormat) || 'M/D';
-        const dateLbl = formatMsDate(dateStr, fmt);
+      const fmt = (shape.data && shape.data.dateFormat) || 'M/D';
+      const dateLbl = formatMsDate(dateStr, fmt);
+
+      // Detect inline text edits: extract taskName from current text
+      let milestoneLabel = taskName;
+      const lines = shape.text.split('\n');
+      if (lines.length > 1) {
+        // Multi-line: everything except last line is the user label
+        milestoneLabel = lines.slice(0, -1).join('\n');
+      } else if (lines[0] && lines[0] !== dateLbl && lines[0] !== formatMsDate(shape.data.startDate, fmt)) {
+        // Single line that doesn't match expected date: user typed a label
+        milestoneLabel = lines[0];
+      }
+
+      const newText = milestoneLabel ? milestoneLabel + '\n' + dateLbl : dateLbl;
+      if (dateStr !== shape.data.startDate || milestoneLabel !== taskName || shape.text !== newText) {
         diagram.updateShapeDeep(shape.id, {
-          text: taskName ? taskName + '\n' + dateLbl : dateLbl,
-          data: { startDate: dateStr, endDate: dateStr }
+          text: newText,
+          data: { startDate: dateStr, endDate: dateStr, taskName: milestoneLabel }
         });
       }
     } else {

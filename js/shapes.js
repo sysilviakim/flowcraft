@@ -605,7 +605,7 @@ const Shapes = (() => {
     ports: [],
     customText: true,
     defaultStyle: { fill: '#e74c3c', stroke: 'none', strokeWidth: 0 },
-    defaultTextStyle: { fontSize: 7 },
+    defaultTextStyle: { fontSize: 10 },
     icon: paletteIconMulti(`<line x1="10" y1="4" x2="10" y2="32" stroke="#c0392b" stroke-width="2"/>
       <polygon points="10,4 28,10 10,16" fill="#e74c3c" stroke="none"/>
       <circle cx="10" cy="32" r="2" fill="#c0392b" stroke="none"/>`),

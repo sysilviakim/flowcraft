@@ -408,7 +408,7 @@ const UI = (() => {
       fillBtn.title = 'Fill color';
       const fillInput = document.createElement('input');
       fillInput.type = 'color';
-      fillInput.value = fillIsNone ? '#ffffff' : (shape.style.fill || '#ffffff');
+      fillInput.value = fillIsNone ? '#ffffff' : colorToHex6(shape.style.fill);
       fillInput.addEventListener('input', () => {
         shapes.forEach(s => {
           History.execute(new History.ChangeStyleCommand(s.id, 'style', { ...s.style }, { ...s.style, fill: fillInput.value }));
@@ -443,7 +443,7 @@ const UI = (() => {
       strokeBtn.title = 'Stroke color';
       const strokeInput = document.createElement('input');
       strokeInput.type = 'color';
-      strokeInput.value = strokeIsNone ? '#000000' : (shape.style.stroke || '#000000');
+      strokeInput.value = strokeIsNone ? '#000000' : colorToHex6(shape.style.stroke);
       strokeInput.addEventListener('input', () => {
         shapes.forEach(s => {
           History.execute(new History.ChangeStyleCommand(s.id, 'style', { ...s.style }, { ...s.style, stroke: strokeInput.value }));
@@ -542,7 +542,7 @@ const UI = (() => {
       textColorBtn.title = 'Text color';
       const textColorInput = document.createElement('input');
       textColorInput.type = 'color';
-      textColorInput.value = shape.textStyle.color || '#1a1a2e';
+      textColorInput.value = colorToHex6(shape.textStyle.color) || '#1a1a2e';
       textColorInput.addEventListener('input', () => {
         History.beginBatch();
         shapes.forEach(s => {
@@ -977,19 +977,24 @@ const UI = (() => {
         }
       }
 
-      if (shape.data.taskName) {
+      {
         const nameInput = document.createElement('input');
         nameInput.className = 'props-input';
-        nameInput.value = shape.data.taskName;
+        nameInput.value = shape.data.taskName || '';
+        nameInput.placeholder = isMilestone ? 'Label (optional)' : 'Task name';
         nameInput.addEventListener('change', () => {
           const s = diagram.getShape(shape.id);
-          const dateLbl = isMilestone ? formatDateLabel(s.data.startDate, s.data.startDate) : formatDateLabel(s.data.startDate, s.data.endDate);
+          const fmt = (s.data && s.data.dateFormat) || 'M/D';
+          const dateLbl = isMilestone
+            ? formatMilestoneDate(s.data.startDate, fmt)
+            : formatDateLabel(s.data.startDate, s.data.endDate);
+          const label = nameInput.value.trim();
           diagram.updateShapeDeep(shape.id, {
-            text: nameInput.value + '\n' + dateLbl,
-            data: { taskName: nameInput.value }
+            text: label ? label + '\n' + dateLbl : dateLbl,
+            data: { taskName: label }
           });
         });
-        dateSection.appendChild(makePropRow('Task', nameInput));
+        dateSection.appendChild(makePropRow(isMilestone ? 'Label' : 'Task', nameInput));
       }
 
       container.appendChild(dateSection);
@@ -1534,18 +1539,85 @@ const UI = (() => {
     return input;
   }
 
+  // Strip hex8 alpha suffix for native <input type="color"> (only accepts #RRGGBB)
+  function colorToHex6(c) {
+    if (!c || c === 'none' || c === 'transparent') return '#ffffff';
+    if (c.length === 9 && c[0] === '#') return c.slice(0, 7);
+    if (/^#[0-9a-fA-F]{6}$/i.test(c)) return c;
+    return '#ffffff';
+  }
+
   function makeColorInput(value, onChange, allowNone) {
     const wrap = document.createElement('div');
     wrap.style.cssText = 'display:flex;align-items:center;gap:4px;';
+    const isNone = !value || value === 'none' || value === 'transparent';
+    const hasAlpha = !isNone && typeof value === 'string' && value.length === 9 && value[0] === '#';
+    const hex6 = colorToHex6(value);
+    let alphaActive = hasAlpha;
+
     const input = document.createElement('input');
     input.type = 'color';
     input.className = 'props-input';
-    const isNone = !value || value === 'none' || value === 'transparent';
-    input.value = isNone ? '#ffffff' : value;
+    input.value = hex6;
     input.disabled = isNone;
     if (isNone) input.style.opacity = '0.3';
-    input.addEventListener('input', () => onChange(input.value));
+
+    // Hex text input
+    const hexInput = document.createElement('input');
+    hexInput.type = 'text';
+    hexInput.className = 'props-input color-hex-input';
+    hexInput.value = isNone ? '' : (value || '');
+    hexInput.placeholder = '#hex';
+    hexInput.disabled = isNone;
+    if (isNone) hexInput.style.opacity = '0.3';
+
+    // 50% transparency toggle
+    const halfBtn = document.createElement('button');
+    halfBtn.className = 'color-half-btn' + (alphaActive ? ' active' : '');
+    halfBtn.textContent = '50%';
+    halfBtn.title = 'Half transparency';
+
+    function buildColor() {
+      return alphaActive ? input.value + '80' : input.value;
+    }
+
+    function emitColor() {
+      const c = buildColor();
+      hexInput.value = c;
+      onChange(c);
+    }
+
+    input.addEventListener('input', emitColor);
+
+    halfBtn.addEventListener('click', () => {
+      if (input.disabled) return;
+      alphaActive = !alphaActive;
+      halfBtn.classList.toggle('active');
+      emitColor();
+    });
+
+    hexInput.addEventListener('change', () => {
+      let v = hexInput.value.trim();
+      if (!v.startsWith('#')) v = '#' + v;
+      if (/^#[0-9a-fA-F]{6}$/i.test(v)) {
+        input.value = v;
+        alphaActive = false;
+        halfBtn.classList.remove('active');
+        hexInput.value = v;
+        onChange(v);
+      } else if (/^#[0-9a-fA-F]{8}$/i.test(v)) {
+        input.value = v.slice(0, 7);
+        alphaActive = true;
+        halfBtn.classList.add('active');
+        hexInput.value = v;
+        onChange(v);
+      }
+    });
+
     wrap.appendChild(input);
+    wrap.appendChild(hexInput);
+    wrap.appendChild(halfBtn);
+
     if (allowNone) {
       const noneBtn = document.createElement('button');
       noneBtn.className = 'color-none-btn' + (isNone ? ' active' : '');
@@ -1555,7 +1627,16 @@ const UI = (() => {
         const nowNone = noneBtn.classList.toggle('active');
         input.disabled = nowNone;
         input.style.opacity = nowNone ? '0.3' : '1';
-        onChange(nowNone ? 'none' : input.value);
+        hexInput.disabled = nowNone;
+        hexInput.style.opacity = nowNone ? '0.3' : '1';
+        if (nowNone) {
+          hexInput.value = '';
+          onChange('none');
+        } else {
+          const c = buildColor();
+          hexInput.value = c;
+          onChange(c);
+        }
       });
       wrap.appendChild(noneBtn);
     }
@@ -1875,17 +1956,32 @@ const UI = (() => {
     if (!newStartDate || !newEndDate || !/^\d{4}-\d{2}-\d{2}$/.test(newStartDate) || !/^\d{4}-\d{2}-\d{2}$/.test(newEndDate)) return;
     const tl = getTimelineConfig(shape);
     if (!tl) return;
-    const newX = timelineDateToX(newStartDate, tl);
-    const newEndX = timelineDateToX(newEndDate, tl);
-    if (isNaN(newX) || isNaN(newEndX) || newEndX <= newX) return;
-    const taskName = shape.data.taskName || shape.text.split('\n')[0];
-    const dateLbl = formatDateLabel(newStartDate, newEndDate);
-    diagram.updateShapeDeep(shape.id, {
-      x: newX,
-      width: newEndX - newX,
-      text: taskName + '\n' + dateLbl,
-      data: { startDate: newStartDate, endDate: newEndDate }
-    });
+    const isMilestone = newStartDate === newEndDate;
+    if (isMilestone) {
+      // Milestone: position so pole (x+2) aligns with the date
+      const dateX = timelineDateToX(newStartDate, tl);
+      if (isNaN(dateX)) return;
+      const fmt = (shape.data && shape.data.dateFormat) || 'M/D';
+      const dateLbl = formatMilestoneDate(newStartDate, fmt);
+      const taskName = shape.data.taskName || '';
+      diagram.updateShapeDeep(shape.id, {
+        x: dateX - 2,
+        text: taskName ? taskName + '\n' + dateLbl : dateLbl,
+        data: { startDate: newStartDate, endDate: newEndDate }
+      });
+    } else {
+      const newX = timelineDateToX(newStartDate, tl);
+      const newEndX = timelineDateToX(newEndDate, tl);
+      if (isNaN(newX) || isNaN(newEndX) || newEndX <= newX) return;
+      const taskName = shape.data.taskName || shape.text.split('\n')[0];
+      const dateLbl = formatDateLabel(newStartDate, newEndDate);
+      diagram.updateShapeDeep(shape.id, {
+        x: newX,
+        width: newEndX - newX,
+        text: taskName + '\n' + dateLbl,
+        data: { startDate: newStartDate, endDate: newEndDate }
+      });
+    }
     // Refresh the properties panel with updated shape
     const updated = diagram.getShape(shape.id);
     updatePropertiesPanel([updated], null);

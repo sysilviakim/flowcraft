@@ -658,11 +658,12 @@ const Tools = (() => {
           targetYs.add(o.y);
           targetYs.add(o.y + o.height / 2);
           targetYs.add(o.y + o.height);
-          // Swim lane mid-lane snap targets
+          // Swim lane snap targets: lane boundaries and lane centers
           if (o.type === 'flowchart:swim-lane' && o.data && o.data.lanes && o.data.lanes.length > 0) {
             const laneH = o.height / o.data.lanes.length;
             for (let i = 0; i < o.data.lanes.length; i++) {
-              targetYs.add(o.y + laneH * i + laneH / 2);
+              targetYs.add(o.y + laneH * i + laneH / 2);  // lane center
+              if (i > 0) targetYs.add(o.y + laneH * i);    // lane divider
             }
           }
         });
@@ -1080,8 +1081,10 @@ const Tools = (() => {
     },
 
     onKeyDown(e) {
-      // Don't handle if editing text
+      // Don't handle if editing text or focused on an input field
       if (document.querySelector('.text-edit-overlay')) return;
+      const tag = document.activeElement && document.activeElement.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
 
       if (e.key === 'Delete' || e.key === 'Backspace') {
         deleteSelected();
@@ -1823,6 +1826,8 @@ const Tools = (() => {
   // ===== Global keyboard shortcuts =====
   function handleGlobalKeys(e) {
     if (document.querySelector('.text-edit-overlay')) return;
+    const tag = document.activeElement && document.activeElement.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
 
     const ctrl = e.ctrlKey || e.metaKey;
     if (ctrl && e.key === 'z') {

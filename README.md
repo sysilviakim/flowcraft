@@ -4,18 +4,20 @@ A free, local, browser-based diagramming application. No server, no signup, no e
 
 ## Features
 
-- **Multiple diagram types**: Flowcharts, UML, network diagrams, org charts, mind maps, ER diagrams, and timelines
-- **Smart connectors**: Orthogonal, straight, and curved routing with automatic re-routing when shapes move
-- **Drag-and-drop**: Drag shapes from the palette onto the canvas, or click-drag to draw
-- **Inline text editing**: Double-click any shape to edit its label
-- **Properties panel**: Style shapes and connectors with fill, stroke, font, opacity, and more
+- **Multiple diagram types**: Flowcharts, UML, network diagrams, org charts, mind maps, ER diagrams, timelines, and more
+- **Smart connectors**: Orthogonal, straight, and curved routing with automatic re-routing when shapes move; editable labels and draggable waypoints
+- **Drag-and-drop**: Drag shapes from the palette onto the canvas, or click-drag to draw; Alt+drag to clone
+- **Rich text editing**: Double-click any shape to edit inline with bold, italic, underline, font family, size, color, and alignment
+- **Color customization**: Color picker, direct hex code entry, preset swatch palette, and 50% transparency toggle
+- **Properties panel**: Context-sensitive styling for shapes, connectors, and multi-selections
 - **Layers**: Organize diagrams with multiple layers, each with visibility and lock controls
 - **Undo/Redo**: Full command-based history (Ctrl+Z / Ctrl+Y)
-- **Snap & align**: Grid snapping, shape-to-shape alignment guides, and alignment/distribution tools
+- **Snap & align**: Grid snapping, shape-to-shape alignment guides, distance indicators, and alignment/distribution tools
 - **Containers & swim lanes**: Group shapes inside containers with configurable lanes and colors
-- **Timelines**: Block and line timelines with configurable date ranges, markers, and labels
+- **Timelines**: Block and line timelines with date ranges, intervals, milestones with optional labels, configurable date formats, and auto-calculated dates
 - **Export**: PNG, JPG, PDF, and SVG export
 - **Auto-save**: Diagrams are automatically saved to localStorage
+- **Customizable palette**: Drag to reorder shape categories; recently used shapes shown at top
 
 ## Getting Started
 
@@ -35,7 +37,8 @@ No build step, no dependencies, no internet connection required.
 | Ctrl+V | Paste | Delete | Delete selected |
 | Ctrl+A | Select all | Arrow keys | Move selected |
 | Ctrl+S | Save | Ctrl+Arrow | Nudge by 1px |
-| Space+Drag | Pan canvas | Scroll wheel | Zoom |
+| Space+Drag | Pan canvas | Scroll wheel | Pan canvas |
+| Ctrl+Scroll | Zoom | Alt+Drag | Clone shape |
 | Double-click | Edit shape text | | |
 
 ## Shape Categories
@@ -48,6 +51,7 @@ No build step, no dependencies, no internet connection required.
 - **ER Diagram**: Entity, Relationship, Attribute
 - **Mind Map**: Central Topic, Sub-topic, Idea
 - **Containers**: Swim lane containers with configurable lanes and colors
+- **Timeline**: Block and line timelines, interval bars, and milestone markers
 
 ## File Format
 
