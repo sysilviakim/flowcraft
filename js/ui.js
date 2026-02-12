@@ -1594,7 +1594,16 @@ const UI = (() => {
     section.className = 'props-section';
     const titleEl = document.createElement('div');
     titleEl.className = 'props-section-title';
-    titleEl.textContent = title;
+    titleEl.innerHTML = `<span>${title}</span><span class="props-section-arrow">\u25BE</span>`;
+    titleEl.style.cursor = 'pointer';
+    titleEl.style.display = 'flex';
+    titleEl.style.justifyContent = 'space-between';
+    titleEl.style.alignItems = 'center';
+    titleEl.addEventListener('click', () => {
+      section.classList.toggle('collapsed');
+      const arrow = titleEl.querySelector('.props-section-arrow');
+      if (arrow) arrow.textContent = section.classList.contains('collapsed') ? '\u25B8' : '\u25BE';
+    });
     section.appendChild(titleEl);
     return section;
   }

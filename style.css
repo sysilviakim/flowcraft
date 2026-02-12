@@ -459,12 +459,17 @@ html, body {
   grid-area: props;
   display: flex;
   position: relative;
+  overflow: hidden;
+  min-height: 0;
 }
 
 #properties-wrapper .props-inner {
   width: var(--props-width);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   transition: width 0.2s ease;
+  height: 100%;
+  min-height: 0;
 }
 
 #properties-wrapper.collapsed .props-inner {
@@ -496,17 +501,20 @@ html, body {
 #properties {
   background: var(--bg-panel);
   border-left: 1px solid var(--border-color);
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  overflow-x: hidden;
   width: 100%;
-  height: 100%;
 }
 
 .props-section {
   padding: 12px 14px;
   border-bottom: 1px solid var(--border-color);
+}
+
+.props-section.collapsed > *:not(.props-section-title) {
+  display: none;
+}
+
+.props-section.collapsed .props-section-title {
+  margin-bottom: 0;
 }
 
 .props-section-title {
@@ -516,6 +524,12 @@ html, body {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 10px;
+  user-select: none;
+}
+
+.props-section-arrow {
+  font-size: 10px;
+  color: var(--text-muted);
 }
 
 .props-row {
