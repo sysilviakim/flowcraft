@@ -190,11 +190,240 @@ const Utils = (() => {
     return JSON.parse(JSON.stringify(obj));
   }
 
+  // --- Rich Text utilities ---
+  const RichText = (() => {
+    const ALLOWED_TAGS = new Set(['B', 'I', 'U', 'SPAN', 'BR']);
+    const HTML_TAG_RE = /<\/?(?:b|i|u|strong|em|span|br)\b[^>]*>/i;
+
+    function isRichText(text) {
+      return typeof text === 'string' && HTML_TAG_RE.test(text);
+    }
+
+    function plainTextToHtml(text) {
+      return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\n/g, '<br>');
+    }
+
+    function htmlToPlainText(html) {
+      const div = document.createElement('div');
+      div.innerHTML = html;
+      // Convert <br> to newlines before extracting text
+      div.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
+      return div.textContent || '';
+    }
+
+    function sanitizeHtml(html) {
+      const div = document.createElement('div');
+      div.innerHTML = html;
+
+      // Normalize <strong> → <b>, <em> → <i>
+      div.querySelectorAll('strong').forEach(el => {
+        const b = document.createElement('b');
+        b.innerHTML = el.innerHTML;
+        el.replaceWith(b);
+      });
+      div.querySelectorAll('em').forEach(el => {
+        const i = document.createElement('i');
+        i.innerHTML = el.innerHTML;
+        el.replaceWith(i);
+      });
+
+      // Normalize CSS font-weight/style spans to tags
+      div.querySelectorAll('span').forEach(el => {
+        let inner = el.innerHTML;
+        const style = el.style;
+        if (style.fontWeight === 'bold' || parseInt(style.fontWeight) >= 700) {
+          inner = '<b>' + inner + '</b>';
+          el.style.fontWeight = '';
+        }
+        if (style.fontStyle === 'italic') {
+          inner = '<i>' + inner + '</i>';
+          el.style.fontStyle = '';
+        }
+        if (style.textDecoration && style.textDecoration.includes('underline')) {
+          inner = '<u>' + inner + '</u>';
+          el.style.textDecoration = '';
+        }
+        el.innerHTML = inner;
+      });
+
+      // Convert block elements (div, p) to <br> before stripping
+      div.querySelectorAll('div, p').forEach(el => {
+        // Insert a <br> before the block element (unless it's the first child)
+        if (el.previousSibling) {
+          el.parentNode.insertBefore(document.createElement('br'), el);
+        }
+        // Unwrap the element
+        while (el.firstChild) {
+          el.parentNode.insertBefore(el.firstChild, el);
+        }
+        el.remove();
+      });
+
+      // Walk the tree and strip disallowed tags (keep their children)
+      function cleanNode(node) {
+        const children = Array.from(node.childNodes);
+        for (const child of children) {
+          if (child.nodeType === Node.ELEMENT_NODE) {
+            if (!ALLOWED_TAGS.has(child.tagName)) {
+              // Unwrap: replace element with its children
+              while (child.firstChild) {
+                node.insertBefore(child.firstChild, child);
+              }
+              node.removeChild(child);
+            } else {
+              // For SPAN, only keep color style attribute
+              if (child.tagName === 'SPAN') {
+                const color = child.style.color;
+                // Remove all attributes
+                while (child.attributes.length > 0) {
+                  child.removeAttribute(child.attributes[0].name);
+                }
+                if (color) {
+                  child.style.color = color;
+                } else {
+                  // Span with no color — unwrap it
+                  while (child.firstChild) {
+                    node.insertBefore(child.firstChild, child);
+                  }
+                  node.removeChild(child);
+                  continue;
+                }
+              }
+              cleanNode(child);
+            }
+          }
+        }
+      }
+      cleanNode(div);
+      return div.innerHTML;
+    }
+
+    /**
+     * Parse HTML into flat array of styled runs, split by line.
+     * Returns array of lines, each line is array of {text, bold, italic, underline, color}.
+     */
+    function parseHtmlToRuns(html) {
+      const div = document.createElement('div');
+      div.innerHTML = html;
+      const lines = [[]];
+
+      function walk(node, style) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          const text = node.textContent;
+          if (text) {
+            lines[lines.length - 1].push({ text, ...style });
+          }
+          return;
+        }
+        if (node.nodeType !== Node.ELEMENT_NODE) return;
+
+        if (node.tagName === 'BR') {
+          lines.push([]);
+          return;
+        }
+
+        const newStyle = { ...style };
+        if (node.tagName === 'B' || node.tagName === 'STRONG') newStyle.bold = true;
+        if (node.tagName === 'I' || node.tagName === 'EM') newStyle.italic = true;
+        if (node.tagName === 'U') newStyle.underline = true;
+        if (node.tagName === 'SPAN' && node.style.color) newStyle.color = node.style.color;
+
+        for (const child of node.childNodes) {
+          walk(child, newStyle);
+        }
+      }
+
+      walk(div, { bold: false, italic: false, underline: false, color: null });
+      return lines;
+    }
+
+    /**
+     * Create SVG <tspan> elements for rich text runs.
+     * @param {SVGTextElement} textEl - parent <text> element
+     * @param {Array} lines - from parseHtmlToRuns
+     * @param {number} textX - x position for tspans
+     * @param {number} startY - y position for first line
+     * @param {number} lineHeight - line height in px
+     * @param {object} baseStyle - shape.textStyle defaults
+     */
+    function appendTspansToTextEl(textEl, lines, textX, startY, lineHeight, baseStyle) {
+      lines.forEach((runs, lineIdx) => {
+        if (runs.length === 0) {
+          // Empty line — add a blank tspan to preserve spacing
+          const tspan = svgEl('tspan', { x: textX });
+          tspan.textContent = '\u00A0';
+          if (lineIdx === 0) tspan.setAttribute('y', startY);
+          else tspan.setAttribute('dy', lineHeight);
+          textEl.appendChild(tspan);
+          return;
+        }
+        runs.forEach((run, runIdx) => {
+          const attrs = { };
+          // Set x and y/dy only on the first run of each line
+          if (runIdx === 0) {
+            attrs.x = textX;
+            if (lineIdx === 0) {
+              // will be set as y attribute
+            } else {
+              attrs.dy = lineHeight;
+            }
+          }
+          if (run.bold) attrs['font-weight'] = 'bold';
+          else if (baseStyle.fontWeight !== 'bold') attrs['font-weight'] = baseStyle.fontWeight || 'normal';
+          if (run.italic) attrs['font-style'] = 'italic';
+          else if (baseStyle.fontStyle !== 'italic') attrs['font-style'] = baseStyle.fontStyle || 'normal';
+          if (run.underline) attrs['text-decoration'] = 'underline';
+          if (run.color) attrs.fill = run.color;
+
+          const tspan = svgEl('tspan', attrs);
+          if (lineIdx === 0 && runIdx === 0) tspan.setAttribute('y', startY);
+          tspan.textContent = run.text;
+          textEl.appendChild(tspan);
+        });
+      });
+    }
+
+    /**
+     * Check if HTML content is equivalent to plain text (no real formatting).
+     */
+    function isPlainEquivalent(html) {
+      // Strip <br> and check if any other tags remain
+      const stripped = html.replace(/<br\s*\/?>/gi, '\n');
+      return !/<[^>]+>/.test(stripped);
+    }
+
+    /**
+     * Convert HTML back to plain text if it has no formatting.
+     * Returns plain text if no formatting, or original HTML if it has formatting.
+     */
+    function normalizeText(html) {
+      if (!isRichText(html)) {
+        // Decode HTML entities (e.g. &amp; → &) from contenteditable
+        return htmlToPlainText(html);
+      }
+      const sanitized = sanitizeHtml(html);
+      if (isPlainEquivalent(sanitized)) {
+        return htmlToPlainText(sanitized);
+      }
+      return sanitized;
+    }
+
+    return {
+      isRichText, plainTextToHtml, htmlToPlainText,
+      sanitizeHtml, parseHtmlToRuns, appendTspansToTextEl,
+      isPlainEquivalent, normalizeText
+    };
+  })();
+
   return {
     uid, distance, midpoint, clamp, snapToGrid,
     pointInRect, rectsOverlap, rectContains, expandRect, getBoundingRect,
     lineIntersectsRect, lineSegmentIntersection, rotatePoint, manhattan,
     hexToRgb, rgbToHex, svgEl, htmlEl, removeChildren,
-    EventEmitter, debounce, deepClone
+    EventEmitter, debounce, deepClone, RichText
   };
 })();

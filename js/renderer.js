@@ -20,6 +20,7 @@ const Renderer = (() => {
   let diagram;
   let panX = 0, panY = 0, zoom = 1;
   let containerEl;
+  let _hScrollTrack, _hScrollThumb, _vScrollTrack, _vScrollThumb;
 
   function init(container, diag) {
     containerEl = container;
@@ -106,6 +107,25 @@ const Renderer = (() => {
     svg.appendChild(canvasLayer);
 
     container.appendChild(svg);
+
+    // --- Scrollbars ---
+    _hScrollTrack = document.createElement('div');
+    _hScrollTrack.className = 'canvas-scrollbar canvas-scrollbar-h';
+    _hScrollThumb = document.createElement('div');
+    _hScrollThumb.className = 'canvas-scrollbar-thumb';
+    _hScrollTrack.appendChild(_hScrollThumb);
+    container.appendChild(_hScrollTrack);
+
+    _vScrollTrack = document.createElement('div');
+    _vScrollTrack.className = 'canvas-scrollbar canvas-scrollbar-v';
+    _vScrollThumb = document.createElement('div');
+    _vScrollThumb.className = 'canvas-scrollbar-thumb';
+    _vScrollTrack.appendChild(_vScrollThumb);
+    container.appendChild(_vScrollTrack);
+
+    initScrollbarDrag();
+    window.addEventListener('resize', () => updateScrollbars());
+
     updateTransform();
     updateGrid();
 
@@ -129,6 +149,7 @@ const Renderer = (() => {
   // --- Transform ---
   function updateTransform() {
     canvasLayer.setAttribute('transform', `translate(${panX},${panY}) scale(${zoom})`);
+    updateScrollbars();
   }
 
   function setPan(x, y) {
@@ -255,22 +276,35 @@ const Renderer = (() => {
         'text-decoration': shape.textStyle.textDecoration || 'none',
         'pointer-events': 'none'
       });
-      // Simple multi-line support
-      const lines = shape.text.split('\n');
+
       const lineHeight = shape.textStyle.fontSize * 1.3;
-      let startY;
-      if (vAlign === 'top') { startY = pad + shape.textStyle.fontSize; }
-      else if (vAlign === 'bottom') { startY = shape.height - pad - (lines.length - 1) * lineHeight; }
-      else { startY = shape.height / 2 - (lines.length - 1) * lineHeight / 2; }
-      lines.forEach((line, i) => {
-        const tspan = Utils.svgEl('tspan', {
-          x: textX,
-          dy: i === 0 ? '0' : lineHeight
+
+      if (Utils.RichText.isRichText(shape.text)) {
+        // Rich text: parse HTML into styled runs and create per-run tspans
+        const richLines = Utils.RichText.parseHtmlToRuns(shape.text);
+        const lineCount = richLines.length;
+        let startY;
+        if (vAlign === 'top') { startY = pad + shape.textStyle.fontSize; }
+        else if (vAlign === 'bottom') { startY = shape.height - pad - (lineCount - 1) * lineHeight; }
+        else { startY = shape.height / 2 - (lineCount - 1) * lineHeight / 2; }
+        Utils.RichText.appendTspansToTextEl(textEl, richLines, textX, startY, lineHeight, shape.textStyle);
+      } else {
+        // Plain text: simple multi-line support
+        const lines = shape.text.split('\n');
+        let startY;
+        if (vAlign === 'top') { startY = pad + shape.textStyle.fontSize; }
+        else if (vAlign === 'bottom') { startY = shape.height - pad - (lines.length - 1) * lineHeight; }
+        else { startY = shape.height / 2 - (lines.length - 1) * lineHeight / 2; }
+        lines.forEach((line, i) => {
+          const tspan = Utils.svgEl('tspan', {
+            x: textX,
+            dy: i === 0 ? '0' : lineHeight
+          });
+          tspan.textContent = line;
+          if (i === 0) tspan.setAttribute('y', startY);
+          textEl.appendChild(tspan);
         });
-        tspan.textContent = line;
-        if (i === 0) tspan.setAttribute('y', startY);
-        textEl.appendChild(tspan);
-      });
+      }
       g.appendChild(textEl);
     }
 
@@ -845,6 +879,184 @@ const Renderer = (() => {
     return null;
   }
 
+  // --- Scrollbars ---
+  const SCROLL_PADDING = 500; // extra padding around content bounds
+
+  function getScrollBounds() {
+    // Compute content bounds from all shapes, then add padding and include viewport
+    const shapes = diagram.shapes;
+    const cw = containerEl.clientWidth;
+    const ch = containerEl.clientHeight;
+    const viewLeft = -panX / zoom;
+    const viewTop = -panY / zoom;
+    const viewW = cw / zoom;
+    const viewH = ch / zoom;
+
+    let minX = 0, minY = 0, maxX = viewW, maxY = viewH;
+    if (shapes.length > 0) {
+      minX = Infinity; minY = Infinity; maxX = -Infinity; maxY = -Infinity;
+      for (const s of shapes) {
+        minX = Math.min(minX, s.x);
+        minY = Math.min(minY, s.y);
+        maxX = Math.max(maxX, s.x + s.width);
+        maxY = Math.max(maxY, s.y + s.height);
+      }
+    }
+    // Expand to include current viewport
+    minX = Math.min(minX, viewLeft);
+    minY = Math.min(minY, viewTop);
+    maxX = Math.max(maxX, viewLeft + viewW);
+    maxY = Math.max(maxY, viewTop + viewH);
+    // Add padding
+    return {
+      minX: minX - SCROLL_PADDING,
+      minY: minY - SCROLL_PADDING,
+      maxX: maxX + SCROLL_PADDING,
+      maxY: maxY + SCROLL_PADDING
+    };
+  }
+
+  function updateScrollbars() {
+    if (!_hScrollTrack) return;
+    const cw = containerEl.clientWidth;
+    const ch = containerEl.clientHeight;
+    const viewLeft = -panX / zoom;
+    const viewTop = -panY / zoom;
+    const viewW = cw / zoom;
+    const viewH = ch / zoom;
+
+    const bounds = getScrollBounds();
+    const totalW = bounds.maxX - bounds.minX;
+    const totalH = bounds.maxY - bounds.minY;
+
+    // Horizontal scrollbar
+    const hTrackW = cw - 12;
+    const hThumbW = Math.max(30, (viewW / totalW) * hTrackW);
+    const hOffset = ((viewLeft - bounds.minX) / totalW) * hTrackW;
+    _hScrollThumb.style.width = hThumbW + 'px';
+    _hScrollThumb.style.left = Utils.clamp(hOffset, 0, hTrackW - hThumbW) + 'px';
+
+    // Vertical scrollbar
+    const vTrackH = ch - 12;
+    const vThumbH = Math.max(30, (viewH / totalH) * vTrackH);
+    const vOffset = ((viewTop - bounds.minY) / totalH) * vTrackH;
+    _vScrollThumb.style.height = vThumbH + 'px';
+    _vScrollThumb.style.top = Utils.clamp(vOffset, 0, vTrackH - vThumbH) + 'px';
+
+    // Store bounds for drag calculations
+    _scrollBounds = bounds;
+  }
+
+  let _scrollBounds = null;
+
+  function initScrollbarDrag() {
+    let dragging = null; // 'h' or 'v'
+    let startMouse, startThumbPos;
+
+    function onMouseDown(axis, e) {
+      e.preventDefault();
+      e.stopPropagation();
+      dragging = axis;
+      startMouse = axis === 'h' ? e.clientX : e.clientY;
+      const thumb = axis === 'h' ? _hScrollThumb : _vScrollThumb;
+      startThumbPos = parseFloat(axis === 'h' ? thumb.style.left : thumb.style.top) || 0;
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+      document.body.style.userSelect = 'none';
+    }
+
+    function onMouseMove(e) {
+      if (!dragging || !_scrollBounds) return;
+      const cw = containerEl.clientWidth;
+      const ch = containerEl.clientHeight;
+      const bounds = _scrollBounds;
+
+      if (dragging === 'h') {
+        const delta = e.clientX - startMouse;
+        const hTrackW = cw - 12;
+        const totalW = bounds.maxX - bounds.minX;
+        const hThumbW = Math.max(30, ((cw / zoom) / totalW) * hTrackW);
+        const newLeft = Utils.clamp(startThumbPos + delta, 0, hTrackW - hThumbW);
+        const canvasLeft = bounds.minX + (newLeft / hTrackW) * totalW;
+        panX = -canvasLeft * zoom;
+        canvasLayer.setAttribute('transform', `translate(${panX},${panY}) scale(${zoom})`);
+        // Update thumb position directly (avoid full updateScrollbars to keep bounds stable)
+        _hScrollThumb.style.left = newLeft + 'px';
+      } else {
+        const delta = e.clientY - startMouse;
+        const vTrackH = ch - 12;
+        const totalH = bounds.maxY - bounds.minY;
+        const vThumbH = Math.max(30, ((ch / zoom) / totalH) * vTrackH);
+        const newTop = Utils.clamp(startThumbPos + delta, 0, vTrackH - vThumbH);
+        const canvasTop = bounds.minY + (newTop / vTrackH) * totalH;
+        panY = -canvasTop * zoom;
+        canvasLayer.setAttribute('transform', `translate(${panX},${panY}) scale(${zoom})`);
+        _vScrollThumb.style.top = newTop + 'px';
+      }
+    }
+
+    function onMouseUp() {
+      dragging = null;
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      document.body.style.userSelect = '';
+      updateScrollbars(); // Recalculate bounds after drag ends
+    }
+
+    _hScrollThumb.addEventListener('mousedown', e => onMouseDown('h', e));
+    _vScrollThumb.addEventListener('mousedown', e => onMouseDown('v', e));
+
+    // Click on track to jump
+    _hScrollTrack.addEventListener('mousedown', e => {
+      if (e.target === _hScrollThumb) return;
+      const rect = _hScrollTrack.getBoundingClientRect();
+      const clickPos = e.clientX - rect.left;
+      const bounds = _scrollBounds || getScrollBounds();
+      const hTrackW = containerEl.clientWidth - 12;
+      const totalW = bounds.maxX - bounds.minX;
+      const canvasX = bounds.minX + (clickPos / hTrackW) * totalW;
+      const viewW = containerEl.clientWidth / zoom;
+      panX = -(canvasX - viewW / 2) * zoom;
+      updateTransform();
+      updateScrollbars();
+    });
+
+    _vScrollTrack.addEventListener('mousedown', e => {
+      if (e.target === _vScrollThumb) return;
+      const rect = _vScrollTrack.getBoundingClientRect();
+      const clickPos = e.clientY - rect.top;
+      const bounds = _scrollBounds || getScrollBounds();
+      const vTrackH = containerEl.clientHeight - 12;
+      const totalH = bounds.maxY - bounds.minY;
+      const canvasY = bounds.minY + (clickPos / vTrackH) * totalH;
+      const viewH = containerEl.clientHeight / zoom;
+      panY = -(canvasY - viewH / 2) * zoom;
+      updateTransform();
+      updateScrollbars();
+    });
+  }
+
+  // --- Fit to content ---
+  function fitToContent(padding = 40) {
+    const shapes = diagram.shapes;
+    if (shapes.length === 0) {
+      panX = 0; panY = 0; zoom = 1;
+      updateTransform();
+      updateGrid();
+      return;
+    }
+    const bounds = Utils.getBoundingRect(shapes);
+    const cw = containerEl.clientWidth;
+    const ch = containerEl.clientHeight;
+    const scaleX = (cw - padding * 2) / bounds.width;
+    const scaleY = (ch - padding * 2) / bounds.height;
+    zoom = Utils.clamp(Math.min(scaleX, scaleY), 0.1, 2);
+    panX = (cw - bounds.width * zoom) / 2 - bounds.x * zoom;
+    panY = (ch - bounds.height * zoom) / 2 - bounds.y * zoom;
+    updateTransform();
+    updateGrid();
+  }
+
   // Update arrow marker colors when connector style changes
   function updateMarkerColors(color) {
     const defs = svg.querySelector('defs');
@@ -858,7 +1070,7 @@ const Renderer = (() => {
     init, getSvg, getCanvasLayer, getContainer,
     setPan, setZoom, getPan, getZoom,
     screenToCanvas, canvasToScreen,
-    updateGrid,
+    updateGrid, fitToContent,
     renderShape, removeShapeEl,
     renderConnector, removeConnectorEl,
     renderAll, reorderShapes,
