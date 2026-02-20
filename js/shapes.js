@@ -535,6 +535,8 @@ const Shapes = (() => {
         return ticks;
       }
 
+      const showToday = s.data && s.data.showToday !== false;
+
       if (tlType === 'line') {
         const midY = h / 2;
         const tickH = h * 0.4;
@@ -559,6 +561,18 @@ const Shapes = (() => {
               if (showLabels) svg += `<text x="${x+3}" y="${midY - tickH - 4}" fill="#555555" stroke="none" font-size="${fontSize}" font-family="MaruBuri,Inter,sans-serif">${formatDate(tick)}</text>`;
             });
             if (showLabels) svg += `<text x="${lineW - 3}" y="${midY - tickH - 4}" fill="#555555" stroke="none" font-size="${fontSize}" font-family="MaruBuri,Inter,sans-serif" text-anchor="end">${formatDate(ed)}</text>`;
+            // Today marker
+            if (showToday) {
+              const today = new Date(); today.setHours(0,0,0,0);
+              const todayMs = today.getTime();
+              if (todayMs >= startMs && todayMs <= endMs) {
+                const tx = ((todayMs - startMs) / totalMs) * lineW;
+                const markerTop = midY - tickH - 12;
+                const markerBot = guideH > 0 ? h + guideH : midY + tickH + 4;
+                svg += `<line x1="${tx}" y1="${markerTop}" x2="${tx}" y2="${markerBot}" stroke="#e74c3c" stroke-width="1.5" stroke-dasharray="4 2" fill="none"/>`;
+                svg += `<text x="${tx}" y="${markerTop - 2}" text-anchor="middle" fill="#e74c3c" stroke="none" font-size="${Math.max(fontSize - 1, 7)}" font-weight="bold" font-family="MaruBuri,Inter,sans-serif">Today</text>`;
+              }
+            }
           }
         }
         return svg;
@@ -580,6 +594,18 @@ const Shapes = (() => {
             if (showLabels) svg += `<text x="${x+3}" y="${labelY}" fill="#555555" stroke="none" font-size="${fontSize}" font-family="MaruBuri,Inter,sans-serif">${formatDate(tick)}</text>`;
           });
           if (showLabels) svg += `<text x="${w-3}" y="${labelY}" fill="#555555" stroke="none" font-size="${fontSize}" font-family="MaruBuri,Inter,sans-serif" text-anchor="end">${formatDate(ed)}</text>`;
+          // Today marker
+          if (showToday) {
+            const today = new Date(); today.setHours(0,0,0,0);
+            const todayMs = today.getTime();
+            if (todayMs >= startMs && todayMs <= endMs) {
+              const tx = ((todayMs - startMs) / totalMs) * w;
+              const markerTop = -8;
+              const markerBot = guideH > 0 ? h + guideH : h + 4;
+              svg += `<line x1="${tx}" y1="${markerTop}" x2="${tx}" y2="${markerBot}" stroke="#e74c3c" stroke-width="1.5" stroke-dasharray="4 2" fill="none"/>`;
+              svg += `<text x="${tx}" y="${markerTop - 2}" text-anchor="middle" fill="#e74c3c" stroke="none" font-size="${Math.max(fontSize - 1, 7)}" font-weight="bold" font-family="MaruBuri,Inter,sans-serif">Today</text>`;
+            }
+          }
         }
       }
       return svg;

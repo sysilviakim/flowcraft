@@ -31,7 +31,7 @@
       "x": 22,
       "y": 250,
       "width": 1088,
-      "height": 496,
+      "height": 620,
       "rotation": 0,
       "text": "",
       "textStyle": {
@@ -104,6 +104,18 @@
             "number": "08",
             "name": "Track 8",
             "color": "#99d5ca",
+            "textColor": "#333333"
+          },
+          {
+            "number": "09",
+            "name": "Track 9",
+            "color": "#c7e8ac",
+            "textColor": "#333333"
+          },
+          {
+            "number": "10",
+            "name": "Track 10",
+            "color": "#b8f5ed",
             "textColor": "#333333"
           }
         ],
@@ -417,6 +429,82 @@
       }
     },
     {
+      "id": "shp_tl_row9",
+      "type": "timeline:timeline",
+      "x": 137,
+      "y": 760,
+      "width": 973,
+      "height": 40,
+      "rotation": 0,
+      "text": "",
+      "textStyle": {
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
+        "fontSize": 9,
+        "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
+        "color": "#1a1a2e",
+        "align": "center",
+        "vAlign": "middle"
+      },
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#555555",
+        "strokeWidth": 2,
+        "strokeDash": "",
+        "opacity": 1,
+        "shadow": false
+      },
+      "layerId": "layer_default",
+      "groupId": null,
+      "containerId": null,
+      "locked": false,
+      "ports": [],
+      "data": {
+        "timelineType": "line",
+        "startDate": "2026-01-01",
+        "endDate": "2026-12-31"
+      }
+    },
+    {
+      "id": "shp_tl_row10",
+      "type": "timeline:timeline",
+      "x": 137,
+      "y": 822,
+      "width": 973,
+      "height": 40,
+      "rotation": 0,
+      "text": "",
+      "textStyle": {
+        "fontFamily": "MaruBuri, Inter, system-ui, sans-serif",
+        "fontSize": 9,
+        "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textDecoration": "none",
+        "color": "#1a1a2e",
+        "align": "center",
+        "vAlign": "middle"
+      },
+      "style": {
+        "fill": "#ffffff",
+        "stroke": "#555555",
+        "strokeWidth": 2,
+        "strokeDash": "",
+        "opacity": 1,
+        "shadow": false
+      },
+      "layerId": "layer_default",
+      "groupId": null,
+      "containerId": null,
+      "locked": false,
+      "ports": [],
+      "data": {
+        "timelineType": "line",
+        "startDate": "2026-01-01",
+        "endDate": "2026-12-31"
+      }
+    },
+    {
       "id": "shp_1",
       "type": "flowchart:text",
       "x": 20,
@@ -648,7 +736,7 @@
       "data": {
         "startDate": "2026-01-01",
         "endDate": "2026-12-31",
-        "guideHeight": 538
+        "guideHeight": 662
       }
     }
   ],

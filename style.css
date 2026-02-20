@@ -904,6 +904,16 @@ html, body {
   z-index: 500;
 }
 
+.text-edit-overlay ul,
+.text-edit-overlay ol {
+  padding-left: 20px;
+  margin: 0;
+}
+
+.text-edit-overlay li {
+  text-align: left;
+}
+
 /* --- Keyboard Shortcuts Dialog --- */
 .shortcuts-grid {
   display: grid;

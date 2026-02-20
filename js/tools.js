@@ -409,6 +409,20 @@ const Tools = (() => {
         this._startPos = pos;
         this._dragOffsets = selectedShapes.map(s => ({ id: s.id, ox: s.x - pos.x, oy: s.y - pos.y, startX: s.x, startY: s.y }));
 
+        // Record starting positions of container children so undo works atomically
+        this._childStartPositions = {};
+        selectedShapes.forEach(s => {
+          const def = Shapes.get(s.type);
+          if (def && def.isContainer) {
+            const children = diagram.getChildrenOfContainer(s.id);
+            children.forEach(child => {
+              if (!selectedShapes.find(sel => sel.id === child.id)) {
+                this._childStartPositions[child.id] = { x: child.x, y: child.y };
+              }
+            });
+          }
+        });
+
         // Alt+drag: clone shapes and drag the clones
         if (e.altKey && selectedShapes.length > 0) {
           History.beginBatch();
@@ -1058,6 +1072,19 @@ const Tools = (() => {
           }
         });
 
+        // Record child moves for containers so undo restores them atomically
+        if (this._childStartPositions) {
+          for (const [childId, startPos] of Object.entries(this._childStartPositions)) {
+            const child = diagram.getShape(childId);
+            if (child && (child.x !== startPos.x || child.y !== startPos.y)) {
+              History.record(new History.MoveShapeCommand(
+                childId, startPos.x, startPos.y, child.x, child.y
+              ));
+            }
+          }
+          this._childStartPositions = {};
+        }
+
         // Container parenting: check if shapes were dropped into/out of containers
         selectedShapes.forEach(shape => {
           const shapeDef = Shapes.get(shape.type);
@@ -1536,6 +1563,24 @@ const Tools = (() => {
         editor.blur();
       }
       if (e.key === 'Enter' && !e.shiftKey) {
+        // If cursor is inside a list, let the browser handle Enter (creates new <li>)
+        const sel = window.getSelection();
+        if (sel.rangeCount) {
+          let node = sel.anchorNode;
+          let insideList = false;
+          while (node && node !== editor) {
+            if (node.nodeType === Node.ELEMENT_NODE && (node.tagName === 'UL' || node.tagName === 'OL')) {
+              insideList = true;
+              break;
+            }
+            node = node.parentNode;
+          }
+          if (insideList) {
+            // Let the browser create a new list item
+            e.stopPropagation();
+            return;
+          }
+        }
         e.preventDefault();
         editor.blur();
       }

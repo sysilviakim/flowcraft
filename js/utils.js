@@ -192,8 +192,8 @@ const Utils = (() => {
 
   // --- Rich Text utilities ---
   const RichText = (() => {
-    const ALLOWED_TAGS = new Set(['B', 'I', 'U', 'SPAN', 'BR']);
-    const HTML_TAG_RE = /<\/?(?:b|i|u|strong|em|span|br)\b[^>]*>/i;
+    const ALLOWED_TAGS = new Set(['B', 'I', 'U', 'SPAN', 'BR', 'UL', 'OL', 'LI']);
+    const HTML_TAG_RE = /<\/?(?:b|i|u|strong|em|span|br|ul|ol|li)\b[^>]*>/i;
 
     function isRichText(text) {
       return typeof text === 'string' && HTML_TAG_RE.test(text);
@@ -210,9 +210,31 @@ const Utils = (() => {
     function htmlToPlainText(html) {
       const div = document.createElement('div');
       div.innerHTML = html;
+      // Convert list items to prefixed lines before extracting text
+      div.querySelectorAll('ol').forEach(ol => {
+        const items = ol.querySelectorAll(':scope > li');
+        items.forEach((li, i) => {
+          li.insertBefore(document.createTextNode(`${i + 1}. `), li.firstChild);
+          li.appendChild(document.createTextNode('\n'));
+        });
+        ol.replaceWith(...ol.childNodes);
+      });
+      div.querySelectorAll('ul').forEach(ul => {
+        const items = ul.querySelectorAll(':scope > li');
+        items.forEach(li => {
+          li.insertBefore(document.createTextNode('\u2022 '), li.firstChild);
+          li.appendChild(document.createTextNode('\n'));
+        });
+        ul.replaceWith(...ul.childNodes);
+      });
+      // Unwrap remaining <li> tags (shouldn't happen, but safety)
+      div.querySelectorAll('li').forEach(li => {
+        li.appendChild(document.createTextNode('\n'));
+        li.replaceWith(...li.childNodes);
+      });
       // Convert <br> to newlines before extracting text
       div.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
-      return div.textContent || '';
+      return (div.textContent || '').replace(/\n$/, '');
     }
 
     function sanitizeHtml(html) {
@@ -326,6 +348,37 @@ const Utils = (() => {
           return;
         }
 
+        // Handle list containers
+        if (node.tagName === 'UL' || node.tagName === 'OL') {
+          const listType = node.tagName === 'UL' ? 'bullet' : 'number';
+          const items = node.children;
+          for (let i = 0; i < items.length; i++) {
+            const li = items[i];
+            if (li.tagName !== 'LI') continue;
+            // Start a new line for each list item (unless we're already on an empty line)
+            if (lines[lines.length - 1].length > 0) lines.push([]);
+            // Add the bullet/number prefix
+            const prefix = listType === 'bullet' ? '\u2022 ' : `${i + 1}. `;
+            lines[lines.length - 1].push({ text: prefix, ...style, indent: 16, listType });
+            // Walk li children with inherited indent
+            const liStyle = { ...style, indent: 16, listType };
+            for (const child of li.childNodes) {
+              walk(child, liStyle);
+            }
+          }
+          // Ensure next content starts on a new line
+          if (lines[lines.length - 1].length > 0) lines.push([]);
+          return;
+        }
+
+        // Skip bare LI tags (shouldn't happen after sanitize, but safety)
+        if (node.tagName === 'LI') {
+          for (const child of node.childNodes) {
+            walk(child, style);
+          }
+          return;
+        }
+
         const newStyle = { ...style };
         if (node.tagName === 'B' || node.tagName === 'STRONG') newStyle.bold = true;
         if (node.tagName === 'I' || node.tagName === 'EM') newStyle.italic = true;
@@ -338,6 +391,8 @@ const Utils = (() => {
       }
 
       walk(div, { bold: false, italic: false, underline: false, color: null });
+      // Remove trailing empty lines
+      while (lines.length > 1 && lines[lines.length - 1].length === 0) lines.pop();
       return lines;
     }
 
@@ -361,11 +416,15 @@ const Utils = (() => {
           textEl.appendChild(tspan);
           return;
         }
+        // Check if this line has indented (list) content
+        const lineIndent = runs[0] && runs[0].indent ? runs[0].indent : 0;
+        const effectiveX = textX + lineIndent;
+
         runs.forEach((run, runIdx) => {
           const attrs = { };
           // Set x and y/dy only on the first run of each line
           if (runIdx === 0) {
-            attrs.x = textX;
+            attrs.x = effectiveX;
             if (lineIdx === 0) {
               // will be set as y attribute
             } else {
@@ -393,6 +452,8 @@ const Utils = (() => {
     function isPlainEquivalent(html) {
       // Strip <br> and check if any other tags remain
       const stripped = html.replace(/<br\s*\/?>/gi, '\n');
+      // If it contains list tags, it's not plain
+      if (/<\/?(?:ul|ol|li)\b/i.test(stripped)) return false;
       return !/<[^>]+>/.test(stripped);
     }
 
@@ -496,12 +557,37 @@ const Utils = (() => {
     return wrapped.length ? wrapped : [''];
   }
 
+  // ===== Dynamic Text Placeholders =====
+  const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const MONTH_ABBR = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  function expandPlaceholders(text) {
+    if (!text || typeof text !== 'string') return text;
+    return text.replace(/\{\{date(?::([^}]+))?\}\}/g, (match, fmt) => {
+      const now = new Date();
+      const m = now.getMonth() + 1, d = now.getDate(), y = now.getFullYear();
+      if (!fmt) return MONTH_NAMES[now.getMonth()] + ' ' + d + ', ' + y;
+      switch (fmt) {
+        case 'YYYY-MM-DD': return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        case 'M/D': return `${m}/${d}`;
+        case 'M/D/YYYY': return `${m}/${d}/${y}`;
+        case 'D/M': return `${d}/${m}`;
+        case 'D/M/YYYY': return `${d}/${m}/${y}`;
+        case 'Mon D': return `${MONTH_ABBR[now.getMonth()]} ${d}`;
+        case 'D Mon': return `${d} ${MONTH_ABBR[now.getMonth()]}`;
+        case 'Mon D, YYYY': return `${MONTH_ABBR[now.getMonth()]} ${d}, ${y}`;
+        case 'YYYY/M/D': return `${y}/${m}/${d}`;
+        default: return match;
+      }
+    });
+  }
+
   return {
     uid, distance, midpoint, clamp, snapToGrid,
     pointInRect, rectsOverlap, rectContains, expandRect, getBoundingRect,
     lineIntersectsRect, lineSegmentIntersection, rotatePoint, manhattan,
     hexToRgb, rgbToHex, svgEl, htmlEl, removeChildren,
     EventEmitter, debounce, deepClone, RichText,
-    measureTextWidth, wrapText
+    measureTextWidth, wrapText, expandPlaceholders
   };
 })();

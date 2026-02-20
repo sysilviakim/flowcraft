@@ -256,6 +256,9 @@ const Renderer = (() => {
 
     // Text label (skip for shapes with customText that handle their own text rendering)
     if (shape.text && !def.customText) {
+      // Expand dynamic placeholders (e.g. {{date}}) for display
+      const displayText = Utils.expandPlaceholders(shape.text);
+
       const align = shape.textStyle.align || 'center';
       const vAlign = shape.textStyle.vAlign || 'middle';
       const pad = 6;
@@ -281,9 +284,19 @@ const Renderer = (() => {
 
       const maxTextW = shape.width - pad * 2;
 
-      if (Utils.RichText.isRichText(shape.text)) {
+      if (Utils.RichText.isRichText(displayText)) {
         // Rich text: parse HTML into styled runs and create per-run tspans
-        const richLines = Utils.RichText.parseHtmlToRuns(shape.text);
+        const richLines = Utils.RichText.parseHtmlToRuns(displayText);
+
+        // Force left alignment when lists are present (bullets/numbers look wrong centered)
+        const hasLists = richLines.some(runs => runs.some(r => r.listType));
+        if (hasLists) {
+          textX = pad;
+          anchor = 'start';
+          textEl.setAttribute('x', textX);
+          textEl.setAttribute('text-anchor', anchor);
+        }
+
         const lineCount = richLines.length;
         let startY;
         if (vAlign === 'top') { startY = pad + shape.textStyle.fontSize; }
@@ -292,7 +305,7 @@ const Renderer = (() => {
         Utils.RichText.appendTspansToTextEl(textEl, richLines, textX, startY, lineHeight, shape.textStyle);
       } else {
         // Plain text: word-wrap to shape width, trim trailing empty lines
-        const rawLines = Utils.wrapText(shape.text, maxTextW, shape.textStyle.fontSize, shape.textStyle.fontFamily, shape.textStyle.fontWeight);
+        const rawLines = Utils.wrapText(displayText, maxTextW, shape.textStyle.fontSize, shape.textStyle.fontFamily, shape.textStyle.fontWeight);
         // Trim trailing empty lines to avoid phantom vertical offset
         while (rawLines.length > 1 && rawLines[rawLines.length - 1] === '') rawLines.pop();
         const lines = rawLines;
