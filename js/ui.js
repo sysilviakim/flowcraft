@@ -516,6 +516,28 @@ const UI = (() => {
       });
       bar.appendChild(underlineBtn);
 
+      // Bullet list toggle
+      const bulletBtn = makeFtBtn('<svg viewBox="0 0 24 24"><circle cx="4" cy="7" r="1.5" fill="currentColor" stroke="none"/><circle cx="4" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="4" cy="17" r="1.5" fill="currentColor" stroke="none"/><line x1="9" y1="7" x2="20" y2="7"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="17" x2="20" y2="17"/></svg>', 'Bullet list');
+      if (shape.text && /<ul\b/i.test(shape.text)) bulletBtn.classList.add('active');
+      bulletBtn.addEventListener('click', () => {
+        const newText = toggleListInText(shape.text || '', 'ul');
+        History.execute(new History.ChangeTextCommand(shape.id, shape.text || '', newText));
+        bulletBtn.classList.toggle('active', /<ul\b/i.test(newText));
+        numberBtn.classList.toggle('active', /<ol\b/i.test(newText));
+      });
+      bar.appendChild(bulletBtn);
+
+      // Numbered list toggle
+      const numberBtn = makeFtBtn('<svg viewBox="0 0 24 24"><text x="2" y="9" font-size="8" fill="currentColor" stroke="none" font-family="sans-serif">1.</text><text x="2" y="14.5" font-size="8" fill="currentColor" stroke="none" font-family="sans-serif">2.</text><text x="2" y="20" font-size="8" fill="currentColor" stroke="none" font-family="sans-serif">3.</text><line x1="11" y1="7" x2="20" y2="7"/><line x1="11" y1="12.5" x2="20" y2="12.5"/><line x1="11" y1="18" x2="20" y2="18"/></svg>', 'Numbered list');
+      if (shape.text && /<ol\b/i.test(shape.text)) numberBtn.classList.add('active');
+      numberBtn.addEventListener('click', () => {
+        const newText = toggleListInText(shape.text || '', 'ol');
+        History.execute(new History.ChangeTextCommand(shape.id, shape.text || '', newText));
+        numberBtn.classList.toggle('active', /<ol\b/i.test(newText));
+        bulletBtn.classList.toggle('active', /<ul\b/i.test(newText));
+      });
+      bar.appendChild(numberBtn);
+
       bar.appendChild(makeFtSep());
 
       // Font size input
@@ -979,6 +1001,14 @@ const UI = (() => {
       });
       tlSection.appendChild(makePropRow('Show labels', showLabelsCheckbox));
 
+      const showTodayCheckbox = document.createElement('input');
+      showTodayCheckbox.type = 'checkbox';
+      showTodayCheckbox.checked = shape.data && shape.data.showToday !== false;
+      showTodayCheckbox.addEventListener('change', () => {
+        diagram.updateShapeDeep(shape.id, { data: { showToday: showTodayCheckbox.checked } });
+      });
+      tlSection.appendChild(makePropRow('Show today', showTodayCheckbox));
+
       const guideInput = makeNumberInput((shape.data && shape.data.guideHeight) || 0, v => {
         diagram.updateShapeDeep(shape.id, { data: { guideHeight: Math.max(0, v) } });
       });
@@ -1136,8 +1166,10 @@ const UI = (() => {
           removeBtn.title = 'Remove lane';
           removeBtn.addEventListener('click', () => {
             if (shape.data.lanes.length <= 1) return;
+            const oldData = Utils.deepClone(shape.data);
             shape.data.lanes.splice(idx, 1);
-            diagram.updateShapeDeep(shape.id, { data: { lanes: shape.data.lanes } });
+            const newData = Utils.deepClone(shape.data);
+            History.execute(new History.ChangeShapeDataCommand(shape.id, oldData, newData));
             updatePropertiesPanel([diagram.getShape(shape.id)], null);
           });
 
@@ -1149,9 +1181,11 @@ const UI = (() => {
         addBtn.textContent = '+ Add Lane';
         addBtn.style.cssText = 'margin-top:4px;padding:4px 10px;border:1px solid #ccc;background:#fafafa;cursor:pointer;border-radius:3px;font-size:11px;width:100%;';
         addBtn.addEventListener('click', () => {
+          const oldData = Utils.deepClone(shape.data);
           const colorIdx = shape.data.lanes.length % Shapes.SWIMLANE_COLORS.length;
           shape.data.lanes.push({ id: Utils.uid('lane'), name: `Lane ${shape.data.lanes.length + 1}`, color: Shapes.SWIMLANE_COLORS[colorIdx] });
-          diagram.updateShapeDeep(shape.id, { data: { lanes: shape.data.lanes } });
+          const newData = Utils.deepClone(shape.data);
+          History.execute(new History.ChangeShapeDataCommand(shape.id, oldData, newData));
           updatePropertiesPanel([diagram.getShape(shape.id)], null);
         });
         containerSection.appendChild(addBtn);
@@ -1210,9 +1244,19 @@ const UI = (() => {
         removeBtn.style.cssText = 'width:20px;height:20px;border:none;background:#eee;cursor:pointer;border-radius:3px;font-size:12px;line-height:1;flex-shrink:0;';
         removeBtn.title = 'Remove lane';
         removeBtn.addEventListener('click', () => {
+          const oldData = Utils.deepClone(shape.data);
+          const oldH = shape.height;
           shape.data.lanes.splice(idx, 1);
           const newH = shape.data.lanes.length * ((shape.data.laneHeight) || 62);
-          diagram.updateShapeDeep(shape.id, { height: newH, data: { lanes: shape.data.lanes } });
+          const newData = Utils.deepClone(shape.data);
+          History.beginBatch();
+          History.record(new History.ChangeShapeDataCommand(shape.id, oldData, newData));
+          History.record(new History.ResizeShapeCommand(shape.id,
+            { x: shape.x, y: shape.y, width: shape.width, height: oldH },
+            { x: shape.x, y: shape.y, width: shape.width, height: newH }
+          ));
+          diagram.updateShapeDeep(shape.id, { height: newH });
+          History.endBatch('Remove lane');
           updatePropertiesPanel([diagram.getShape(shape.id)], null);
         });
 
@@ -1224,10 +1268,20 @@ const UI = (() => {
       addBtn.textContent = '+ Add Lane';
       addBtn.style.cssText = 'margin-top:4px;padding:4px 10px;border:1px solid #ccc;background:#fafafa;cursor:pointer;border-radius:3px;font-size:11px;width:100%;';
       addBtn.addEventListener('click', () => {
+        const oldData = Utils.deepClone(shape.data);
+        const oldH = shape.height;
         const num = String(shape.data.lanes.length + 1).padStart(2, '0');
         shape.data.lanes.push({ number: num, name: 'New lane', color: '#ffffff', textColor: '#333333' });
         const newH = shape.data.lanes.length * ((shape.data.laneHeight) || 62);
-        diagram.updateShapeDeep(shape.id, { height: newH, data: { lanes: shape.data.lanes } });
+        const newData = Utils.deepClone(shape.data);
+        History.beginBatch();
+        History.record(new History.ChangeShapeDataCommand(shape.id, oldData, newData));
+        History.record(new History.ResizeShapeCommand(shape.id,
+          { x: shape.x, y: shape.y, width: shape.width, height: oldH },
+          { x: shape.x, y: shape.y, width: shape.width, height: newH }
+        ));
+        diagram.updateShapeDeep(shape.id, { height: newH });
+        History.endBatch('Add lane');
         updatePropertiesPanel([diagram.getShape(shape.id)], null);
       });
       lanesSection.appendChild(addBtn);
@@ -1255,7 +1309,10 @@ const UI = (() => {
       ));
     })));
     posSection.appendChild(makePropRow('Rotation', makeNumberInput(shape.rotation || 0, v => {
-      diagram.updateShape(shape.id, { rotation: v });
+      History.execute(new History.ResizeShapeCommand(shape.id,
+        { x: shape.x, y: shape.y, width: shape.width, height: shape.height, rotation: shape.rotation || 0 },
+        { x: shape.x, y: shape.y, width: shape.width, height: shape.height, rotation: v }
+      ));
     })));
     container.appendChild(posSection);
   }
@@ -1631,7 +1688,7 @@ const UI = (() => {
       <span class="status-item">Connectors: ${conns}</span>
       ${selected > 0 ? `<span class="status-item">Selected: ${selected}</span>` : ''}
       <span class="status-spacer"></span>
-      <span class="status-item">FlowCraft v1.0</span>
+      <span class="status-item">FlowCraft v1.0.0</span>
     `;
   }
 
@@ -1676,6 +1733,61 @@ const UI = (() => {
   }
 
   // Strip hex8 alpha suffix for native <input type="color"> (only accepts #RRGGBB)
+  /**
+   * Toggle a list type (ul/ol) in shape text.
+   * - If text already has that list type, remove it (convert back to br-separated lines)
+   * - If text has the other list type, convert (e.g. ul → ol)
+   * - Otherwise, split text by br/newlines and wrap in list
+   */
+  function toggleListInText(text, listTag) {
+    const otherTag = listTag === 'ul' ? 'ol' : 'ul';
+    const hasThisList = new RegExp('<' + listTag + '\\b', 'i').test(text);
+    const hasOtherList = new RegExp('<' + otherTag + '\\b', 'i').test(text);
+
+    if (hasThisList) {
+      // Remove list: extract <li> contents and join with <br>
+      const div = document.createElement('div');
+      div.innerHTML = text;
+      div.querySelectorAll(listTag).forEach(list => {
+        const items = Array.from(list.querySelectorAll(':scope > li'));
+        const fragment = document.createDocumentFragment();
+        items.forEach((li, i) => {
+          if (i > 0) fragment.appendChild(document.createElement('br'));
+          while (li.firstChild) fragment.appendChild(li.firstChild);
+        });
+        list.replaceWith(fragment);
+      });
+      return div.innerHTML;
+    }
+
+    if (hasOtherList) {
+      // Convert other list type to this one
+      const div = document.createElement('div');
+      div.innerHTML = text;
+      div.querySelectorAll(otherTag).forEach(list => {
+        const newList = document.createElement(listTag);
+        while (list.firstChild) newList.appendChild(list.firstChild);
+        list.replaceWith(newList);
+      });
+      return div.innerHTML;
+    }
+
+    // No list: split text into lines and wrap in list
+    const div = document.createElement('div');
+    div.innerHTML = text;
+    // Get lines by splitting on <br>
+    const html = div.innerHTML;
+    const lines = html.split(/<br\s*\/?>/i).map(l => l.trim()).filter(l => l.length > 0);
+    if (lines.length === 0) lines.push('');
+    const listEl = document.createElement(listTag);
+    lines.forEach(line => {
+      const li = document.createElement('li');
+      li.innerHTML = line;
+      listEl.appendChild(li);
+    });
+    return listEl.outerHTML;
+  }
+
   function colorToHex6(c) {
     if (!c || c === 'none' || c === 'transparent') return '#ffffff';
     if (c.length === 9 && c[0] === '#') return c.slice(0, 7);
@@ -2100,6 +2212,12 @@ const UI = (() => {
     if (!newStartDate || !newEndDate || !/^\d{4}-\d{2}-\d{2}$/.test(newStartDate) || !/^\d{4}-\d{2}-\d{2}$/.test(newEndDate)) return;
     const tl = getTimelineConfig(shape);
     if (!tl) return;
+
+    // Capture old state for undo
+    const oldBounds = { x: shape.x, y: shape.y, width: shape.width, height: shape.height };
+    const oldText = shape.text;
+    const oldData = Utils.deepClone(shape.data);
+
     const isMilestone = newStartDate === newEndDate;
     if (isMilestone) {
       // Milestone: position so pole (x+2) aligns with the date
@@ -2126,6 +2244,21 @@ const UI = (() => {
         data: { startDate: newStartDate, endDate: newEndDate }
       });
     }
+
+    // Record all changes for undo (changes already applied above)
+    const newBounds = { x: shape.x, y: shape.y, width: shape.width, height: shape.height };
+    const newText = shape.text;
+    const newData = Utils.deepClone(shape.data);
+    History.beginBatch();
+    if (oldBounds.x !== newBounds.x || oldBounds.width !== newBounds.width) {
+      History.record(new History.ResizeShapeCommand(shape.id, oldBounds, newBounds));
+    }
+    if (oldText !== newText) {
+      History.record(new History.ChangeTextCommand(shape.id, oldText, newText));
+    }
+    History.record(new History.ChangeShapeDataCommand(shape.id, oldData, newData));
+    History.endBatch('Change date');
+
     // Refresh the properties panel with updated shape
     const updated = diagram.getShape(shape.id);
     updatePropertiesPanel([updated], null);

@@ -225,10 +225,23 @@
       const newStart = msToISO(barStartMs);
       const newEnd = msToISO(barEndMs);
 
-      if (newStart !== shape.data.startDate || newEnd !== shape.data.endDate) {
+      // Detect inline text edits: extract taskName from current text
+      let intervalLabel = taskName;
+      const lines = shape.text.split('\n');
+      if (lines.length > 1) {
+        // Multi-line: everything except last line (date range) is the user label
+        intervalLabel = lines.slice(0, -1).join('\n');
+      } else if (lines[0] && lines[0] !== isoToShort(shape.data.startDate) + ' - ' + isoToShort(shape.data.endDate)) {
+        // Single line that doesn't match expected date range: user typed a label
+        intervalLabel = lines[0];
+      }
+
+      const dateLbl = isoToShort(newStart) + ' - ' + isoToShort(newEnd);
+      const newText = intervalLabel ? intervalLabel + '\n' + dateLbl : dateLbl;
+      if (newStart !== shape.data.startDate || newEnd !== shape.data.endDate || intervalLabel !== taskName || shape.text !== newText) {
         diagram.updateShapeDeep(shape.id, {
-          text: taskName + '\n' + isoToShort(newStart) + ' - ' + isoToShort(newEnd),
-          data: { startDate: newStart, endDate: newEnd }
+          text: newText,
+          data: { startDate: newStart, endDate: newEnd, taskName: intervalLabel }
         });
       }
     }
