@@ -315,95 +315,86 @@ const ExportImport = (() => {
       ctx.drawImage(img, 0, 0, width, height);
       URL.revokeObjectURL(url);
 
-      // Use PNG for PDF image to avoid JPEG compression artifacts
-      const pngDataUrl = canvas.toDataURL('image/png');
-      const pngBase64 = pngDataUrl.split(',')[1];
-      const pngBytes = atob(pngBase64);
-      const pngLength = pngBytes.length;
+      // Use JPEG (DCTDecode) for PDF embedding — raw JPEG bytes map directly
+      // to DCTDecode without any re-wrapping, unlike PNG which has its own
+      // chunk format incompatible with FlateDecode.
+      canvas.toBlob(jpegBlob => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const jpegArray = new Uint8Array(reader.result);
+          const jpegLength = jpegArray.length;
 
-      // PDF page size matches image aspect ratio, using points (72 dpi)
-      const maxPageW = 595.28; // A4 width in points
-      const maxPageH = 841.89; // A4 height in points
-      const imgAspect = width / height;
-      let pageW, pageH;
-      if (imgAspect > maxPageW / maxPageH) {
-        pageW = maxPageW;
-        pageH = maxPageW / imgAspect;
-      } else {
-        pageH = maxPageH;
-        pageW = maxPageH * imgAspect;
-      }
+          // PDF page size matches image aspect ratio, using points (72 dpi)
+          const maxPageW = 595.28; // A4 width in points
+          const maxPageH = 841.89; // A4 height in points
+          const imgAspect = width / height;
+          let pageW, pageH;
+          if (imgAspect > maxPageW / maxPageH) {
+            pageW = maxPageW;
+            pageH = maxPageW / imgAspect;
+          } else {
+            pageH = maxPageH;
+            pageW = maxPageH * imgAspect;
+          }
 
-      const offsets = [];
-      let pdf = '';
-      function addObj(content) {
-        offsets.push(pdf.length);
-        pdf += content;
-      }
+          const offsets = [];
+          let pdf = '%PDF-1.4\n';
+          function addObj(content) {
+            offsets.push(pdf.length);
+            pdf += content;
+          }
 
-      pdf = '%PDF-1.4\n';
+          // Object 1: Catalog
+          addObj('1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n');
+          // Object 2: Pages
+          addObj('2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n');
+          // Object 3: Page
+          addObj(`3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageW.toFixed(2)} ${pageH.toFixed(2)}] /Contents 4 0 R /Resources << /XObject << /Img0 5 0 R >> >> >>\nendobj\n`);
+          // Object 4: Page content stream (draw image full page)
+          const contentStream = `q\n${pageW.toFixed(2)} 0 0 ${pageH.toFixed(2)} 0 0 cm\n/Img0 Do\nQ\n`;
+          addObj(`4 0 obj\n<< /Length ${contentStream.length} >>\nstream\n${contentStream}endstream\nendobj\n`);
 
-      // Object 1: Catalog
-      addObj('1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n');
+          // Object 5: Image XObject (JPEG via DCTDecode)
+          const imgObjHeader = `5 0 obj\n<< /Type /XObject /Subtype /Image /Width ${canvas.width} /Height ${canvas.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpegLength} >>\nstream\n`;
+          const imgObjFooter = '\nendstream\nendobj\n';
 
-      // Object 2: Pages
-      addObj('2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n');
+          const headerBytes = new TextEncoder().encode(pdf);
+          const imgHeaderBytes = new TextEncoder().encode(imgObjHeader);
+          const imgFooterBytes = new TextEncoder().encode(imgObjFooter);
 
-      // Object 3: Page
-      addObj(`3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageW.toFixed(2)} ${pageH.toFixed(2)}] /Contents 4 0 R /Resources << /XObject << /Img0 5 0 R >> >> >>\nendobj\n`);
+          const imgObjOffset = headerBytes.length;
+          const xrefStartOffset = imgObjOffset + imgHeaderBytes.length + jpegLength + imgFooterBytes.length;
+          const allOffsets = [...offsets, imgObjOffset];
 
-      // Object 4: Page content stream (draw image full page)
-      const contentStream = `q\n${pageW.toFixed(2)} 0 0 ${pageH.toFixed(2)} 0 0 cm\n/Img0 Do\nQ\n`;
-      addObj(`4 0 obj\n<< /Length ${contentStream.length} >>\nstream\n${contentStream}endstream\nendobj\n`);
+          let xref = 'xref\n';
+          xref += `0 ${allOffsets.length + 1}\n`;
+          xref += '0000000000 65535 f \n';
+          allOffsets.forEach(off => {
+            xref += off.toString().padStart(10, '0') + ' 00000 n \n';
+          });
 
-      // Object 5: Image XObject (PNG via FlateDecode)
-      const imgObjHeader = `5 0 obj\n<< /Type /XObject /Subtype /Image /Width ${canvas.width} /Height ${canvas.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /FlateDecode /Length ${pngLength} >>\nstream\n`;
-      const imgObjFooter = '\nendstream\nendobj\n';
+          let trailer = 'trailer\n';
+          trailer += `<< /Size ${allOffsets.length + 1} /Root 1 0 R >>\n`;
+          trailer += 'startxref\n';
+          trailer += xrefStartOffset + '\n';
+          trailer += '%%EOF\n';
 
-      // Build the full PDF as binary
-      const headerBytes = new TextEncoder().encode(pdf);
-      const imgHeaderBytes = new TextEncoder().encode(imgObjHeader);
-      const imgFooterBytes = new TextEncoder().encode(imgObjFooter);
+          const xrefBytes = new TextEncoder().encode(xref + trailer);
 
-      // Convert PNG string to Uint8Array
-      const pngArray = new Uint8Array(pngLength);
-      for (let i = 0; i < pngLength; i++) {
-        pngArray[i] = pngBytes.charCodeAt(i);
-      }
+          const totalLength = headerBytes.length + imgHeaderBytes.length + jpegLength + imgFooterBytes.length + xrefBytes.length;
+          const pdfArray = new Uint8Array(totalLength);
+          let offset = 0;
+          pdfArray.set(headerBytes, offset); offset += headerBytes.length;
+          pdfArray.set(imgHeaderBytes, offset); offset += imgHeaderBytes.length;
+          pdfArray.set(jpegArray, offset); offset += jpegLength;
+          pdfArray.set(imgFooterBytes, offset); offset += imgFooterBytes.length;
+          pdfArray.set(xrefBytes, offset);
 
-      const imgObjOffset = headerBytes.length;
-
-      // Build xref and trailer
-      const xrefStartOffset = imgObjOffset + imgHeaderBytes.length + pngArray.length + imgFooterBytes.length;
-      const allOffsets = [...offsets, imgObjOffset];
-
-      let xref = 'xref\n';
-      xref += `0 ${allOffsets.length + 1}\n`;
-      xref += '0000000000 65535 f \n';
-      allOffsets.forEach(off => {
-        xref += off.toString().padStart(10, '0') + ' 00000 n \n';
-      });
-
-      let trailer = 'trailer\n';
-      trailer += `<< /Size ${allOffsets.length + 1} /Root 1 0 R >>\n`;
-      trailer += 'startxref\n';
-      trailer += xrefStartOffset + '\n';
-      trailer += '%%EOF\n';
-
-      const xrefBytes = new TextEncoder().encode(xref + trailer);
-
-      // Combine all parts
-      const totalLength = headerBytes.length + imgHeaderBytes.length + pngArray.length + imgFooterBytes.length + xrefBytes.length;
-      const pdfArray = new Uint8Array(totalLength);
-      let offset = 0;
-      pdfArray.set(headerBytes, offset); offset += headerBytes.length;
-      pdfArray.set(imgHeaderBytes, offset); offset += imgHeaderBytes.length;
-      pdfArray.set(pngArray, offset); offset += pngArray.length;
-      pdfArray.set(imgFooterBytes, offset); offset += imgFooterBytes.length;
-      pdfArray.set(xrefBytes, offset);
-
-      const pdfBlob = new Blob([pdfArray], { type: 'application/pdf' });
-      downloadBlob(pdfBlob, (diagram.name || 'diagram') + '.pdf');
+          const pdfBlob = new Blob([pdfArray], { type: 'application/pdf' });
+          downloadBlob(pdfBlob, (diagram.name || 'diagram') + '.pdf');
+        };
+        reader.readAsArrayBuffer(jpegBlob);
+      }, 'image/jpeg', 0.95);
     };
     img.onerror = () => {
       console.error('PDF export failed');
