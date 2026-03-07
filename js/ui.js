@@ -1001,13 +1001,39 @@ const UI = (() => {
       });
       tlSection.appendChild(makePropRow('Show labels', showLabelsCheckbox));
 
-      const showTodayCheckbox = document.createElement('input');
-      showTodayCheckbox.type = 'checkbox';
-      showTodayCheckbox.checked = shape.data && shape.data.showToday !== false;
-      showTodayCheckbox.addEventListener('change', () => {
-        diagram.updateShapeDeep(shape.id, { data: { showToday: showTodayCheckbox.checked } });
+      // todayMode select
+      const currentTodayMode = (() => {
+        if (shape.data && shape.data.todayMode != null) return shape.data.todayMode;
+        if (shape.data && shape.data.showToday != null) return shape.data.showToday ? 'both' : 'none';
+        return tlTypeVal === 'line' ? 'none' : 'both';
+      })();
+      const todayModeSelect = document.createElement('select');
+      [['none', 'None'], ['line', 'Line only'], ['both', 'Line + label']].forEach(([val, label]) => {
+        const opt = document.createElement('option');
+        opt.value = val; opt.textContent = label;
+        if (val === currentTodayMode) opt.selected = true;
+        todayModeSelect.appendChild(opt);
       });
-      tlSection.appendChild(makePropRow('Show today', showTodayCheckbox));
+      todayModeSelect.style.cssText = 'width:100%;font-size:11px;';
+      tlSection.appendChild(makePropRow('Today marker', todayModeSelect));
+
+      // todayLabel input (shown only when mode is 'both')
+      const todayLabelInput = document.createElement('input');
+      todayLabelInput.type = 'text';
+      todayLabelInput.value = (shape.data && shape.data.todayLabel != null) ? shape.data.todayLabel : 'Today';
+      todayLabelInput.style.cssText = 'width:100%;font-size:11px;box-sizing:border-box;';
+      const todayLabelRow = makePropRow('Marker label', todayLabelInput);
+      todayLabelRow.style.display = currentTodayMode === 'both' ? '' : 'none';
+      tlSection.appendChild(todayLabelRow);
+
+      todayModeSelect.addEventListener('change', () => {
+        const mode = todayModeSelect.value;
+        todayLabelRow.style.display = mode === 'both' ? '' : 'none';
+        diagram.updateShapeDeep(shape.id, { data: { todayMode: mode } });
+      });
+      todayLabelInput.addEventListener('input', () => {
+        diagram.updateShapeDeep(shape.id, { data: { todayLabel: todayLabelInput.value } });
+      });
 
       const guideInput = makeNumberInput((shape.data && shape.data.guideHeight) || 0, v => {
         diagram.updateShapeDeep(shape.id, { data: { guideHeight: Math.max(0, v) } });

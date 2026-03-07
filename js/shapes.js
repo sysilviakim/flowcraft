@@ -535,7 +535,17 @@ const Shapes = (() => {
         return ticks;
       }
 
-      const showToday = s.data && s.data.showToday !== false;
+      // todayMode: 'none' | 'line' | 'both'
+      // Legacy: showToday boolean mapped to 'both'/'none'
+      let todayMode;
+      if (s.data && s.data.todayMode != null) {
+        todayMode = s.data.todayMode;
+      } else if (s.data && s.data.showToday != null) {
+        todayMode = s.data.showToday ? 'both' : 'none';
+      } else {
+        todayMode = tlType === 'line' ? 'none' : 'both';
+      }
+      const todayLabel = (s.data && s.data.todayLabel != null) ? s.data.todayLabel : 'Today';
 
       if (tlType === 'line') {
         const midY = h / 2;
@@ -562,7 +572,7 @@ const Shapes = (() => {
             });
             if (showLabels) svg += `<text x="${lineW - 3}" y="${midY - tickH - 4}" fill="#555555" stroke="none" font-size="${fontSize}" font-family="MaruBuri,Inter,sans-serif" text-anchor="end">${formatDate(ed)}</text>`;
             // Today marker
-            if (showToday) {
+            if (todayMode !== 'none') {
               const today = new Date(); today.setHours(0,0,0,0);
               const todayMs = today.getTime();
               if (todayMs >= startMs && todayMs <= endMs) {
@@ -570,7 +580,7 @@ const Shapes = (() => {
                 const markerTop = midY - tickH - 12;
                 const markerBot = guideH > 0 ? h + guideH : midY + tickH + 4;
                 svg += `<line x1="${tx}" y1="${markerTop}" x2="${tx}" y2="${markerBot}" stroke="#e74c3c" stroke-width="1.5" stroke-dasharray="4 2" fill="none"/>`;
-                svg += `<text x="${tx}" y="${markerTop - 2}" text-anchor="middle" fill="#e74c3c" stroke="none" font-size="${Math.max(fontSize - 1, 7)}" font-weight="bold" font-family="MaruBuri,Inter,sans-serif">Today</text>`;
+                if (todayMode === 'both' && todayLabel) svg += `<text x="${tx}" y="${markerTop - 2}" text-anchor="middle" fill="#e74c3c" stroke="none" font-size="${Math.max(fontSize - 1, 7)}" font-weight="bold" font-family="MaruBuri,Inter,sans-serif">${todayLabel}</text>`;
               }
             }
           }
@@ -595,7 +605,7 @@ const Shapes = (() => {
           });
           if (showLabels) svg += `<text x="${w-3}" y="${labelY}" fill="#555555" stroke="none" font-size="${fontSize}" font-family="MaruBuri,Inter,sans-serif" text-anchor="end">${formatDate(ed)}</text>`;
           // Today marker
-          if (showToday) {
+          if (todayMode !== 'none') {
             const today = new Date(); today.setHours(0,0,0,0);
             const todayMs = today.getTime();
             if (todayMs >= startMs && todayMs <= endMs) {
@@ -603,7 +613,7 @@ const Shapes = (() => {
               const markerTop = -8;
               const markerBot = guideH > 0 ? h + guideH : h + 4;
               svg += `<line x1="${tx}" y1="${markerTop}" x2="${tx}" y2="${markerBot}" stroke="#e74c3c" stroke-width="1.5" stroke-dasharray="4 2" fill="none"/>`;
-              svg += `<text x="${tx}" y="${markerTop - 2}" text-anchor="middle" fill="#e74c3c" stroke="none" font-size="${Math.max(fontSize - 1, 7)}" font-weight="bold" font-family="MaruBuri,Inter,sans-serif">Today</text>`;
+              if (todayMode === 'both' && todayLabel) svg += `<text x="${tx}" y="${markerTop - 2}" text-anchor="middle" fill="#e74c3c" stroke="none" font-size="${Math.max(fontSize - 1, 7)}" font-weight="bold" font-family="MaruBuri,Inter,sans-serif">${todayLabel}</text>`;
             }
           }
         }
