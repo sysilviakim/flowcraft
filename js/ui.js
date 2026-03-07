@@ -472,6 +472,50 @@ const UI = (() => {
       });
       bar.appendChild(strokeNoneBtn);
 
+      // Stroke dash (line style)
+      const dashSelect = document.createElement('select');
+      dashSelect.className = 'ft-size-input';
+      dashSelect.style.cssText = 'width:72px;font-size:11px;';
+      dashSelect.title = 'Line style';
+      [
+        { value: '', label: '— Solid' },
+        { value: '6 3', label: '- - Dash' },
+        { value: '2 3', label: '· · Dot' },
+        { value: '8 3 2 3', label: '-·- D-Dot' },
+      ].forEach(({ value, label }) => {
+        const o = document.createElement('option');
+        o.value = value; o.textContent = label;
+        if ((shape.style.strokeDash || '') === value) o.selected = true;
+        dashSelect.appendChild(o);
+      });
+      dashSelect.addEventListener('change', () => {
+        History.beginBatch();
+        shapes.forEach(s => {
+          History.execute(new History.ChangeStyleCommand(s.id, 'style', { ...s.style }, { ...s.style, strokeDash: dashSelect.value }));
+        });
+        History.endBatch();
+      });
+      bar.appendChild(dashSelect);
+
+      // Stroke width
+      const swInput = document.createElement('input');
+      swInput.type = 'number';
+      swInput.className = 'ft-size-input';
+      swInput.style.cssText = 'width:38px;';
+      swInput.min = 0.5; swInput.max = 20; swInput.step = 0.5;
+      swInput.value = shape.style.strokeWidth ?? 1;
+      swInput.title = 'Stroke width';
+      swInput.addEventListener('change', () => {
+        const v = Math.max(0.5, parseFloat(swInput.value) || 1);
+        swInput.value = v;
+        History.beginBatch();
+        shapes.forEach(s => {
+          History.execute(new History.ChangeStyleCommand(s.id, 'style', { ...s.style }, { ...s.style, strokeWidth: v }));
+        });
+        History.endBatch();
+      });
+      bar.appendChild(swInput);
+
       bar.appendChild(makeFtSep());
 
       // Bold toggle
