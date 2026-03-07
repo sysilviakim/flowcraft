@@ -233,6 +233,30 @@ const Shapes = (() => {
     }
   });
 
+  register({
+    category: 'Basic', type: 'basic:divider-h', label: 'H Divider',
+    defaultSize: { width: 200, height: 20 },
+    ports: [{ id: 'left', side: 'left', offset: 0.5 }, { id: 'right', side: 'right', offset: 0.5 }],
+    defaultStyle: { fill: 'none', stroke: '#555555', strokeWidth: 1.5 },
+    icon: paletteIcon('M4 18h28'),
+    render(s) {
+      const midY = s.height / 2;
+      return `<line x1="0" y1="${midY}" x2="${s.width}" y2="${midY}" fill="none"/>`;
+    }
+  });
+
+  register({
+    category: 'Basic', type: 'basic:divider-v', label: 'V Divider',
+    defaultSize: { width: 20, height: 200 },
+    ports: [{ id: 'top', side: 'top', offset: 0.5 }, { id: 'bottom', side: 'bottom', offset: 0.5 }],
+    defaultStyle: { fill: 'none', stroke: '#555555', strokeWidth: 1.5 },
+    icon: paletteIcon('M18 4v28'),
+    render(s) {
+      const midX = s.width / 2;
+      return `<line x1="${midX}" y1="0" x2="${midX}" y2="${s.height}" fill="none"/>`;
+    }
+  });
+
   // ============================================================
   // FLOWCHART SHAPES
   // ============================================================
