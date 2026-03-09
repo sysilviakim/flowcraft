@@ -712,14 +712,40 @@ const Tools = (() => {
           }
         }
 
+        // Timeline-interval magnetic snap: center each interval on its nearest timeline
+        const allIntervals = selectedShapes.every(s => s.type === 'timeline:interval');
+        if (allIntervals) {
+          const timelines = otherShapes.filter(s => s.type === 'timeline:timeline');
+          const intervalSnapThreshold = 50;
+          tentative.forEach(t => {
+            const intervalCenterY = t.ny + t.shape.height / 2;
+            let bestDist = Infinity, bestSnapDy = null;
+            for (const tl of timelines) {
+              const tlCenterY = tl.y + tl.height / 2;
+              const d = Math.abs(intervalCenterY - tlCenterY);
+              if (d < intervalSnapThreshold && d < bestDist) {
+                bestDist = d;
+                bestSnapDy = tlCenterY - intervalCenterY;
+              }
+            }
+            if (bestSnapDy !== null) t.ny += bestSnapDy;
+          });
+          // Recompute group bounds after timeline snap
+          gy1 = Infinity; gy2 = -Infinity;
+          tentative.forEach(t => { gy1 = Math.min(gy1, t.ny); gy2 = Math.max(gy2, t.ny + t.shape.height); });
+          refYs[0] = gy1; refYs[1] = gy1 + (gy2 - gy1) / 2; refYs[2] = gy2;
+        }
+
         // Find best Y snap (shape-to-shape only — overrides grid if close enough)
         let bestDy = null, bestSnapY = null;
-        for (const ry of refYs) {
-          for (const ty of targetYs) {
-            const d = Math.abs(ry - ty);
-            if (d < snapThreshold && (bestDy === null || d < Math.abs(bestDy))) {
-              bestDy = ty - ry;
-              bestSnapY = ty;
+        if (!allIntervals) {
+          for (const ry of refYs) {
+            for (const ty of targetYs) {
+              const d = Math.abs(ry - ty);
+              if (d < snapThreshold && (bestDy === null || d < Math.abs(bestDy))) {
+                bestDy = ty - ry;
+                bestSnapY = ty;
+              }
             }
           }
         }
@@ -1264,6 +1290,23 @@ const Tools = (() => {
         h = Utils.snapToGrid(h, gs) || gs;
       }
 
+      // Timeline-interval snap: center on nearest timeline while drawing
+      if (drawShapeType === 'timeline:interval') {
+        const timelines = diagram.shapes.filter(s => s.type === 'timeline:timeline' && s.id !== this._previewShape.id);
+        const intervalSnapThreshold = 60;
+        let bestDist = Infinity, bestTl = null;
+        for (const tl of timelines) {
+          const tlCenterY = tl.y + tl.height / 2;
+          const intervalCenterY = y + h / 2;
+          const d = Math.abs(intervalCenterY - tlCenterY);
+          if (d < intervalSnapThreshold && d < bestDist) { bestDist = d; bestTl = tl; }
+        }
+        if (bestTl) {
+          h = bestTl.height - 6;
+          y = bestTl.y + (bestTl.height - h) / 2;
+        }
+      }
+
       diagram.updateShape(this._previewShape.id, { x, y, width: w, height: h });
     },
 
@@ -1281,10 +1324,22 @@ const Tools = (() => {
           x = Utils.snapToGrid(x, gs);
           y = Utils.snapToGrid(y, gs);
         }
+        // Timeline-interval snap for click-placed shapes
+        let snapH = def.defaultSize.height;
+        let snapY = y;
+        if (drawShapeType === 'timeline:interval') {
+          const timelines = diagram.shapes.filter(s => s.type === 'timeline:timeline' && s.id !== shape.id);
+          let bestDist = Infinity, bestTl = null;
+          for (const tl of timelines) {
+            const d = Math.abs((y + snapH / 2) - (tl.y + tl.height / 2));
+            if (d < 80 && d < bestDist) { bestDist = d; bestTl = tl; }
+          }
+          if (bestTl) { snapH = bestTl.height - 6; snapY = bestTl.y + (bestTl.height - snapH) / 2; }
+        }
         diagram.updateShape(shape.id, {
-          x, y,
+          x, y: snapY,
           width: def.defaultSize.width,
-          height: def.defaultSize.height
+          height: snapH
         });
       }
 
