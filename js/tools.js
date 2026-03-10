@@ -656,11 +656,10 @@ const Tools = (() => {
           gx2 = Math.max(gx2, t.nx + t.shape.width);
           gy2 = Math.max(gy2, t.ny + t.shape.height);
         });
-        const gw = gx2 - gx1, gh = gy2 - gy1;
+        const gw = gx2 - gx1;
 
-        // Reference points for the dragged group (left/center/right, top/center/bottom)
+        // Reference points for the dragged group (left/center/right)
         const refXs = [gx1, gx1 + gw / 2, gx2];
-        const refYs = [gy1, gy1 + gh / 2, gy2];
 
         // Collect target snap lines from other shapes
         const targetXs = new Set();
@@ -712,34 +711,46 @@ const Tools = (() => {
           }
         }
 
-        // Timeline-interval magnetic snap: center each interval on its nearest timeline
-        const allIntervals = selectedShapes.every(s => s.type === 'timeline:interval');
-        if (allIntervals) {
-          const timelines = otherShapes.filter(s => s.type === 'timeline:timeline');
-          const intervalSnapThreshold = 50;
-          tentative.forEach(t => {
-            const intervalCenterY = t.ny + t.shape.height / 2;
-            let bestDist = Infinity, bestSnapDy = null;
-            for (const tl of timelines) {
-              const tlCenterY = tl.y + tl.height / 2;
-              const d = Math.abs(intervalCenterY - tlCenterY);
-              if (d < intervalSnapThreshold && d < bestDist) {
-                bestDist = d;
-                bestSnapDy = tlCenterY - intervalCenterY;
-              }
+        // Timeline-interval magnetic snap: center each interval on its nearest timeline.
+        // Runs per-interval regardless of what else is selected, so timeline centering
+        // always overrides Y shape-snap and grid snap for interval shapes.
+        const timelines = otherShapes.filter(s => s.type === 'timeline:timeline');
+        const intervalSnapThreshold = 50;
+        const timelineSnappedIds = new Set();
+        tentative.forEach(t => {
+          if (t.shape.type !== 'timeline:interval') return;
+          const intervalCenterY = t.ny + t.shape.height / 2;
+          let bestDist = Infinity, bestSnapDy = null;
+          for (const tl of timelines) {
+            const tlCenterY = tl.y + tl.height / 2;
+            const d = Math.abs(intervalCenterY - tlCenterY);
+            if (d < intervalSnapThreshold && d < bestDist) {
+              bestDist = d;
+              bestSnapDy = tlCenterY - intervalCenterY;
             }
-            if (bestSnapDy !== null) t.ny += bestSnapDy;
-          });
-          // Recompute group bounds after timeline snap
-          gy1 = Infinity; gy2 = -Infinity;
-          tentative.forEach(t => { gy1 = Math.min(gy1, t.ny); gy2 = Math.max(gy2, t.ny + t.shape.height); });
-          refYs[0] = gy1; refYs[1] = gy1 + (gy2 - gy1) / 2; refYs[2] = gy2;
-        }
+          }
+          if (bestSnapDy !== null) {
+            t.ny += bestSnapDy;
+            timelineSnappedIds.add(t.shape.id);
+          }
+        });
+        // Recompute group Y bounds after timeline snap (used by grid guide display below)
+        gy1 = Infinity; gy2 = -Infinity;
+        tentative.forEach(t => { gy1 = Math.min(gy1, t.ny); gy2 = Math.max(gy2, t.ny + t.shape.height); });
 
-        // Find best Y snap (shape-to-shape only — overrides grid if close enough)
+        // Find best Y snap (shape-to-shape only — overrides grid if close enough).
+        // Use only non-timeline-snapped shapes' bounds as the reference, so timeline
+        // snap always wins for intervals and doesn't pollute the Y snap calculation.
         let bestDy = null, bestSnapY = null;
-        if (!allIntervals) {
-          for (const ry of refYs) {
+        if (timelineSnappedIds.size < tentative.length) {
+          let nsGy1 = Infinity, nsGy2 = -Infinity;
+          tentative.forEach(t => {
+            if (timelineSnappedIds.has(t.shape.id)) return;
+            nsGy1 = Math.min(nsGy1, t.ny);
+            nsGy2 = Math.max(nsGy2, t.ny + t.shape.height);
+          });
+          const nsRefYs = [nsGy1, nsGy1 + (nsGy2 - nsGy1) / 2, nsGy2];
+          for (const ry of nsRefYs) {
             for (const ty of targetYs) {
               const d = Math.abs(ry - ty);
               if (d < snapThreshold && (bestDy === null || d < Math.abs(bestDy))) {
@@ -782,7 +793,8 @@ const Tools = (() => {
 
         tentative.forEach(t => {
           t.nx += dx;
-          t.ny += dy;
+          // Don't apply group Y offset to intervals already snapped to a timeline center
+          if (!timelineSnappedIds.has(t.shape.id)) t.ny += dy;
           const moveDx = t.nx - t.shape.x;
           const moveDy = t.ny - t.shape.y;
           diagram.updateShape(t.shape.id, { x: t.nx, y: t.ny });
@@ -802,11 +814,17 @@ const Tools = (() => {
         });
 
         // Build guide lines for ALL alignments after snap (not just the snap target)
-        // Final reference points after snap
-        const fgx1 = gx1 + dx, fgy1 = gy1 + dy;
-        const fgx2 = gx2 + dx, fgy2 = gy2 + dy;
-        const fRefXs = [fgx1, fgx1 + gw / 2, fgx2];
-        const fRefYs = [fgy1, fgy1 + gh / 2, fgy2];
+        // Compute final reference points from actual applied positions, since some shapes
+        // (timeline-snapped intervals) don't receive the group dy offset.
+        let fgx1 = Infinity, fgy1 = Infinity, fgx2 = -Infinity, fgy2 = -Infinity;
+        tentative.forEach(t => {
+          fgx1 = Math.min(fgx1, t.nx);
+          fgy1 = Math.min(fgy1, t.ny);
+          fgx2 = Math.max(fgx2, t.nx + t.shape.width);
+          fgy2 = Math.max(fgy2, t.ny + t.shape.height);
+        });
+        const fRefXs = [fgx1, fgx1 + (fgx2 - fgx1) / 2, fgx2];
+        const fRefYs = [fgy1, fgy1 + (fgy2 - fgy1) / 2, fgy2];
 
         // Helper: get all snap X points for a shape (edges + swimlane internals)
         function getShapeSnapXs(o) {
