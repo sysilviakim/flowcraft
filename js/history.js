@@ -333,11 +333,12 @@ const History = (() => {
     }
     execute() {
       this.oldIndex = diagram.shapes.findIndex(s => s.id === this.shapeId);
+      if (this.oldIndex < 0) return; // shape not found
       if (this.operation === 'front') diagram.bringToFront(this.shapeId);
       else diagram.sendToBack(this.shapeId);
     }
     undo() {
-      if (this.oldIndex === null) return;
+      if (this.oldIndex === null || this.oldIndex < 0) return;
       const currentIdx = diagram.shapes.findIndex(s => s.id === this.shapeId);
       if (currentIdx === -1) return;
       const [shape] = diagram.shapes.splice(currentIdx, 1);
