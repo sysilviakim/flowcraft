@@ -39,7 +39,7 @@ const ExportImport = (() => {
       }
       if (ctrl && e.key === 'n') {
         e.preventDefault();
-        // New diagram handled by UI
+        // confirmNew() is called by the UI keydown handler
       }
     });
   }
@@ -411,6 +411,7 @@ const ExportImport = (() => {
     const bounds = Utils.getBoundingRect(diagram.shapes);
     const padding = 40;
     const { clonedSvg, cl, width, height } = prepareExportSvg(svgEl, bounds, padding);
+    addBackground(cl, bounds, padding, width, height, diagram.settings.canvasColor || '#ffffff');
 
     await embedFontsInSvg(clonedSvg);
 

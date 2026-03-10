@@ -237,6 +237,17 @@ const History = (() => {
     undo() { diagram.updateConnector(this.connId, { style: Utils.deepClone(this.oldStyle) }); }
   }
 
+  // Generic connector property change (routingType, points, arrows, label, etc.)
+  class ChangeConnectorCommand {
+    constructor(connId, oldProps, newProps) {
+      this.connId = connId;
+      this.oldProps = Utils.deepClone(oldProps);
+      this.newProps = Utils.deepClone(newProps);
+    }
+    execute() { diagram.updateConnector(this.connId, Utils.deepClone(this.newProps)); }
+    undo() { diagram.updateConnector(this.connId, Utils.deepClone(this.oldProps)); }
+  }
+
   class CompositeCommand {
     constructor(name, commands) {
       this.name = name;
@@ -251,12 +262,15 @@ const History = (() => {
   }
 
   class GroupCommand {
-    constructor(shapeIds, groupId) {
+    constructor(shapeIds) {
       this.shapeIds = [...shapeIds];
-      this.groupId = groupId;
+      this.createdGroupId = null;
     }
-    execute() { diagram.addGroup(this.shapeIds); }
-    undo() { diagram.removeGroup(this.groupId); }
+    execute() {
+      const group = diagram.addGroup(this.shapeIds);
+      this.createdGroupId = group.id;
+    }
+    undo() { if (this.createdGroupId) diagram.removeGroup(this.createdGroupId); }
   }
 
   class UngroupCommand {
@@ -308,7 +322,7 @@ const History = (() => {
     beginBatch, endBatch, cancelBatch, clear,
     AddShapeCommand, RemoveShapeCommand, MoveShapeCommand, ResizeShapeCommand,
     ChangeStyleCommand, ChangeTextCommand,
-    AddConnectorCommand, RemoveConnectorCommand, ChangeConnectorStyleCommand,
+    AddConnectorCommand, RemoveConnectorCommand, ChangeConnectorStyleCommand, ChangeConnectorCommand,
     CompositeCommand, GroupCommand, UngroupCommand,
     SetContainerCommand, ChangeShapeDataCommand
   };

@@ -281,6 +281,7 @@ const Tools = (() => {
     _waypointStartPoints: null,
     _labelDrag: false,         // dragging connector label
     _labelConnId: null,
+    _oldLabelPos: null,        // label position before drag started
     _startPos: null,
     _dragOffsets: null,
     _resizeHandle: null,
@@ -359,8 +360,10 @@ const Tools = (() => {
       const labelEl = e.target.closest('[data-label-handle]');
       if (labelEl) {
         const connId = labelEl.getAttribute('data-connector-id');
+        const lConn = diagram.getConnector(connId);
         this._labelDrag = true;
         this._labelConnId = connId;
+        this._oldLabelPos = (lConn && lConn.label && lConn.label.position !== undefined) ? lConn.label.position : 0.5;
         this._startPos = pos;
         return;
       }
@@ -1013,7 +1016,14 @@ const Tools = (() => {
 
       // Waypoint drag completion
       if (this._waypointDrag && this._waypointConnId) {
-        // Waypoint already moved in onMouseMove; just clean up
+        const conn = diagram.getConnector(this._waypointConnId);
+        if (conn && this._waypointStartPoints) {
+          History.record(new History.ChangeConnectorCommand(
+            this._waypointConnId,
+            { points: this._waypointStartPoints },
+            { points: conn.points.map(p => ({ ...p })) }
+          ));
+        }
         this._waypointDrag = false;
         this._waypointConnId = null;
         this._waypointIdx = null;
@@ -1023,8 +1033,17 @@ const Tools = (() => {
 
       // Label drag completion
       if (this._labelDrag && this._labelConnId) {
+        const conn = diagram.getConnector(this._labelConnId);
+        if (conn && conn.label && this._oldLabelPos !== null) {
+          History.record(new History.ChangeConnectorCommand(
+            this._labelConnId,
+            { label: { text: conn.label.text, position: this._oldLabelPos } },
+            { label: { ...conn.label } }
+          ));
+        }
         this._labelDrag = false;
         this._labelConnId = null;
+        this._oldLabelPos = null;
         return;
       }
 
@@ -1784,9 +1803,12 @@ const Tools = (() => {
     input.focus();
     input.select();
 
+    const oldLabel = conn.label ? { ...conn.label } : { text: '', position: labelPos };
     const finish = () => {
       const newText = input.value;
-      diagram.updateConnector(conn.id, { label: { text: newText, position: labelPos } });
+      const newLabel = { text: newText, position: labelPos };
+      diagram.updateConnector(conn.id, { label: newLabel });
+      History.record(new History.ChangeConnectorCommand(conn.id, { label: oldLabel }, { label: newLabel }));
       input.remove();
     };
 
@@ -1915,8 +1937,7 @@ const Tools = (() => {
   function groupSelected() {
     if (selectedShapes.length < 2) return;
     const ids = selectedShapes.map(s => s.id);
-    const group = diagram.addGroup(ids);
-    // Don't use history command here since addGroup already modifies model
+    History.execute(new History.GroupCommand(ids));
   }
 
   function ungroupSelected() {
@@ -1924,7 +1945,7 @@ const Tools = (() => {
     const shape = selectedShapes[0];
     const group = diagram.getGroupForShape(shape.id);
     if (group) {
-      diagram.removeGroup(group.id);
+      History.execute(new History.UngroupCommand(group));
     }
   }
 

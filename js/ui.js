@@ -54,6 +54,14 @@ const UI = (() => {
         }
       }, 150);
     }, { passive: true });
+
+    // Ctrl+N: new diagram (keyboard shortcut advertised in toolbar)
+    document.addEventListener('keydown', e => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+        e.preventDefault();
+        confirmNew();
+      }
+    });
   }
 
   // ===== RECENTLY USED SHAPES =====
@@ -1571,9 +1579,15 @@ const UI = (() => {
       { value: 'curved', label: 'Curved' },
       { value: 'orthogonal', label: 'Step' }
     ], v => {
+      const oldRoutingType = conn.routingType;
+      const oldPoints = conn.points.map(p => ({ ...p }));
       diagram.updateConnector(conn.id, { routingType: v });
       conn.points = Connectors.routeConnector(diagram, conn);
       diagram.updateConnector(conn.id, { points: conn.points });
+      History.record(new History.ChangeConnectorCommand(conn.id,
+        { routingType: oldRoutingType, points: oldPoints },
+        { routingType: v, points: conn.points.map(p => ({ ...p })) }
+      ));
     });
     routeSection.appendChild(makePropRow('Type', routeSelect));
     container.appendChild(routeSection);
@@ -1587,7 +1601,9 @@ const UI = (() => {
       { value: 'diamond', label: 'Diamond' },
       { value: 'circle', label: 'Circle' }
     ], v => {
+      const old = conn.startArrow;
       diagram.updateConnector(conn.id, { startArrow: v });
+      History.record(new History.ChangeConnectorCommand(conn.id, { startArrow: old }, { startArrow: v }));
     });
     arrowSection.appendChild(makePropRow('Start', startArrowSelect));
 
@@ -1597,7 +1613,9 @@ const UI = (() => {
       { value: 'diamond', label: 'Diamond' },
       { value: 'circle', label: 'Circle' }
     ], v => {
+      const old = conn.endArrow;
       diagram.updateConnector(conn.id, { endArrow: v });
+      History.record(new History.ChangeConnectorCommand(conn.id, { endArrow: old }, { endArrow: v }));
     });
     arrowSection.appendChild(makePropRow('End', endArrowSelect));
 
@@ -1614,6 +1632,10 @@ const UI = (() => {
       const oldStart = conn.startArrow;
       const oldEnd = conn.endArrow;
       diagram.updateConnector(conn.id, { startArrow: oldEnd, endArrow: oldStart });
+      History.record(new History.ChangeConnectorCommand(conn.id,
+        { startArrow: oldStart, endArrow: oldEnd },
+        { startArrow: oldEnd, endArrow: oldStart }
+      ));
       UI.updateProperties();
     });
     btnRow.appendChild(reverseBtn);
@@ -1623,7 +1645,13 @@ const UI = (() => {
     noArrowBtn.textContent = 'No arrows';
     noArrowBtn.title = 'Remove all arrows (plain line)';
     noArrowBtn.addEventListener('click', () => {
+      const oldStart = conn.startArrow;
+      const oldEnd = conn.endArrow;
       diagram.updateConnector(conn.id, { startArrow: 'none', endArrow: 'none' });
+      History.record(new History.ChangeConnectorCommand(conn.id,
+        { startArrow: oldStart, endArrow: oldEnd },
+        { startArrow: 'none', endArrow: 'none' }
+      ));
       UI.updateProperties();
     });
     btnRow.appendChild(noArrowBtn);
@@ -1637,7 +1665,10 @@ const UI = (() => {
     labelInput.className = 'props-input';
     labelInput.value = (conn.label && conn.label.text) || '';
     labelInput.addEventListener('change', () => {
-      diagram.updateConnector(conn.id, { label: { text: labelInput.value, position: 0.5 } });
+      const oldLabel = conn.label ? { ...conn.label } : { text: '', position: 0.5 };
+      const newLabel = { text: labelInput.value, position: (conn.label && conn.label.position !== undefined) ? conn.label.position : 0.5 };
+      diagram.updateConnector(conn.id, { label: newLabel });
+      History.record(new History.ChangeConnectorCommand(conn.id, { label: oldLabel }, { label: newLabel }));
     });
     labelSection.appendChild(makePropRow('Text', labelInput));
     container.appendChild(labelSection);

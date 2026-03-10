@@ -337,11 +337,15 @@ const Renderer = (() => {
     // Opacity
     if (shape.style.opacity !== undefined && shape.style.opacity < 1) {
       g.setAttribute('opacity', shape.style.opacity);
+    } else {
+      g.removeAttribute('opacity');
     }
 
     // Shadow
     if (shape.style.shadow) {
       g.setAttribute('filter', 'url(#drop-shadow)');
+    } else {
+      g.removeAttribute('filter');
     }
 
     // Locked indicator
