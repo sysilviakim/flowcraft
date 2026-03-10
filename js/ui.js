@@ -1035,7 +1035,9 @@ const UI = (() => {
       endDateInput.className = 'props-input';
       endDateInput.value = (shape.data && shape.data.endDate) || '';
       endDateInput.addEventListener('change', () => {
+        const oldData = Utils.deepClone(shape.data);
         diagram.updateShapeDeep(shape.id, { data: { endDate: endDateInput.value } });
+        History.record(new History.ChangeShapeDataCommand(shape.id, oldData, Utils.deepClone(shape.data)));
       });
       tlSection.appendChild(makePropRow('End', endDateInput));
 
@@ -1045,7 +1047,9 @@ const UI = (() => {
         { value: 'months', label: 'Months' },
         { value: 'years', label: 'Years' }
       ], v => {
+        const oldData = Utils.deepClone(shape.data);
         diagram.updateShapeDeep(shape.id, { data: { markers: v } });
+        History.record(new History.ChangeShapeDataCommand(shape.id, oldData, Utils.deepClone(shape.data)));
       });
       tlSection.appendChild(makePropRow('Markers', markersSelect));
 
@@ -1056,7 +1060,9 @@ const UI = (() => {
         { value: 'M/D/YYYY', label: 'M/D/YYYY' },
         { value: 'D/M/YYYY', label: 'D/M/YYYY' }
       ], v => {
+        const oldData = Utils.deepClone(shape.data);
         diagram.updateShapeDeep(shape.id, { data: { labelFormat: v } });
+        History.record(new History.ChangeShapeDataCommand(shape.id, oldData, Utils.deepClone(shape.data)));
       });
       tlSection.appendChild(makePropRow('Label format', labelFormatSelect));
 
@@ -1066,7 +1072,9 @@ const UI = (() => {
       showLabelsCheckbox.type = 'checkbox';
       showLabelsCheckbox.checked = showLabelsDefault;
       showLabelsCheckbox.addEventListener('change', () => {
+        const oldData = Utils.deepClone(shape.data);
         diagram.updateShapeDeep(shape.id, { data: { showLabels: showLabelsCheckbox.checked } });
+        History.record(new History.ChangeShapeDataCommand(shape.id, oldData, Utils.deepClone(shape.data)));
       });
       tlSection.appendChild(makePropRow('Show labels', showLabelsCheckbox));
 
@@ -1096,16 +1104,27 @@ const UI = (() => {
       tlSection.appendChild(todayLabelRow);
 
       todayModeSelect.addEventListener('change', () => {
+        const oldData = Utils.deepClone(shape.data);
         const mode = todayModeSelect.value;
         todayLabelRow.style.display = mode === 'both' ? '' : 'none';
         diagram.updateShapeDeep(shape.id, { data: { todayMode: mode } });
+        History.record(new History.ChangeShapeDataCommand(shape.id, oldData, Utils.deepClone(shape.data)));
+      });
+      const todayLabelOldData = { _snap: Utils.deepClone(shape.data) };
+      todayLabelInput.addEventListener('focus', () => {
+        todayLabelOldData._snap = Utils.deepClone(shape.data);
       });
       todayLabelInput.addEventListener('input', () => {
         diagram.updateShapeDeep(shape.id, { data: { todayLabel: todayLabelInput.value } });
       });
+      todayLabelInput.addEventListener('change', () => {
+        History.record(new History.ChangeShapeDataCommand(shape.id, todayLabelOldData._snap, Utils.deepClone(shape.data)));
+      });
 
       const guideInput = makeNumberInput((shape.data && shape.data.guideHeight) || 0, v => {
+        const oldData = Utils.deepClone(shape.data);
         diagram.updateShapeDeep(shape.id, { data: { guideHeight: Math.max(0, v) } });
+        History.record(new History.ChangeShapeDataCommand(shape.id, oldData, Utils.deepClone(shape.data)));
       });
       tlSection.appendChild(makePropRow('Guide height', guideInput));
 
@@ -1229,8 +1248,10 @@ const UI = (() => {
           nameInput.value = lane.name || '';
           nameInput.title = 'Lane name';
           nameInput.addEventListener('change', () => {
+            const oldData = Utils.deepClone(shape.data);
             shape.data.lanes[idx].name = nameInput.value;
             diagram.updateShapeDeep(shape.id, { data: { lanes: shape.data.lanes } });
+            History.record(new History.ChangeShapeDataCommand(shape.id, oldData, Utils.deepClone(shape.data)));
           });
 
           // Header color picker - show dropdown with swimlane palette
@@ -1302,8 +1323,10 @@ const UI = (() => {
         numInput.value = lane.number || '';
         numInput.title = 'Number';
         numInput.addEventListener('change', () => {
+          const oldData = Utils.deepClone(shape.data);
           shape.data.lanes[idx].number = numInput.value;
           diagram.updateShapeDeep(shape.id, { data: { lanes: shape.data.lanes } });
+          History.record(new History.ChangeShapeDataCommand(shape.id, oldData, Utils.deepClone(shape.data)));
         });
 
         const nameInput = document.createElement('input');
@@ -1312,8 +1335,10 @@ const UI = (() => {
         nameInput.value = (lane.name || '').replace(/\n/g, ' ');
         nameInput.title = 'Name';
         nameInput.addEventListener('change', () => {
+          const oldData = Utils.deepClone(shape.data);
           shape.data.lanes[idx].name = nameInput.value;
           diagram.updateShapeDeep(shape.id, { data: { lanes: shape.data.lanes } });
+          History.record(new History.ChangeShapeDataCommand(shape.id, oldData, Utils.deepClone(shape.data)));
         });
 
         // Header color picker - swatch dropdown
@@ -2037,6 +2062,7 @@ const UI = (() => {
     const prop = property || 'color';
     const existing = document.querySelector('.lane-color-picker');
     if (existing) existing.remove();
+    const oldData = Utils.deepClone(shape.data); // snapshot before any color change
 
     const picker = document.createElement('div');
     picker.className = 'lane-color-picker';
@@ -2053,6 +2079,7 @@ const UI = (() => {
       noneSwatch.addEventListener('click', () => {
         delete shape.data.lanes[laneIdx].fill;
         diagram.updateShapeDeep(shape.id, { data: { lanes: shape.data.lanes } });
+        History.record(new History.ChangeShapeDataCommand(shape.id, oldData, Utils.deepClone(shape.data)));
         updatePropertiesPanel([diagram.getShape(shape.id)], null);
         picker.remove();
       });
@@ -2065,6 +2092,7 @@ const UI = (() => {
       swatch.addEventListener('click', () => {
         shape.data.lanes[laneIdx][prop] = color;
         diagram.updateShapeDeep(shape.id, { data: { lanes: shape.data.lanes } });
+        History.record(new History.ChangeShapeDataCommand(shape.id, oldData, Utils.deepClone(shape.data)));
         updatePropertiesPanel([diagram.getShape(shape.id)], null);
         picker.remove();
       });
@@ -2085,6 +2113,7 @@ const UI = (() => {
       updatePropertiesPanel([diagram.getShape(shape.id)], null);
     });
     hiddenInput.addEventListener('change', () => {
+      History.record(new History.ChangeShapeDataCommand(shape.id, oldData, Utils.deepClone(shape.data)));
       picker.remove();
     });
     customBtn.appendChild(hiddenInput);
