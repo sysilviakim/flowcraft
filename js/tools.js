@@ -1980,8 +1980,8 @@ const Tools = (() => {
       items.push({ label: 'Copy', shortcut: 'Ctrl+C', action: () => copySelected() });
       items.push({ label: 'Duplicate', shortcut: 'Ctrl+D', action: () => duplicateSelected() });
       items.push({ separator: true });
-      items.push({ label: 'Bring to Front', action: () => { diagram.bringToFront(shape.id); } });
-      items.push({ label: 'Send to Back', action: () => { diagram.sendToBack(shape.id); } });
+      items.push({ label: 'Bring to Front', action: () => { History.execute(new History.ZOrderCommand(shape.id, 'front')); } });
+      items.push({ label: 'Send to Back', action: () => { History.execute(new History.ZOrderCommand(shape.id, 'back')); } });
       items.push({ separator: true });
       if (selectedShapes.length >= 2) {
         items.push({ label: 'Group', shortcut: 'Ctrl+G', action: () => groupSelected() });

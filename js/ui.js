@@ -722,11 +722,11 @@ const UI = (() => {
 
       // Bring to front / Send to back
       const frontBtn = makeFtBtn('<svg viewBox="0 0 24 24"><rect x="2" y="2" width="8" height="8" rx="1" opacity=".4"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg>', 'Bring to front');
-      frontBtn.addEventListener('click', () => { diagram.bringToFront(shape.id); });
+      frontBtn.addEventListener('click', () => { History.execute(new History.ZOrderCommand(shape.id, 'front')); });
       bar.appendChild(frontBtn);
 
       const backBtn = makeFtBtn('<svg viewBox="0 0 24 24"><rect x="8" y="8" width="8" height="8" rx="1" opacity=".4"/><rect x="2" y="2" width="8" height="8" rx="1"/></svg>', 'Send to back');
-      backBtn.addEventListener('click', () => { diagram.sendToBack(shape.id); });
+      backBtn.addEventListener('click', () => { History.execute(new History.ZOrderCommand(shape.id, 'back')); });
       bar.appendChild(backBtn);
 
       bar.appendChild(makeFtSep());
@@ -1013,7 +1013,9 @@ const UI = (() => {
         { value: 'block', label: 'Block' },
         { value: 'line', label: 'Line' }
       ], v => {
+        const oldData = Utils.deepClone(shape.data);
         diagram.updateShapeDeep(shape.id, { data: { timelineType: v } });
+        History.record(new History.ChangeShapeDataCommand(shape.id, oldData, Utils.deepClone(shape.data)));
       });
       tlSection.appendChild(makePropRow('Type', typeSelect));
 
@@ -1022,7 +1024,9 @@ const UI = (() => {
       startDateInput.className = 'props-input';
       startDateInput.value = (shape.data && shape.data.startDate) || '';
       startDateInput.addEventListener('change', () => {
+        const oldData = Utils.deepClone(shape.data);
         diagram.updateShapeDeep(shape.id, { data: { startDate: startDateInput.value } });
+        History.record(new History.ChangeShapeDataCommand(shape.id, oldData, Utils.deepClone(shape.data)));
       });
       tlSection.appendChild(makePropRow('Start', startDateInput));
 

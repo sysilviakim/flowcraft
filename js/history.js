@@ -276,9 +276,17 @@ const History = (() => {
   class UngroupCommand {
     constructor(group) {
       this.group = Utils.deepClone(group);
+      this.regroupId = null; // ID of group recreated by undo(); used by execute() on redo
     }
-    execute() { diagram.removeGroup(this.group.id); }
-    undo() { diagram.addGroup(this.group.shapeIds, this.group.name); }
+    execute() {
+      const idToRemove = this.regroupId !== null ? this.regroupId : this.group.id;
+      this.regroupId = null;
+      diagram.removeGroup(idToRemove);
+    }
+    undo() {
+      const g = diagram.addGroup(this.group.shapeIds, this.group.name);
+      this.regroupId = g.id;
+    }
   }
 
   class SetContainerCommand {
@@ -317,6 +325,28 @@ const History = (() => {
     }
   }
 
+  class ZOrderCommand {
+    constructor(shapeId, operation) { // operation: 'front' | 'back'
+      this.shapeId = shapeId;
+      this.operation = operation;
+      this.oldIndex = null;
+    }
+    execute() {
+      this.oldIndex = diagram.shapes.findIndex(s => s.id === this.shapeId);
+      if (this.operation === 'front') diagram.bringToFront(this.shapeId);
+      else diagram.sendToBack(this.shapeId);
+    }
+    undo() {
+      if (this.oldIndex === null) return;
+      const currentIdx = diagram.shapes.findIndex(s => s.id === this.shapeId);
+      if (currentIdx === -1) return;
+      const [shape] = diagram.shapes.splice(currentIdx, 1);
+      diagram.shapes.splice(this.oldIndex, 0, shape);
+      diagram.emit('shape:reordered', shape);
+      diagram.emit('changed');
+    }
+  }
+
   return {
     init, setOnChange, execute, record, undo, redo, canUndo, canRedo,
     beginBatch, endBatch, cancelBatch, clear,
@@ -324,6 +354,6 @@ const History = (() => {
     ChangeStyleCommand, ChangeTextCommand,
     AddConnectorCommand, RemoveConnectorCommand, ChangeConnectorStyleCommand, ChangeConnectorCommand,
     CompositeCommand, GroupCommand, UngroupCommand,
-    SetContainerCommand, ChangeShapeDataCommand
+    SetContainerCommand, ChangeShapeDataCommand, ZOrderCommand
   };
 })();
