@@ -342,15 +342,16 @@ const Tools = (() => {
         const connId = midpointEl.getAttribute('data-connector-id');
         const conn = diagram.getConnector(connId);
         if (conn && conn.points) {
+          const pointsBefore = conn.points.map(p => ({ ...p })); // snapshot before insertion
           const mx = (conn.points[segIdx].x + conn.points[segIdx + 1].x) / 2;
           const my = (conn.points[segIdx].y + conn.points[segIdx + 1].y) / 2;
           conn.points.splice(segIdx + 1, 0, { x: mx, y: my });
           diagram.updateConnector(connId, { points: [...conn.points] });
-          // Start dragging the new waypoint
+          // Start dragging the new waypoint; _waypointStartPoints holds pre-insertion state
           this._waypointDrag = true;
           this._waypointConnId = connId;
           this._waypointIdx = segIdx + 1;
-          this._waypointStartPoints = conn.points.map(p => ({ ...p }));
+          this._waypointStartPoints = pointsBefore;
           this._startPos = pos;
           return;
         }
@@ -1018,11 +1019,17 @@ const Tools = (() => {
       if (this._waypointDrag && this._waypointConnId) {
         const conn = diagram.getConnector(this._waypointConnId);
         if (conn && this._waypointStartPoints) {
-          History.record(new History.ChangeConnectorCommand(
-            this._waypointConnId,
-            { points: this._waypointStartPoints },
-            { points: conn.points.map(p => ({ ...p })) }
-          ));
+          const oldPts = this._waypointStartPoints;
+          const newPts = conn.points;
+          const changed = oldPts.length !== newPts.length ||
+            oldPts.some((p, i) => p.x !== newPts[i].x || p.y !== newPts[i].y);
+          if (changed) {
+            History.record(new History.ChangeConnectorCommand(
+              this._waypointConnId,
+              { points: oldPts },
+              { points: newPts.map(p => ({ ...p })) }
+            ));
+          }
         }
         this._waypointDrag = false;
         this._waypointConnId = null;
@@ -1034,7 +1041,8 @@ const Tools = (() => {
       // Label drag completion
       if (this._labelDrag && this._labelConnId) {
         const conn = diagram.getConnector(this._labelConnId);
-        if (conn && conn.label && this._oldLabelPos !== null) {
+        if (conn && conn.label && this._oldLabelPos !== null &&
+            conn.label.position !== this._oldLabelPos) {
           History.record(new History.ChangeConnectorCommand(
             this._labelConnId,
             { label: { text: conn.label.text, position: this._oldLabelPos } },
@@ -1806,6 +1814,7 @@ const Tools = (() => {
     const oldLabel = conn.label ? { ...conn.label } : { text: '', position: labelPos };
     const finish = () => {
       const newText = input.value;
+      if (newText === oldLabel.text) { input.remove(); return; }
       const newLabel = { text: newText, position: labelPos };
       diagram.updateConnector(conn.id, { label: newLabel });
       History.record(new History.ChangeConnectorCommand(conn.id, { label: oldLabel }, { label: newLabel }));

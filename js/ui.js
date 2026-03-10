@@ -58,6 +58,9 @@ const UI = (() => {
     // Ctrl+N: new diagram (keyboard shortcut advertised in toolbar)
     document.addEventListener('keydown', e => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+        if (document.querySelector('.text-edit-overlay')) return;
+        const tag = document.activeElement && document.activeElement.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
         e.preventDefault();
         confirmNew();
       }
@@ -741,9 +744,15 @@ const UI = (() => {
       routeBtn.addEventListener('click', () => {
         const idx = routeTypes.indexOf(connector.routingType);
         const next = routeTypes[(idx + 1) % routeTypes.length];
+        const oldRoutingType = connector.routingType;
+        const oldPoints = connector.points.map(p => ({ ...p }));
         diagram.updateConnector(connector.id, { routingType: next });
         connector.points = Connectors.routeConnector(diagram, connector);
         diagram.updateConnector(connector.id, { points: connector.points });
+        History.record(new History.ChangeConnectorCommand(connector.id,
+          { routingType: oldRoutingType, points: oldPoints },
+          { routingType: next, points: connector.points.map(p => ({ ...p })) }
+        ));
         routeBtn.title = `Routing: ${routeLabels[next]}`;
       });
       bar.appendChild(routeBtn);
@@ -754,6 +763,10 @@ const UI = (() => {
         const oldStart = connector.startArrow;
         const oldEnd = connector.endArrow;
         diagram.updateConnector(connector.id, { startArrow: oldEnd, endArrow: oldStart });
+        History.record(new History.ChangeConnectorCommand(connector.id,
+          { startArrow: oldStart, endArrow: oldEnd },
+          { startArrow: oldEnd, endArrow: oldStart }
+        ));
       });
       bar.appendChild(revBtn);
 
