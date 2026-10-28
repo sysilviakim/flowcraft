@@ -47,6 +47,18 @@ const Shapes = (() => {
     return cats;
   }
 
+  function escapeText(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  // For values interpolated into SVG attribute strings (user data)
+  function escapeAttr(value) {
+    return escapeText(value).replace(/"/g, '&quot;');
+  }
+
   // Standard 4-port definition
   function stdPorts() {
     return [
@@ -432,11 +444,14 @@ const Shapes = (() => {
       const nameW = (s.data && s.data.nameWidth) || 85;
       const headerW = numW + nameW;
       const w = s.width, h = s.height;
-      const fs = s.textStyle ? s.textStyle.fontSize : 11;
-      const fw = s.textStyle ? s.textStyle.fontWeight : 'bold';
-      const ff = s.textStyle ? s.textStyle.fontFamily : 'MaruBuri, Inter, system-ui, sans-serif';
-      const fst = s.textStyle ? (s.textStyle.fontStyle || 'normal') : 'normal';
-      const td = s.textStyle ? (s.textStyle.textDecoration || 'none') : 'none';
+      const ts = s.textStyle || {};
+      const fs = Number(ts.fontSize) || 11;
+      const fw = escapeAttr(ts.fontWeight || 'bold');
+      const ff = escapeAttr(
+        ts.fontFamily || 'MaruBuri, Inter, system-ui, sans-serif'
+      );
+      const fst = escapeAttr(ts.fontStyle || 'normal');
+      const td = escapeAttr(ts.textDecoration || 'none');
 
       if (lanes.length === 0) {
         // Single empty lane fallback
@@ -449,13 +464,13 @@ const Shapes = (() => {
 
       lanes.forEach((lane, i) => {
         const y = laneH * i;
-        const color = lane.color || '#ffffff';
-        const textColor = lane.textColor || '#333333';
+        const color = escapeAttr(lane.color || '#ffffff');
+        const textColor = escapeAttr(lane.textColor || '#333333');
         const num = lane.number || '';
         const name = lane.name || '';
 
         // Lane background (per-lane fill, falls back to shape fill)
-        const laneBg = lane.fill || s.style.fill || '#ffffff';
+        const laneBg = escapeAttr(lane.fill || s.style.fill || '#ffffff');
         svg += `<rect x="${headerW}" y="${y}" width="${w - headerW}" height="${laneH}" fill="${laneBg}" stroke="none"/>`;
         // Number cell
         svg += `<rect x="0" y="${y}" width="${numW}" height="${laneH}" fill="${laneBg === 'none' ? 'none' : '#f5f5f8'}" stroke="none"/>`;
@@ -464,7 +479,7 @@ const Shapes = (() => {
 
         // Number text
         if (num) {
-          svg += `<text x="${numW/2}" y="${y + laneH/2}" text-anchor="middle" dominant-baseline="central" fill="#333333" stroke="none" font-size="${fs}" font-weight="${fw}" font-family="${ff}" font-style="${fst}" text-decoration="${td}">${num}</text>`;
+          svg += `<text x="${numW/2}" y="${y + laneH/2}" text-anchor="middle" dominant-baseline="central" fill="#333333" stroke="none" font-size="${fs}" font-weight="${fw}" font-family="${ff}" font-style="${fst}" text-decoration="${td}">${escapeText(num)}</text>`;
         }
         // Name text (multi-line)
         if (name) {
@@ -472,7 +487,7 @@ const Shapes = (() => {
           const lh = fs * 1.3;
           const startY = y + laneH / 2 - (lines.length - 1) * lh / 2;
           lines.forEach((line, li) => {
-            svg += `<text x="${numW + nameW/2}" y="${startY + li * lh}" text-anchor="middle" dominant-baseline="central" fill="${textColor}" stroke="none" font-size="${fs}" font-weight="${fw}" font-family="${ff}" font-style="${fst}" text-decoration="${td}">${line}</text>`;
+            svg += `<text x="${numW + nameW/2}" y="${startY + li * lh}" text-anchor="middle" dominant-baseline="central" fill="${textColor}" stroke="none" font-size="${fs}" font-weight="${fw}" font-family="${ff}" font-style="${fst}" text-decoration="${td}">${escapeText(line)}</text>`;
           });
         }
 
@@ -517,7 +532,7 @@ const Shapes = (() => {
       const markers = (s.data && s.data.markers) || 'months';
       const labelFormat = (s.data && s.data.labelFormat) || 'M/D';
       const showLabels = tlType === 'block' ? (s.data && s.data.showLabels !== false) : !!(s.data && s.data.showLabels);
-      const fontSize = (s.textStyle && s.textStyle.fontSize) || 9;
+      const fontSize = Number(s.textStyle && s.textStyle.fontSize) || 9;
 
       const parseD = ds => { const [y,m,d] = ds.split('-').map(Number); return new Date(y,m-1,d); };
 
@@ -575,7 +590,9 @@ const Shapes = (() => {
         const midY = h / 2;
         const tickH = h * 0.4;
         const arrowSize = 8;
-        const strokeColor = s.style.stroke !== 'none' ? s.style.stroke : '#555555';
+        const strokeColor = escapeAttr(
+          s.style.stroke !== 'none' ? s.style.stroke : '#555555'
+        );
         let svg = `<rect x="0" y="0" width="${w}" height="${h}" fill="none" stroke="none"/>`;
         svg += `<line x1="0" y1="${midY}" x2="${w - arrowSize}" y2="${midY}" stroke="${strokeColor}" stroke-width="${Math.max(s.style.strokeWidth || 1.5, 1)}" fill="none"/>`;
         svg += `<polygon points="${w},${midY} ${w - arrowSize},${midY - arrowSize/2} ${w - arrowSize},${midY + arrowSize/2}" fill="${strokeColor}" stroke="none"/>`;
@@ -604,7 +621,7 @@ const Shapes = (() => {
                 const markerTop = midY - tickH - 12;
                 const markerBot = guideH > 0 ? h + guideH : midY + tickH + 4;
                 svg += `<line x1="${tx}" y1="${markerTop}" x2="${tx}" y2="${markerBot}" stroke="#e74c3c" stroke-width="1.5" stroke-dasharray="4 2" fill="none"/>`;
-                if (todayMode === 'both' && todayLabel) svg += `<text x="${tx}" y="${markerTop - 2}" text-anchor="middle" fill="#e74c3c" stroke="none" font-size="${Math.max(fontSize - 1, 7)}" font-weight="bold" font-family="MaruBuri,Inter,sans-serif">${todayLabel}</text>`;
+                if (todayMode === 'both' && todayLabel) svg += `<text x="${tx}" y="${markerTop - 2}" text-anchor="middle" fill="#e74c3c" stroke="none" font-size="${Math.max(fontSize - 1, 7)}" font-weight="bold" font-family="MaruBuri,Inter,sans-serif">${escapeText(todayLabel)}</text>`;
               }
             }
           }
@@ -637,7 +654,7 @@ const Shapes = (() => {
               const markerTop = -8;
               const markerBot = guideH > 0 ? h + guideH : h + 4;
               svg += `<line x1="${tx}" y1="${markerTop}" x2="${tx}" y2="${markerBot}" stroke="#e74c3c" stroke-width="1.5" stroke-dasharray="4 2" fill="none"/>`;
-              if (todayMode === 'both' && todayLabel) svg += `<text x="${tx}" y="${markerTop - 2}" text-anchor="middle" fill="#e74c3c" stroke="none" font-size="${Math.max(fontSize - 1, 7)}" font-weight="bold" font-family="MaruBuri,Inter,sans-serif">${todayLabel}</text>`;
+              if (todayMode === 'both' && todayLabel) svg += `<text x="${tx}" y="${markerTop - 2}" text-anchor="middle" fill="#e74c3c" stroke="none" font-size="${Math.max(fontSize - 1, 7)}" font-weight="bold" font-family="MaruBuri,Inter,sans-serif">${escapeText(todayLabel)}</text>`;
             }
           }
         }
@@ -673,8 +690,9 @@ const Shapes = (() => {
       const w = s.width, h = s.height;
       const flagH = h * 0.5;
       const poleX = 2;
-      const fill = s.style.fill || '#e74c3c';
-      const fontSize = (s.textStyle && s.textStyle.fontSize) || 7;
+      const fill = escapeAttr(s.style.fill || '#e74c3c');
+      const fontSize = Number(s.textStyle && s.textStyle.fontSize) || 7;
+      const tc = escapeAttr((s.textStyle && s.textStyle.color) || '#555');
       let svg = `<line x1="${poleX}" y1="0" x2="${poleX}" y2="${h}" stroke="${fill}" stroke-width="2" fill="none"/>`;
       svg += `<polygon points="${poleX},0 ${w},${flagH/2} ${poleX},${flagH}"/>`;
       svg += `<circle cx="${poleX}" cy="${h}" r="2.5" fill="${fill}" stroke="none"/>`;
@@ -682,7 +700,7 @@ const Shapes = (() => {
         const lines = s.text.split('\n');
         const labelY = h + fontSize + 3;
         lines.forEach((line, i) => {
-          svg += `<text x="${poleX}" y="${labelY + i * (fontSize * 1.2)}" fill="${(s.textStyle && s.textStyle.color) || '#555'}" stroke="none" font-size="${fontSize}" font-family="MaruBuri,Inter,sans-serif">${line}</text>`;
+          svg += `<text x="${poleX}" y="${labelY + i * (fontSize * 1.2)}" fill="${tc}" stroke="none" font-size="${fontSize}" font-family="MaruBuri,Inter,sans-serif">${escapeText(line)}</text>`;
         });
       }
       return svg;
@@ -1091,23 +1109,27 @@ const Shapes = (() => {
     render(s) {
       const w = s.width, h = s.height;
       const hh = (s.data && s.data.headerHeight) || 32;
-      const bg = (s.data && s.data.backgroundColor) || '#f0f7ff';
+      const bg = escapeAttr((s.data && s.data.backgroundColor) || '#f0f7ff');
       const title = s.text || 'Container';
-      const fs = s.textStyle ? s.textStyle.fontSize : 13;
-      const fw = s.textStyle ? s.textStyle.fontWeight : 'bold';
-      const ff = s.textStyle ? s.textStyle.fontFamily : 'MaruBuri, Inter, system-ui, sans-serif';
-      const tc = s.textStyle ? s.textStyle.color : '#ffffff';
-      const fst = s.textStyle ? (s.textStyle.fontStyle || 'normal') : 'normal';
-      const td = s.textStyle ? (s.textStyle.textDecoration || 'none') : 'none';
+      const ts = s.textStyle || {};
+      const fs = Number(ts.fontSize) || 13;
+      const fw = escapeAttr(ts.fontWeight || 'bold');
+      const ff = escapeAttr(
+        ts.fontFamily || 'MaruBuri, Inter, system-ui, sans-serif'
+      );
+      const tc = escapeAttr(ts.color || '#ffffff');
+      const fst = escapeAttr(ts.fontStyle || 'normal');
+      const td = escapeAttr(ts.textDecoration || 'none');
+      const hdr = escapeAttr(s.style.stroke || '#1a7a4c');
       let svg = '';
       // Body background
       svg += `<rect x="0" y="0" width="${w}" height="${h}" rx="4" fill="${bg}" stroke="none"/>`;
       // Header bar
-      svg += `<rect x="0" y="0" width="${w}" height="${hh}" rx="4" fill="${s.style.stroke || '#1a7a4c'}" stroke="none"/>`;
+      svg += `<rect x="0" y="0" width="${w}" height="${hh}" rx="4" fill="${hdr}" stroke="none"/>`;
       // Square off bottom corners of header
-      svg += `<rect x="0" y="${hh - 4}" width="${w}" height="4" fill="${s.style.stroke || '#1a7a4c'}" stroke="none"/>`;
+      svg += `<rect x="0" y="${hh - 4}" width="${w}" height="4" fill="${hdr}" stroke="none"/>`;
       // Title text
-      svg += `<text x="${w/2}" y="${hh/2}" text-anchor="middle" dominant-baseline="central" fill="${tc}" stroke="none" font-size="${fs}" font-weight="${fw}" font-family="${ff}" font-style="${fst}" text-decoration="${td}">${title}</text>`;
+      svg += `<text x="${w/2}" y="${hh/2}" text-anchor="middle" dominant-baseline="central" fill="${tc}" stroke="none" font-size="${fs}" font-weight="${fw}" font-family="${ff}" font-style="${fst}" text-decoration="${td}">${escapeText(title)}</text>`;
       // Border
       svg += `<rect x="0" y="0" width="${w}" height="${h}" rx="4" fill="none"/>`;
       return svg;
@@ -1142,16 +1164,20 @@ const Shapes = (() => {
       const lhw = (s.data && s.data.laneHeaderWidth) || 100;
       const lanes = (s.data && s.data.lanes) || [];
       const title = s.text || 'Swimlane';
-      const fs = s.textStyle ? s.textStyle.fontSize : 13;
-      const fw = s.textStyle ? s.textStyle.fontWeight : 'bold';
-      const ff = s.textStyle ? s.textStyle.fontFamily : 'MaruBuri, Inter, system-ui, sans-serif';
-      const tc = s.textStyle ? s.textStyle.color : '#ffffff';
-      const fst = s.textStyle ? (s.textStyle.fontStyle || 'normal') : 'normal';
-      const td = s.textStyle ? (s.textStyle.textDecoration || 'none') : 'none';
+      const ts = s.textStyle || {};
+      const fs = Number(ts.fontSize) || 13;
+      const fw = escapeAttr(ts.fontWeight || 'bold');
+      const ff = escapeAttr(
+        ts.fontFamily || 'MaruBuri, Inter, system-ui, sans-serif'
+      );
+      const tc = escapeAttr(ts.color || '#ffffff');
+      const fst = escapeAttr(ts.fontStyle || 'normal');
+      const td = escapeAttr(ts.textDecoration || 'none');
+      const hdr = escapeAttr(s.style.stroke || '#1a7a4c');
       let svg = '';
 
       // Background
-      const bgFill = s.style.fill || '#ffffff';
+      const bgFill = escapeAttr(s.style.fill || '#ffffff');
       svg += `<rect x="0" y="0" width="${w}" height="${h}" rx="3" fill="${bgFill}" stroke="none"/>`;
 
       // Lane backgrounds and labels
@@ -1161,12 +1187,12 @@ const Shapes = (() => {
         lanes.forEach((lane, i) => {
           const ly = hh + laneH * i;
           // Lane header background
-          svg += `<rect x="0" y="${ly}" width="${lhw}" height="${laneH}" fill="${lane.color || '#eeeeee'}" stroke="none"/>`;
+          svg += `<rect x="0" y="${ly}" width="${lhw}" height="${laneH}" fill="${escapeAttr(lane.color || '#eeeeee')}" stroke="none"/>`;
           // Lane body background (per-lane fill, falls back to shape fill)
-          const laneFill = lane.fill || bgFill;
+          const laneFill = lane.fill ? escapeAttr(lane.fill) : bgFill;
           svg += `<rect x="${lhw}" y="${ly}" width="${w - lhw}" height="${laneH}" fill="${laneFill}" stroke="none"/>`;
           // Lane label
-          svg += `<text x="${lhw/2}" y="${ly + laneH/2}" text-anchor="middle" dominant-baseline="central" fill="#333" stroke="none" font-size="${Math.min(fs, 12)}" font-weight="${fw}" font-family="${ff}" font-style="${fst}" text-decoration="${td}">${lane.name || ''}</text>`;
+          svg += `<text x="${lhw/2}" y="${ly + laneH/2}" text-anchor="middle" dominant-baseline="central" fill="#333" stroke="none" font-size="${Math.min(fs, 12)}" font-weight="${fw}" font-family="${ff}" font-style="${fst}" text-decoration="${td}">${escapeText(lane.name || '')}</text>`;
           // Lane divider
           if (i > 0) {
             svg += `<line x1="0" y1="${ly}" x2="${w}" y2="${ly}" stroke="#ccc" stroke-width="0.8"/>`;
@@ -1175,10 +1201,10 @@ const Shapes = (() => {
       }
 
       // Header bar
-      svg += `<rect x="0" y="0" width="${w}" height="${hh}" rx="3" fill="${s.style.stroke || '#1a7a4c'}" stroke="none"/>`;
-      svg += `<rect x="0" y="${hh - 3}" width="${w}" height="3" fill="${s.style.stroke || '#1a7a4c'}" stroke="none"/>`;
+      svg += `<rect x="0" y="0" width="${w}" height="${hh}" rx="3" fill="${hdr}" stroke="none"/>`;
+      svg += `<rect x="0" y="${hh - 3}" width="${w}" height="3" fill="${hdr}" stroke="none"/>`;
       // Title
-      svg += `<text x="${w/2}" y="${hh/2}" text-anchor="middle" dominant-baseline="central" fill="${tc}" stroke="none" font-size="${fs}" font-weight="${fw}" font-family="${ff}" font-style="${fst}" text-decoration="${td}">${title}</text>`;
+      svg += `<text x="${w/2}" y="${hh/2}" text-anchor="middle" dominant-baseline="central" fill="${tc}" stroke="none" font-size="${fs}" font-weight="${fw}" font-family="${ff}" font-style="${fst}" text-decoration="${td}">${escapeText(title)}</text>`;
 
       // Vertical lane header divider
       svg += `<line x1="${lhw}" y1="${hh}" x2="${lhw}" y2="${h}" stroke="#ccc" stroke-width="0.8"/>`;
@@ -1217,16 +1243,20 @@ const Shapes = (() => {
       const lhh = (s.data && s.data.laneHeaderHeight) || 30;
       const lanes = (s.data && s.data.lanes) || [];
       const title = s.text || 'Swimlane';
-      const fs = s.textStyle ? s.textStyle.fontSize : 13;
-      const fw = s.textStyle ? s.textStyle.fontWeight : 'bold';
-      const ff = s.textStyle ? s.textStyle.fontFamily : 'MaruBuri, Inter, system-ui, sans-serif';
-      const tc = s.textStyle ? s.textStyle.color : '#ffffff';
-      const fst = s.textStyle ? (s.textStyle.fontStyle || 'normal') : 'normal';
-      const td = s.textStyle ? (s.textStyle.textDecoration || 'none') : 'none';
+      const ts = s.textStyle || {};
+      const fs = Number(ts.fontSize) || 13;
+      const fw = escapeAttr(ts.fontWeight || 'bold');
+      const ff = escapeAttr(
+        ts.fontFamily || 'MaruBuri, Inter, system-ui, sans-serif'
+      );
+      const tc = escapeAttr(ts.color || '#ffffff');
+      const fst = escapeAttr(ts.fontStyle || 'normal');
+      const td = escapeAttr(ts.textDecoration || 'none');
+      const hdr = escapeAttr(s.style.stroke || '#1a7a4c');
       let svg = '';
 
       // Background
-      const bgFill = s.style.fill || '#ffffff';
+      const bgFill = escapeAttr(s.style.fill || '#ffffff');
       svg += `<rect x="0" y="0" width="${w}" height="${h}" rx="3" fill="${bgFill}" stroke="none"/>`;
 
       // Lane backgrounds and labels
@@ -1235,12 +1265,12 @@ const Shapes = (() => {
         lanes.forEach((lane, i) => {
           const lx = laneW * i;
           // Lane column header background
-          svg += `<rect x="${lx}" y="${hh}" width="${laneW}" height="${lhh}" fill="${lane.color || '#eeeeee'}" stroke="none"/>`;
+          svg += `<rect x="${lx}" y="${hh}" width="${laneW}" height="${lhh}" fill="${escapeAttr(lane.color || '#eeeeee')}" stroke="none"/>`;
           // Lane body background (per-lane fill, falls back to shape fill)
-          const laneFill = lane.fill || bgFill;
+          const laneFill = lane.fill ? escapeAttr(lane.fill) : bgFill;
           svg += `<rect x="${lx}" y="${hh + lhh}" width="${laneW}" height="${h - hh - lhh}" fill="${laneFill}" stroke="none"/>`;
           // Lane label
-          svg += `<text x="${lx + laneW/2}" y="${hh + lhh/2}" text-anchor="middle" dominant-baseline="central" fill="#333" stroke="none" font-size="${Math.min(fs, 12)}" font-weight="${fw}" font-family="${ff}" font-style="${fst}" text-decoration="${td}">${lane.name || ''}</text>`;
+          svg += `<text x="${lx + laneW/2}" y="${hh + lhh/2}" text-anchor="middle" dominant-baseline="central" fill="#333" stroke="none" font-size="${Math.min(fs, 12)}" font-weight="${fw}" font-family="${ff}" font-style="${fst}" text-decoration="${td}">${escapeText(lane.name || '')}</text>`;
           // Lane divider
           if (i > 0) {
             svg += `<line x1="${lx}" y1="${hh}" x2="${lx}" y2="${h}" stroke="#ccc" stroke-width="0.8"/>`;
@@ -1249,10 +1279,10 @@ const Shapes = (() => {
       }
 
       // Header bar
-      svg += `<rect x="0" y="0" width="${w}" height="${hh}" rx="3" fill="${s.style.stroke || '#1a7a4c'}" stroke="none"/>`;
-      svg += `<rect x="0" y="${hh - 3}" width="${w}" height="3" fill="${s.style.stroke || '#1a7a4c'}" stroke="none"/>`;
+      svg += `<rect x="0" y="0" width="${w}" height="${hh}" rx="3" fill="${hdr}" stroke="none"/>`;
+      svg += `<rect x="0" y="${hh - 3}" width="${w}" height="3" fill="${hdr}" stroke="none"/>`;
       // Title
-      svg += `<text x="${w/2}" y="${hh/2}" text-anchor="middle" dominant-baseline="central" fill="${tc}" stroke="none" font-size="${fs}" font-weight="${fw}" font-family="${ff}" font-style="${fst}" text-decoration="${td}">${title}</text>`;
+      svg += `<text x="${w/2}" y="${hh/2}" text-anchor="middle" dominant-baseline="central" fill="${tc}" stroke="none" font-size="${fs}" font-weight="${fw}" font-family="${ff}" font-style="${fst}" text-decoration="${td}">${escapeText(title)}</text>`;
 
       // Horizontal line below lane headers
       if (lanes.length > 0) {
