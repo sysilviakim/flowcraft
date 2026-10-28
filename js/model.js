@@ -17,6 +17,32 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 const Model = (() => {
+  const DEFAULT_TEXT_STYLE = {
+    fontFamily: 'MaruBuri, Inter, system-ui, sans-serif',
+    fontSize: 10,
+    fontWeight: 'normal',
+    fontStyle: 'normal',
+    textDecoration: 'none',
+    color: '#1a1a2e',
+    align: 'center',
+    vAlign: 'middle'
+  };
+
+  const DEFAULT_SHAPE_STYLE = {
+    fill: '#ffffff',
+    stroke: '#1a7a4c',
+    strokeWidth: 2,
+    strokeDash: '',
+    opacity: 1,
+    shadow: false
+  };
+
+  const DEFAULT_CONNECTOR_STYLE = {
+    stroke: '#1a7a4c',
+    strokeWidth: 2,
+    strokeDash: ''
+  };
+
   class Diagram extends Utils.EventEmitter {
     constructor() {
       super();
@@ -277,15 +303,25 @@ const Model = (() => {
     }
 
     fromJSON(data) {
+      data = data && typeof data === 'object' ? data : {};
       this.id = data.id || Utils.uid('diag');
       this.name = data.name || 'Untitled Diagram';
       this.created = data.created || Date.now();
       this.modified = data.modified || Date.now();
       this.settings = { ...this.settings, ...data.settings };
-      this.layers = data.layers || [{ id: 'layer_default', name: 'Layer 1', visible: true, locked: false, order: 0 }];
-      this.shapes = data.shapes || [];
-      this.connectors = data.connectors || [];
-      this.groups = data.groups || [];
+      this.layers = Array.isArray(data.layers) && data.layers.length > 0
+        ? data.layers
+        : [{ id: 'layer_default', name: 'Layer 1', visible: true, locked: false, order: 0 }];
+      this.shapes = (Array.isArray(data.shapes) ? data.shapes : []).map(s => normalizeShape(s, this.layers));
+      this.connectors = (Array.isArray(data.connectors) ? data.connectors : []).map(c => normalizeConnector(c, this.layers));
+      this.groups = (Array.isArray(data.groups) ? data.groups : []).map(g => {
+        g = g && typeof g === 'object' ? g : {};
+        return {
+          id: g.id || Utils.uid('grp'),
+          name: g.name || 'Group',
+          shapeIds: Array.isArray(g.shapeIds) ? [...g.shapeIds] : []
+        };
+      });
       this._shapeMap.clear();
       this._connectorMap.clear();
       this.shapes.forEach(s => this._shapeMap.set(s.id, s));
@@ -317,24 +353,8 @@ const Model = (() => {
       x, y, width, height,
       rotation: 0,
       text: '',
-      textStyle: {
-        fontFamily: 'MaruBuri, Inter, system-ui, sans-serif',
-        fontSize: 10,
-        fontWeight: 'normal',
-        fontStyle: 'normal',
-        textDecoration: 'none',
-        color: '#1a1a2e',
-        align: 'center',
-        vAlign: 'middle'
-      },
-      style: {
-        fill: '#ffffff',
-        stroke: '#1a7a4c',
-        strokeWidth: 2,
-        strokeDash: '',
-        opacity: 1,
-        shadow: false
-      },
+      textStyle: { ...DEFAULT_TEXT_STYLE },
+      style: { ...DEFAULT_SHAPE_STYLE },
       layerId: null,
       groupId: null,
       containerId: null,
@@ -353,11 +373,7 @@ const Model = (() => {
       targetShapeId,
       targetPortId,
       points: [],
-      style: {
-        stroke: '#1a7a4c',
-        strokeWidth: 2,
-        strokeDash: ''
-      },
+      style: { ...DEFAULT_CONNECTOR_STYLE },
       startArrow: 'none',
       endArrow: 'arrow',
       label: { text: '', position: 0.5 },
@@ -365,6 +381,59 @@ const Model = (() => {
       layerId: null,
       ...extra
     };
+  }
+
+  // Loaded files and autosaves are untrusted: strip unsafe rich HTML
+  function sanitizeRich(text) {
+    const rt = typeof Utils !== 'undefined' ? Utils.RichText : null;
+    return rt && rt.isRichText(text) ? rt.sanitizeHtml(text) : text;
+  }
+
+  function normalizeShape(shape, layers) {
+    shape = shape && typeof shape === 'object' ? shape : {};
+    const normalized = { ...shape };
+    normalized.id = normalized.id || Utils.uid('shp');
+    normalized.type = normalized.type || 'basic:rectangle';
+    const def = typeof Shapes !== 'undefined' ? Shapes.get(normalized.type) : null;
+    const defaultStyle = { ...DEFAULT_SHAPE_STYLE, ...((def && def.defaultStyle) || {}) };
+    const defaultTextStyle = { ...DEFAULT_TEXT_STYLE, ...((def && def.defaultTextStyle) || {}) };
+    const defaultData = def && def.defaultData ? def.defaultData() : {};
+    const defaultSize = (def && def.defaultSize) || { width: 140, height: 80 };
+    normalized.x = Number.isFinite(Number(normalized.x)) ? Number(normalized.x) : 0;
+    normalized.y = Number.isFinite(Number(normalized.y)) ? Number(normalized.y) : 0;
+    normalized.width = Number.isFinite(Number(normalized.width)) ? Number(normalized.width) : defaultSize.width;
+    normalized.height = Number.isFinite(Number(normalized.height)) ? Number(normalized.height) : defaultSize.height;
+    normalized.rotation = Number.isFinite(Number(normalized.rotation)) ? Number(normalized.rotation) : 0;
+    normalized.text = typeof normalized.text === 'string' ? normalized.text : '';
+    normalized.text = sanitizeRich(normalized.text);
+    normalized.textStyle = { ...defaultTextStyle, ...(normalized.textStyle || {}) };
+    normalized.style = { ...defaultStyle, ...(normalized.style || {}) };
+    normalized.layerId = normalized.layerId || (layers[0] && layers[0].id) || 'layer_default';
+    normalized.groupId = normalized.groupId || null;
+    normalized.containerId = normalized.containerId || null;
+    normalized.locked = !!normalized.locked;
+    normalized.ports = Array.isArray(normalized.ports) ? normalized.ports : [];
+    normalized.data = normalized.data && typeof normalized.data === 'object'
+      ? { ...defaultData, ...normalized.data }
+      : defaultData;
+    return normalized;
+  }
+
+  function normalizeConnector(conn, layers) {
+    conn = conn && typeof conn === 'object' ? conn : {};
+    const normalized = { ...conn };
+    normalized.id = normalized.id || Utils.uid('conn');
+    normalized.points = Array.isArray(normalized.points) ? normalized.points : [];
+    normalized.style = { ...DEFAULT_CONNECTOR_STYLE, ...(normalized.style || {}) };
+    normalized.startArrow = normalized.startArrow || 'none';
+    normalized.endArrow = normalized.endArrow || 'arrow';
+    normalized.label = normalized.label && typeof normalized.label === 'object'
+      ? { text: normalized.label.text || '', position: normalized.label.position ?? 0.5 }
+      : { text: '', position: 0.5 };
+    normalized.label.text = sanitizeRich(normalized.label.text);
+    normalized.routingType = normalized.routingType || 'orthogonal';
+    normalized.layerId = normalized.layerId || (layers[0] && layers[0].id) || 'layer_default';
+    return normalized;
   }
 
   return { Diagram, createShape, createConnector };
