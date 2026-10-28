@@ -65,13 +65,19 @@ const Model = (() => {
     }
 
     // --- Shape operations ---
-    addShape(shape) {
+    addShape(shape, index) {
       if (!shape.id) shape.id = Utils.uid('shp');
       if (!shape.layerId) shape.layerId = this.layers[0].id;
-      this.shapes.push(shape);
+      // An explicit index restores z-order (undo of a delete)
+      const insertAt = Number.isInteger(index) && index >= 0 &&
+        index < this.shapes.length;
+      if (insertAt) this.shapes.splice(index, 0, shape);
+      else this.shapes.push(shape);
       this._shapeMap.set(shape.id, shape);
       this.modified = Date.now();
       this.emit('shape:added', shape);
+      // The renderer appends on add, so tell it to match model order
+      if (insertAt) this.emit('shape:reordered');
       this.emit('changed');
       return shape;
     }
@@ -231,9 +237,9 @@ const Model = (() => {
     }
 
     // --- Group operations ---
-    addGroup(shapeIds, name) {
+    addGroup(shapeIds, name, id) {
       const group = {
-        id: Utils.uid('grp'),
+        id: id || Utils.uid('grp'),
         shapeIds: [...shapeIds],
         name: name || 'Group'
       };

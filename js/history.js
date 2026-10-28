@@ -128,10 +128,22 @@ const History = (() => {
     constructor(shape, connectors) {
       this.shape = Utils.deepClone(shape);
       this.connectors = (connectors || []).map(c => Utils.deepClone(c));
+      this.index = -1;
+      this.childIds = [];
     }
-    execute() { diagram.removeShape(this.shape.id); }
+    execute() {
+      // Remember z-order and container children so undo can restore them
+      this.index = diagram.shapes.findIndex(s => s.id === this.shape.id);
+      this.childIds = diagram.getChildrenOfContainer(this.shape.id)
+        .map(c => c.id);
+      diagram.removeShape(this.shape.id);
+    }
     undo() {
-      diagram.addShape(Utils.deepClone(this.shape));
+      diagram.addShape(Utils.deepClone(this.shape), this.index);
+      this.childIds.forEach(cid => {
+        const child = diagram.getShape(cid);
+        if (child && !child.containerId) child.containerId = this.shape.id;
+      });
       this.connectors.forEach(c => {
         if (!diagram.getConnector(c.id)) {
           diagram.addConnector(Utils.deepClone(c));
@@ -264,28 +276,20 @@ const History = (() => {
   class GroupCommand {
     constructor(shapeIds) {
       this.shapeIds = [...shapeIds];
-      this.createdGroupId = null;
+      // Fixed id so execute/undo/redo always refer to the same group
+      this.groupId = Utils.uid('grp');
     }
-    execute() {
-      const group = diagram.addGroup(this.shapeIds);
-      this.createdGroupId = group.id;
-    }
-    undo() { if (this.createdGroupId) diagram.removeGroup(this.createdGroupId); }
+    execute() { diagram.addGroup(this.shapeIds, undefined, this.groupId); }
+    undo() { diagram.removeGroup(this.groupId); }
   }
 
   class UngroupCommand {
     constructor(group) {
       this.group = Utils.deepClone(group);
-      this.regroupId = null; // ID of group recreated by undo(); used by execute() on redo
     }
-    execute() {
-      const idToRemove = this.regroupId !== null ? this.regroupId : this.group.id;
-      this.regroupId = null;
-      diagram.removeGroup(idToRemove);
-    }
+    execute() { diagram.removeGroup(this.group.id); }
     undo() {
-      const g = diagram.addGroup(this.group.shapeIds, this.group.name);
-      this.regroupId = g.id;
+      diagram.addGroup(this.group.shapeIds, this.group.name, this.group.id);
     }
   }
 
