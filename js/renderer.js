@@ -536,7 +536,7 @@ const Renderer = (() => {
     const group = Utils.svgEl('g', { id: 'selection-handles', 'pointer-events': 'none' });
 
     shapes.forEach(shape => {
-      // Bounding box outline
+      // Bounding box outline, rotated with the shape
       const outline = Utils.svgEl('rect', {
         x: shape.x - 1,
         y: shape.y - 1,
@@ -545,13 +545,17 @@ const Renderer = (() => {
         fill: 'none',
         stroke: '#1a7a4c',
         'stroke-width': 1.5,
-        'stroke-dasharray': '4 2'
+        'stroke-dasharray': '4 2',
+        transform: rotateTransform(shape)
       });
       group.appendChild(outline);
     });
 
     if (shapes.length === 1) {
       const s = shapes[0];
+      // Handles live in a group carrying the shape's rotation
+      const hGroup = Utils.svgEl('g', { transform: rotateTransform(s) });
+      group.appendChild(hGroup);
       // Resize handles
       const handles = [
         { cx: s.x, cy: s.y, cursor: 'nw-resize', pos: 'tl' },
@@ -577,7 +581,7 @@ const Renderer = (() => {
         });
         rect.setAttribute('data-handle', h.pos);
         rect.setAttribute('data-shape-id', s.id);
-        group.appendChild(rect);
+        hGroup.appendChild(rect);
       });
 
       // Rotation handle
@@ -593,7 +597,7 @@ const Renderer = (() => {
       });
       rotHandle.setAttribute('data-handle', 'rotate');
       rotHandle.setAttribute('data-shape-id', s.id);
-      group.appendChild(rotHandle);
+      hGroup.appendChild(rotHandle);
 
       // Line from top center to rotation handle
       const rotLine = Utils.svgEl('line', {
@@ -605,10 +609,26 @@ const Renderer = (() => {
         'stroke-width': 1,
         'stroke-dasharray': '3 2'
       });
-      group.appendChild(rotLine);
+      hGroup.appendChild(rotLine);
     }
 
     canvasLayer.appendChild(group);
+  }
+
+  // SVG rotate(...) about the shape centre, or null when unrotated
+  function rotateTransform(shape) {
+    if (!shape.rotation) return null;
+    const cx = shape.x + shape.width / 2;
+    const cy = shape.y + shape.height / 2;
+    return `rotate(${shape.rotation}, ${cx}, ${cy})`;
+  }
+
+  // Map a canvas point into a shape's unrotated local frame
+  function toShapeFrame(shape, x, y) {
+    if (!shape.rotation) return { x, y };
+    const cx = shape.x + shape.width / 2;
+    const cy = shape.y + shape.height / 2;
+    return Utils.rotatePoint(x, y, cx, cy, -shape.rotation);
   }
 
   function clearSelectionHandles() {
@@ -841,7 +861,8 @@ const Renderer = (() => {
       const s = diagram.shapes[i];
       const layer = diagram.getLayer(s.layerId);
       if (layer && (!layer.visible || layer.locked)) continue;
-      if (Utils.pointInRect(canvasX, canvasY, s)) {
+      const p = toShapeFrame(s, canvasX, canvasY);
+      if (Utils.pointInRect(p.x, p.y, s)) {
         return s;
       }
     }
@@ -855,8 +876,9 @@ const Renderer = (() => {
       const s = diagram.shapes[i];
       const layer = diagram.getLayer(s.layerId);
       if (layer && (!layer.visible || layer.locked)) continue;
-      if (canvasX >= s.x - margin && canvasX <= s.x + s.width + margin &&
-          canvasY >= s.y - margin && canvasY <= s.y + s.height + margin) {
+      const p = toShapeFrame(s, canvasX, canvasY);
+      if (p.x >= s.x - margin && p.x <= s.x + s.width + margin &&
+          p.y >= s.y - margin && p.y <= s.y + s.height + margin) {
         return s;
       }
     }

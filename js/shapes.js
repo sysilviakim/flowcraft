@@ -69,27 +69,67 @@ const Shapes = (() => {
     ];
   }
 
-  // Get port world position for a shape
+  // Get port world position for a shape (follows shape.rotation)
   function getPortPosition(shape, port) {
     const cx = shape.x + shape.width / 2;
     const cy = shape.y + shape.height / 2;
+    const ox = shape.x + shape.width * port.offset;
+    const oy = shape.y + shape.height * port.offset;
+    let pos;
     switch (port.side) {
-      case 'top': return { x: shape.x + shape.width * port.offset, y: shape.y };
-      case 'bottom': return { x: shape.x + shape.width * port.offset, y: shape.y + shape.height };
-      case 'left': return { x: shape.x, y: shape.y + shape.height * port.offset };
-      case 'right': return { x: shape.x + shape.width, y: shape.y + shape.height * port.offset };
+      case 'top': pos = { x: ox, y: shape.y }; break;
+      case 'bottom': pos = { x: ox, y: shape.y + shape.height }; break;
+      case 'left': pos = { x: shape.x, y: oy }; break;
+      case 'right': pos = { x: shape.x + shape.width, y: oy }; break;
       default: return { x: cx, y: cy };
     }
+    if (!shape.rotation) return pos;
+    return Utils.rotatePoint(pos.x, pos.y, cx, cy, shape.rotation);
   }
 
-  function getPortDirection(port) {
+  // Outward unit direction of a port; rotated with the shape when given
+  function getPortDirection(port, shape) {
+    let dir;
     switch (port.side) {
-      case 'top': return { x: 0, y: -1 };
-      case 'bottom': return { x: 0, y: 1 };
-      case 'left': return { x: -1, y: 0 };
-      case 'right': return { x: 1, y: 0 };
+      case 'top': dir = { x: 0, y: -1 }; break;
+      case 'bottom': dir = { x: 0, y: 1 }; break;
+      case 'left': dir = { x: -1, y: 0 }; break;
+      case 'right': dir = { x: 1, y: 0 }; break;
       default: return { x: 0, y: 0 };
     }
+    if (!shape || !shape.rotation) return dir;
+    const r = Utils.rotatePoint(dir.x, dir.y, 0, 0, shape.rotation);
+    // Snap float noise so axis-aligned rotations stay exactly axis-aligned
+    return {
+      x: Math.abs(r.x) < 1e-9 ? 0 : r.x,
+      y: Math.abs(r.y) < 1e-9 ? 0 : r.y
+    };
+  }
+
+  // Axis-aligned bounds of a shape's rendered (rotated) outline
+  function getRotatedBounds(shape) {
+    if (!shape.rotation) {
+      return {
+        x: shape.x, y: shape.y, width: shape.width, height: shape.height
+      };
+    }
+    const cx = shape.x + shape.width / 2;
+    const cy = shape.y + shape.height / 2;
+    const corners = [
+      [shape.x, shape.y], [shape.x + shape.width, shape.y],
+      [shape.x, shape.y + shape.height],
+      [shape.x + shape.width, shape.y + shape.height]
+    ];
+    let minX = Infinity, minY = Infinity;
+    let maxX = -Infinity, maxY = -Infinity;
+    for (const [px, py] of corners) {
+      const p = Utils.rotatePoint(px, py, cx, cy, shape.rotation);
+      minX = Math.min(minX, p.x);
+      minY = Math.min(minY, p.y);
+      maxX = Math.max(maxX, p.x);
+      maxY = Math.max(maxY, p.y);
+    }
+    return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
   }
 
   // ---- Palette icon SVG (small preview) ----
@@ -1295,5 +1335,9 @@ const Shapes = (() => {
     }
   });
 
-  return { registry, register, get, getAll, getByCategory, getCategories, stdPorts, getPortPosition, getPortDirection, SWIMLANE_COLORS };
+  return {
+    registry, register, get, getAll, getByCategory, getCategories,
+    stdPorts, getPortPosition, getPortDirection, getRotatedBounds,
+    SWIMLANE_COLORS
+  };
 })();

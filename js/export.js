@@ -169,6 +169,21 @@ const ExportImport = (() => {
     defs.insertBefore(styleEl, defs.firstChild);
   }
 
+  // Bounding box of all shapes, using each shape's rotated outline
+  function getExportBounds(shapes) {
+    if (!shapes.length) return { x: 0, y: 0, width: 0, height: 0 };
+    let minX = Infinity, minY = Infinity;
+    let maxX = -Infinity, maxY = -Infinity;
+    for (const s of shapes) {
+      const b = Shapes.getRotatedBounds(s);
+      minX = Math.min(minX, b.x);
+      minY = Math.min(minY, b.y);
+      maxX = Math.max(maxX, b.x + b.width);
+      maxY = Math.max(maxY, b.y + b.height);
+    }
+    return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+  }
+
   // --- Common SVG preparation for export ---
   function prepareExportSvg(svgEl, bounds, padding) {
     const width = bounds.width + padding * 2;
@@ -226,7 +241,7 @@ const ExportImport = (() => {
     const svgEl = Renderer.getSvg();
     if (diagram.shapes.length === 0) { alert('Nothing to export'); return; }
 
-    const bounds = Utils.getBoundingRect(diagram.shapes);
+    const bounds = getExportBounds(diagram.shapes);
     const padding = 40;
     const { clonedSvg, cl, width, height } = prepareExportSvg(svgEl, bounds, padding);
     addBackground(cl, bounds, padding, width, height, diagram.settings.canvasColor);
@@ -262,7 +277,7 @@ const ExportImport = (() => {
     const svgEl = Renderer.getSvg();
     if (diagram.shapes.length === 0) { alert('Nothing to export'); return; }
 
-    const bounds = Utils.getBoundingRect(diagram.shapes);
+    const bounds = getExportBounds(diagram.shapes);
     const padding = 40;
     const { clonedSvg, cl, width, height } = prepareExportSvg(svgEl, bounds, padding);
     addBackground(cl, bounds, padding, width, height, diagram.settings.canvasColor || '#ffffff');
@@ -300,7 +315,7 @@ const ExportImport = (() => {
     const svgEl = Renderer.getSvg();
     if (diagram.shapes.length === 0) { alert('Nothing to export'); return; }
 
-    const bounds = Utils.getBoundingRect(diagram.shapes);
+    const bounds = getExportBounds(diagram.shapes);
     const padding = 40;
     const { clonedSvg, cl, width, height } = prepareExportSvg(svgEl, bounds, padding);
     addBackground(cl, bounds, padding, width, height, diagram.settings.canvasColor || '#ffffff');
@@ -415,7 +430,7 @@ const ExportImport = (() => {
     const svgEl = Renderer.getSvg();
     if (diagram.shapes.length === 0) { alert('Nothing to export'); return; }
 
-    const bounds = Utils.getBoundingRect(diagram.shapes);
+    const bounds = getExportBounds(diagram.shapes);
     const padding = 40;
     const { clonedSvg, cl, width, height } = prepareExportSvg(svgEl, bounds, padding);
     addBackground(cl, bounds, padding, width, height, diagram.settings.canvasColor || '#ffffff');

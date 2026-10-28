@@ -1243,7 +1243,7 @@ const Tools = (() => {
         const inMarquee = diagram.shapes.filter(s => {
           const layer = diagram.getLayer(s.layerId);
           if (layer && (!layer.visible || layer.locked)) return false;
-          return Utils.rectsOverlap(s, rect);
+          return Utils.rectsOverlap(Shapes.getRotatedBounds(s), rect);
         });
         setSelection(inMarquee, null);
         Renderer.clearMarquee();

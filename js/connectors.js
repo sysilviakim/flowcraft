@@ -32,8 +32,15 @@ const Connectors = (() => {
 
     const srcPos = Shapes.getPortPosition(srcShape, srcPort);
     const tgtPos = Shapes.getPortPosition(tgtShape, tgtPort);
-    const srcDir = Shapes.getPortDirection(srcPort);
-    const tgtDir = Shapes.getPortDirection(tgtPort);
+    const srcDir = Shapes.getPortDirection(srcPort, srcShape);
+    const tgtDir = Shapes.getPortDirection(tgtPort, tgtShape);
+
+    // User-routed connector (manualRoute is set when a waypoint is inserted
+    // or dragged): keep the interior points, refresh only the endpoints
+    if (conn.manualRoute && conn.points && conn.points.length > 2) {
+      const inner = conn.points.slice(1, -1).map(p => ({ ...p }));
+      return [srcPos, ...inner, tgtPos];
+    }
 
     if (conn.routingType === 'straight') {
       return [srcPos, tgtPos];
