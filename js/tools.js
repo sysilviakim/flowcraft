@@ -1257,7 +1257,7 @@ const Tools = (() => {
           clearSelection();
         }
       }
-      if (e.key === 'a' && (e.ctrlKey || e.metaKey)) {
+      if (e.key.toLowerCase() === 'a' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         setSelection([...diagram.shapes], null);
       }
@@ -2036,36 +2036,37 @@ const Tools = (() => {
     if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
 
     const ctrl = e.ctrlKey || e.metaKey;
-    if (ctrl && e.key === 'z') {
+    const key = e.key.toLowerCase();
+    if (ctrl && key === 'z') {
       e.preventDefault();
       if (e.shiftKey) History.redo(); else History.undo();
     }
-    if (ctrl && e.key === 'y') {
+    if (ctrl && key === 'y') {
       e.preventDefault();
       History.redo();
     }
-    if (ctrl && e.key === 'c') {
+    if (ctrl && key === 'c') {
       e.preventDefault();
       copySelected();
     }
-    if (ctrl && e.key === 'v') {
+    if (ctrl && key === 'v') {
       e.preventDefault();
       paste();
     }
-    if (ctrl && e.key === 'x') {
+    if (ctrl && key === 'x') {
       e.preventDefault();
       copySelected();
       deleteSelected();
     }
-    if (ctrl && e.key === 'd') {
+    if (ctrl && key === 'd') {
       e.preventDefault();
       duplicateSelected();
     }
-    if (ctrl && e.key === 'g') {
+    if (ctrl && key === 'g') {
       e.preventDefault();
       if (e.shiftKey) ungroupSelected(); else groupSelected();
     }
-    if (ctrl && e.key === 'b') {
+    if (ctrl && key === 'b') {
       e.preventDefault();
       if (selectedShapes.length > 0) {
         const newWeight = selectedShapes[0].textStyle.fontWeight === 'bold' ? 'normal' : 'bold';
@@ -2077,7 +2078,7 @@ const Tools = (() => {
         if (onSelectionChanged) onSelectionChanged(selectedShapes, selectedConnector);
       }
     }
-    if (ctrl && e.key === 'i') {
+    if (ctrl && key === 'i') {
       e.preventDefault();
       if (selectedShapes.length > 0) {
         const newStyle = (selectedShapes[0].textStyle.fontStyle || 'normal') === 'italic' ? 'normal' : 'italic';
@@ -2089,7 +2090,7 @@ const Tools = (() => {
         if (onSelectionChanged) onSelectionChanged(selectedShapes, selectedConnector);
       }
     }
-    if (ctrl && e.key === 'u') {
+    if (ctrl && key === 'u') {
       e.preventDefault();
       if (selectedShapes.length > 0) {
         const newDeco = (selectedShapes[0].textStyle.textDecoration || 'none') === 'underline' ? 'none' : 'underline';
@@ -2103,12 +2104,12 @@ const Tools = (() => {
     }
     // Tool shortcuts
     if (!ctrl && !e.altKey) {
-      if (e.key === 'v' || e.key === '1') setTool('select');
-      if (e.key === 'r' || e.key === '2') { setDrawShapeType('basic:rectangle'); setTool('draw'); }
-      if (e.key === 'c' && !ctrl) { /* handled by copy above if ctrl */ }
-      if (e.key === 'l' || e.key === '3') setTool('connector');
-      if (e.key === 't' || e.key === '4') setTool('text');
-      if (e.key === 'h' || e.key === '5') setTool('pan');
+      if (key === 'v' || key === '1') setTool('select');
+      if (key === 'r' || key === '2') { setDrawShapeType('basic:rectangle'); setTool('draw'); }
+      if (key === 'c' && !ctrl) { /* handled by copy above if ctrl */ }
+      if (key === 'l' || key === '3') setTool('connector');
+      if (key === 't' || key === '4') setTool('text');
+      if (key === 'h' || key === '5') setTool('pan');
     }
   }
 

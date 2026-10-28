@@ -29,15 +29,16 @@ const ExportImport = (() => {
     // File keyboard shortcuts
     document.addEventListener('keydown', e => {
       const ctrl = e.ctrlKey || e.metaKey;
-      if (ctrl && e.key === 's') {
+      const key = e.key.toLowerCase();
+      if (ctrl && key === 's') {
         e.preventDefault();
         saveToFile();
       }
-      if (ctrl && e.key === 'o') {
+      if (ctrl && key === 'o') {
         e.preventDefault();
         loadFromFile();
       }
-      if (ctrl && e.key === 'n') {
+      if (ctrl && key === 'n') {
         e.preventDefault();
         // confirmNew() is called by the UI keydown handler
       }

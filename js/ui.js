@@ -57,7 +57,7 @@ const UI = (() => {
 
     // Ctrl+N: new diagram (keyboard shortcut advertised in toolbar)
     document.addEventListener('keydown', e => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'n') {
         if (document.querySelector('.text-edit-overlay')) return;
         const tag = document.activeElement && document.activeElement.tagName;
         if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
