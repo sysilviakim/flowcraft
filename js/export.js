@@ -209,6 +209,9 @@ const ExportImport = (() => {
     return URL.createObjectURL(svgBlob);
   }
 
+  const TOO_LARGE_MSG =
+    'Diagram is too large to export at this scale. Try a smaller diagram.';
+
   function downloadBlob(blob, filename) {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -243,6 +246,7 @@ const ExportImport = (() => {
       URL.revokeObjectURL(url);
 
       canvas.toBlob(blob => {
+        if (!blob) { alert(TOO_LARGE_MSG); return; }
         downloadBlob(blob, (diagram.name || 'diagram') + '.png');
       }, 'image/png');
     };
@@ -280,6 +284,7 @@ const ExportImport = (() => {
       URL.revokeObjectURL(url);
 
       canvas.toBlob(blob => {
+        if (!blob) { alert(TOO_LARGE_MSG); return; }
         downloadBlob(blob, (diagram.name || 'diagram') + '.jpg');
       }, 'image/jpeg', 0.95);
     };
@@ -320,6 +325,7 @@ const ExportImport = (() => {
       // to DCTDecode without any re-wrapping, unlike PNG which has its own
       // chunk format incompatible with FlateDecode.
       canvas.toBlob(jpegBlob => {
+        if (!jpegBlob) { alert(TOO_LARGE_MSG); return; }
         const reader = new FileReader();
         reader.onload = () => {
           const jpegArray = new Uint8Array(reader.result);
