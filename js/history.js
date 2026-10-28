@@ -153,10 +153,13 @@ const History = (() => {
   }
 
   class MoveShapeCommand {
-    constructor(shapeId, oldX, oldY, newX, newY) {
+    // excludeIds: children that have their own MoveShapeCommand in the
+    // same batch, so this command must not move them a second time
+    constructor(shapeId, oldX, oldY, newX, newY, excludeIds) {
       this.shapeId = shapeId;
       this.oldX = oldX; this.oldY = oldY;
       this.newX = newX; this.newY = newY;
+      this.excludeIds = new Set(excludeIds || []);
     }
     _moveChildren(dx, dy) {
       const shape = diagram.getShape(this.shapeId);
@@ -165,6 +168,7 @@ const History = (() => {
       if (def && def.isContainer) {
         const children = diagram.getChildrenOfContainer(this.shapeId);
         children.forEach(child => {
+          if (this.excludeIds.has(child.id)) return;
           diagram.updateShape(child.id, { x: child.x + dx, y: child.y + dy });
           Connectors.updateConnectorsForShape(diagram, child.id);
         });

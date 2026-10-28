@@ -187,7 +187,48 @@ const Tools = (() => {
   function setupEvents() {
     const svgEl = Renderer.getSvg();
 
+    // While a button is held, mousemove/mouseup are tracked on window so a
+    // drag that ends over the palette or properties panel still finishes.
+    let pressActive = false;
+
+    function dispatchMove(e) {
+      _lastMouseClientX = e.clientX;
+      _lastMouseClientY = e.clientY;
+      if (spaceHeld && tools.pan._panning) {
+        tools.pan.onMouseMove(e);
+        return;
+      }
+      if (activeTool && activeTool.onMouseMove) activeTool.onMouseMove(e);
+    }
+
+    function dispatchUp(e) {
+      if (tools.pan._panning) {
+        tools.pan.onMouseUp(e);
+        return;
+      }
+      if (activeTool && activeTool.onMouseUp) activeTool.onMouseUp(e);
+    }
+
+    function onWindowMove(e) { dispatchMove(e); }
+
+    function onWindowUp(e) {
+      endPress();
+      dispatchUp(e);
+      stopAutoPan();
+    }
+
+    function endPress() {
+      pressActive = false;
+      window.removeEventListener('mousemove', onWindowMove);
+      window.removeEventListener('mouseup', onWindowUp);
+    }
+
     svgEl.addEventListener('mousedown', e => {
+      if (!pressActive) {
+        pressActive = true;
+        window.addEventListener('mousemove', onWindowMove);
+        window.addEventListener('mouseup', onWindowUp);
+      }
       if (spaceHeld) {
         tools.pan.onMouseDown(e);
         return;
@@ -195,20 +236,19 @@ const Tools = (() => {
       if (activeTool && activeTool.onMouseDown) activeTool.onMouseDown(e);
     });
 
+    // Hover tracking only; during a press the window listener handles moves
     svgEl.addEventListener('mousemove', e => {
-      if (spaceHeld && tools.pan._panning) {
-        tools.pan.onMouseMove(e);
-        return;
-      }
-      if (activeTool && activeTool.onMouseMove) activeTool.onMouseMove(e);
+      if (pressActive) return;
+      dispatchMove(e);
     });
 
-    svgEl.addEventListener('mouseup', e => {
-      if (tools.pan._panning) {
-        tools.pan.onMouseUp(e);
-        return;
-      }
-      if (activeTool && activeTool.onMouseUp) activeTool.onMouseUp(e);
+    // Lost focus mid-press (e.g. alt-tab): end the drag at the last point
+    window.addEventListener('blur', () => {
+      if (!pressActive) return;
+      const fake = new MouseEvent('mouseup', {
+        clientX: _lastMouseClientX, clientY: _lastMouseClientY, button: 0
+      });
+      onWindowUp(fake);
     });
 
     svgEl.addEventListener('wheel', e => {
@@ -1056,10 +1096,15 @@ const Tools = (() => {
           const changed = oldPts.length !== newPts.length ||
             oldPts.some((p, i) => p.x !== newPts[i].x || p.y !== newPts[i].y);
           if (changed) {
+            // manualRoute keeps interior points when an endpoint shape moves
+            const wasManual = !!conn.manualRoute;
+            diagram.updateConnector(this._waypointConnId, {
+              manualRoute: true
+            });
             History.record(new History.ChangeConnectorCommand(
               this._waypointConnId,
-              { points: oldPts },
-              { points: newPts.map(p => ({ ...p })) }
+              { points: oldPts, manualRoute: wasManual },
+              { points: newPts.map(p => ({ ...p })), manualRoute: true }
             ));
           }
         }
@@ -1114,7 +1159,9 @@ const Tools = (() => {
           // No target: create a dangling connector ending at mouse position
           const srcPos = Shapes.getPortPosition(this._autoConnectSource.shape, this._autoConnectSource.port);
           const dist = Utils.distance(srcPos, pos);
-          if (dist > 10) {
+          const onCanvas = e.target instanceof Node &&
+            containerEl.contains(e.target);
+          if (dist > 10 && onCanvas) {
             const conn = Model.createConnector(
               this._autoConnectSource.shape.id, this._autoConnectSource.port.id,
               null, null
@@ -1172,12 +1219,19 @@ const Tools = (() => {
       if (this._dragging) {
         stopAutoPan();
         // Record move commands (use record, not execute, since drag already applied positions)
+        // Every container child gets its own command below, so the
+        // container's command must not move children on undo/redo
+        const childIds = Object.keys(this._childStartPositions || {});
+        const ownCmdIds = new Set([
+          ...selectedShapes.map(s => s.id), ...childIds
+        ]);
         History.beginBatch();
         selectedShapes.forEach((shape, i) => {
           const offset = this._dragOffsets[i];
           if (shape.x !== offset.startX || shape.y !== offset.startY) {
             History.record(new History.MoveShapeCommand(
-              shape.id, offset.startX, offset.startY, shape.x, shape.y
+              shape.id, offset.startX, offset.startY, shape.x, shape.y,
+              ownCmdIds
             ));
           }
         });
@@ -1310,10 +1364,15 @@ const Tools = (() => {
         if (e.key === 'ArrowRight') mdx = step;
         if (e.key === 'ArrowUp') mdy = -step;
         if (e.key === 'ArrowDown') mdy = step;
+        // Selected children get their own command; exclude them from
+        // their container's child move so they only move once
+        const selIds = new Set(selectedShapes.map(s => s.id));
         History.beginBatch();
         selectedShapes.forEach(s => {
           const nx = s.x + mdx, ny = s.y + mdy;
-          History.execute(new History.MoveShapeCommand(s.id, s.x, s.y, nx, ny));
+          History.execute(new History.MoveShapeCommand(
+            s.id, s.x, s.y, nx, ny, selIds
+          ));
           Connectors.updateConnectorsForShape(diagram, s.id);
         });
         History.endBatch('Move shapes');
@@ -1541,7 +1600,9 @@ const Tools = (() => {
         // No target: create a dangling connector ending at mouse position
         const srcPos = Shapes.getPortPosition(this._sourceShape, this._sourcePort);
         const dist = Utils.distance(srcPos, pos);
-        if (dist > 10) {
+        const onCanvas = e.target instanceof Node &&
+            containerEl.contains(e.target);
+        if (dist > 10 && onCanvas) {
           const conn = Model.createConnector(
             this._sourceShape.id, this._sourcePort.id,
             null, null
@@ -1937,6 +1998,7 @@ const Tools = (() => {
   function alignShapes(direction) {
     if (selectedShapes.length < 2) return;
     const bounds = Utils.getBoundingRect(selectedShapes);
+    const selIds = new Set(selectedShapes.map(s => s.id));
     History.beginBatch();
     selectedShapes.forEach(shape => {
       let nx = shape.x, ny = shape.y;
@@ -1949,7 +2011,9 @@ const Tools = (() => {
         case 'center-v': ny = bounds.y + (bounds.height - shape.height) / 2; break;
       }
       if (nx !== shape.x || ny !== shape.y) {
-        History.execute(new History.MoveShapeCommand(shape.id, shape.x, shape.y, nx, ny));
+        History.execute(new History.MoveShapeCommand(
+          shape.id, shape.x, shape.y, nx, ny, selIds
+        ));
       }
     });
     History.endBatch('Align shapes');
@@ -1962,6 +2026,7 @@ const Tools = (() => {
       direction === 'horizontal' ? a.x - b.x : a.y - b.y
     );
     const first = sorted[0], last = sorted[sorted.length - 1];
+    const selIds = new Set(selectedShapes.map(s => s.id));
     History.beginBatch();
     if (direction === 'horizontal') {
       const totalSpace = (last.x + last.width) - first.x;
@@ -1970,7 +2035,9 @@ const Tools = (() => {
       let cx = first.x;
       sorted.forEach(shape => {
         if (shape.x !== cx) {
-          History.execute(new History.MoveShapeCommand(shape.id, shape.x, shape.y, cx, shape.y));
+          History.execute(new History.MoveShapeCommand(
+            shape.id, shape.x, shape.y, cx, shape.y, selIds
+          ));
         }
         cx += shape.width + gap;
       });
@@ -1981,7 +2048,9 @@ const Tools = (() => {
       let cy = first.y;
       sorted.forEach(shape => {
         if (shape.y !== cy) {
-          History.execute(new History.MoveShapeCommand(shape.id, shape.x, shape.y, shape.x, cy));
+          History.execute(new History.MoveShapeCommand(
+            shape.id, shape.x, shape.y, shape.x, cy, selIds
+          ));
         }
         cy += shape.height + gap;
       });
