@@ -1649,7 +1649,13 @@ const Tools = (() => {
       }
       // Normalize: sanitize HTML and convert to plain text if no formatting
       const rawHtml = editor.innerHTML;
-      const newText = Utils.RichText.normalizeText(rawHtml, shape.textStyle.color);
+      let newText = Utils.RichText.normalizeText(
+        rawHtml, shape.textStyle.color);
+      // Custom-rendered shapes draw their title as plain text, so HTML
+      // formatting would show up as literal tags
+      if (def.customText && Utils.RichText.isRichText(newText)) {
+        newText = Utils.RichText.htmlToPlainText(newText);
+      }
       if (newText !== (shape.text || '')) {
         History.execute(new History.ChangeTextCommand(shape.id, shape.text || '', newText));
       }

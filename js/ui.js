@@ -33,7 +33,14 @@ const UI = (() => {
     diagram.on('changed', updateStatusBar);
 
     // Reposition floating toolbar on shape moves; hide on pan/zoom
-    diagram.on('shape:changed', () => {
+    diagram.on('shape:changed', changed => {
+      // Keep the Label textarea in step with inline edits and undo/redo
+      const labelInput = document.querySelector('.props-textarea');
+      if (labelInput && changed && labelInput.dataset.shapeId === changed.id &&
+          document.activeElement !== labelInput) {
+        const liveText = changed.text || '';
+        if (labelInput.value !== liveText) labelInput.value = liveText;
+      }
       if (_floatingToolbar) {
         const shapes = Tools.getSelectedShapes();
         const conn = Tools.getSelectedConnector();
@@ -934,11 +941,21 @@ const UI = (() => {
 
     // Text
     const textSection = makePropsSection('Text');
-    const textInput = document.createElement('input');
-    textInput.className = 'props-input';
+    const textInput = document.createElement('textarea');
+    textInput.className = 'props-input props-textarea';
+    textInput.rows = 3;
+    textInput.dataset.shapeId = shape.id;
     textInput.value = shape.text || '';
     textInput.addEventListener('change', () => {
-      History.execute(new History.ChangeTextCommand(shape.id, shape.text || '', textInput.value));
+      const live = diagram.getShape(shape.id) || shape;
+      const raw = textInput.value;
+      // Rich text must go through the sanitizer so typed newlines become <br>
+      const newText = Utils.RichText.isRichText(raw)
+        ? Utils.RichText.normalizeText(raw, live.textStyle.color)
+        : raw;
+      const oldText = live.text || '';
+      if (newText === oldText) return;
+      History.execute(new History.ChangeTextCommand(live.id, oldText, newText));
     });
     textSection.appendChild(makePropRow('Label', textInput));
 
@@ -1883,14 +1900,17 @@ const UI = (() => {
    * - Otherwise, split text by br/newlines and wrap in list
    */
   function toggleListInText(text, listTag) {
+    const sourceHtml = Utils.RichText.isRichText(text)
+      ? text
+      : Utils.RichText.plainTextToHtml(text || '');
     const otherTag = listTag === 'ul' ? 'ol' : 'ul';
-    const hasThisList = new RegExp('<' + listTag + '\\b', 'i').test(text);
-    const hasOtherList = new RegExp('<' + otherTag + '\\b', 'i').test(text);
+    const hasThisList = new RegExp('<' + listTag + '\\b', 'i').test(sourceHtml);
+    const hasOtherList = new RegExp('<' + otherTag + '\\b', 'i').test(sourceHtml);
 
     if (hasThisList) {
       // Remove list: extract <li> contents and join with <br>
       const div = document.createElement('div');
-      div.innerHTML = text;
+      div.innerHTML = sourceHtml;
       div.querySelectorAll(listTag).forEach(list => {
         const items = Array.from(list.querySelectorAll(':scope > li'));
         const fragment = document.createDocumentFragment();
@@ -1906,7 +1926,7 @@ const UI = (() => {
     if (hasOtherList) {
       // Convert other list type to this one
       const div = document.createElement('div');
-      div.innerHTML = text;
+      div.innerHTML = sourceHtml;
       div.querySelectorAll(otherTag).forEach(list => {
         const newList = document.createElement(listTag);
         while (list.firstChild) newList.appendChild(list.firstChild);
@@ -1917,7 +1937,7 @@ const UI = (() => {
 
     // No list: split text into lines and wrap in list
     const div = document.createElement('div');
-    div.innerHTML = text;
+    div.innerHTML = sourceHtml;
     // Get lines by splitting on <br>
     const html = div.innerHTML;
     const lines = html.split(/<br\s*\/?>/i).map(l => l.trim()).filter(l => l.length > 0);
@@ -2177,6 +2197,8 @@ const UI = (() => {
         <span>Italic</span><span class="key">Ctrl+I</span>
         <span>Underline</span><span class="key">Ctrl+U</span>
         <span>Edit text</span><span>Double-click shape</span>
+        <span>Line break (editing)</span><span class="key">Shift+Enter</span>
+        <span>Finish editing</span><span class="key">Enter</span>
         <span>Zoom</span><span>Scroll wheel</span>
         <span>Multi-select</span><span class="key">Shift+Click</span>
         <span>Constrain (equal)</span><span class="key">Shift+Drag</span>

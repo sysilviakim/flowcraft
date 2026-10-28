@@ -193,10 +193,29 @@ const Utils = (() => {
   // --- Rich Text utilities ---
   const RichText = (() => {
     const ALLOWED_TAGS = new Set(['B', 'I', 'U', 'SPAN', 'BR', 'UL', 'OL', 'LI']);
+    // Dropped with their contents rather than unwrapped
+    const DROP_TAGS = new Set(['SCRIPT', 'STYLE', 'TEMPLATE']);
+    const BLOCK_TAGS = new Set([
+      'ADDRESS', 'ARTICLE', 'ASIDE', 'BLOCKQUOTE', 'DIV', 'FIGCAPTION', 'FIGURE',
+      'FOOTER', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEADER', 'HR', 'MAIN',
+      'NAV', 'P', 'PRE', 'SECTION', 'TABLE'
+    ]);
     const HTML_TAG_RE = /<\/?(?:b|i|u|strong|em|span|br|ul|ol|li)\b[^>]*>/i;
 
     function isRichText(text) {
       return typeof text === 'string' && HTML_TAG_RE.test(text);
+    }
+
+    /**
+     * Parse HTML into a <div> owned by the inert <template> document.
+     * Nothing in it is ever adopted into the live page, so scripts do
+     * not run and <img onerror> handlers never fire.
+     */
+    function parseInert(html) {
+      const tpl = document.createElement('template');
+      const div = tpl.content.ownerDocument.createElement('div');
+      div.innerHTML = String(html ?? '');
+      return div;
     }
 
     function plainTextToHtml(text) {
@@ -208,47 +227,71 @@ const Utils = (() => {
     }
 
     function htmlToPlainText(html) {
-      const div = document.createElement('div');
-      div.innerHTML = html;
-      // Convert list items to prefixed lines before extracting text
-      div.querySelectorAll('ol').forEach(ol => {
-        const items = ol.querySelectorAll(':scope > li');
-        items.forEach((li, i) => {
-          li.insertBefore(document.createTextNode(`${i + 1}. `), li.firstChild);
-          li.appendChild(document.createTextNode('\n'));
-        });
-        ol.replaceWith(...ol.childNodes);
-      });
-      div.querySelectorAll('ul').forEach(ul => {
-        const items = ul.querySelectorAll(':scope > li');
-        items.forEach(li => {
-          li.insertBefore(document.createTextNode('\u2022 '), li.firstChild);
-          li.appendChild(document.createTextNode('\n'));
-        });
-        ul.replaceWith(...ul.childNodes);
-      });
-      // Unwrap remaining <li> tags (shouldn't happen, but safety)
-      div.querySelectorAll('li').forEach(li => {
-        li.appendChild(document.createTextNode('\n'));
-        li.replaceWith(...li.childNodes);
-      });
-      // Convert <br> to newlines before extracting text
-      div.querySelectorAll('br').forEach(br => br.replaceWith('\n'));
-      return (div.textContent || '').replace(/\n$/, '');
+      const div = parseInert(html);
+
+      const chunks = [];
+      const append = text => {
+        if (text) chunks.push(text);
+      };
+      const appendBreak = () => {
+        if (chunks.length === 0) return;
+        const last = chunks[chunks.length - 1];
+        if (!last.endsWith('\n')) chunks.push('\n');
+      };
+
+      function walk(node, listContext = null, suppressBlockStart = false) {
+        if (node.nodeType === Node.TEXT_NODE) {
+          append(node.textContent || '');
+          return;
+        }
+        if (node.nodeType !== Node.ELEMENT_NODE) return;
+
+        if (node.tagName === 'BR') {
+          chunks.push('\n');
+          return;
+        }
+
+        if (node.tagName === 'UL' || node.tagName === 'OL') {
+          appendBreak();
+          Array.from(node.children).forEach((child, i) => {
+            if (child.tagName === 'LI') {
+              walk(child, { type: node.tagName, index: i });
+            }
+          });
+          appendBreak();
+          return;
+        }
+
+        if (node.tagName === 'LI') {
+          appendBreak();
+          append(listContext && listContext.type === 'OL' ? `${listContext.index + 1}. ` : '\u2022 ');
+          Array.from(node.childNodes).forEach((child, i) => walk(child, listContext, i === 0));
+          appendBreak();
+          return;
+        }
+
+        const isBlock = BLOCK_TAGS.has(node.tagName);
+        if (isBlock && !suppressBlockStart) appendBreak();
+        Array.from(node.childNodes).forEach(child => walk(child, listContext));
+        if (isBlock) appendBreak();
+      }
+
+      Array.from(div.childNodes).forEach(node => walk(node));
+      return chunks.join('').replace(/\n+$/, '');
     }
 
     function sanitizeHtml(html) {
-      const div = document.createElement('div');
-      div.innerHTML = html;
+      const div = parseInert(html);
+      const doc = div.ownerDocument;
 
       // Normalize <strong> → <b>, <em> → <i>
       div.querySelectorAll('strong').forEach(el => {
-        const b = document.createElement('b');
+        const b = doc.createElement('b');
         b.innerHTML = el.innerHTML;
         el.replaceWith(b);
       });
       div.querySelectorAll('em').forEach(el => {
-        const i = document.createElement('i');
+        const i = doc.createElement('i');
         i.innerHTML = el.innerHTML;
         el.replaceWith(i);
       });
@@ -274,9 +317,13 @@ const Utils = (() => {
 
       // Convert block elements (div, p) to <br> before stripping
       div.querySelectorAll('div, p').forEach(el => {
-        // Insert a <br> before the block element (unless it's the first child)
-        if (el.previousSibling) {
-          el.parentNode.insertBefore(document.createElement('br'), el);
+        // Insert a <br> before the block element unless it is the first
+        // child or follows a list (a list already ends its line)
+        const prev = el.previousSibling;
+        const prevIsList = prev && prev.nodeType === Node.ELEMENT_NODE &&
+          (prev.tagName === 'UL' || prev.tagName === 'OL');
+        if (prev && !prevIsList) {
+          el.parentNode.insertBefore(doc.createElement('br'), el);
         }
         // Unwrap the element
         while (el.firstChild) {
@@ -285,43 +332,78 @@ const Utils = (() => {
         el.remove();
       });
 
-      // Walk the tree and strip disallowed tags (keep their children)
+      // Lift an element's children into its place; returns the first
+      // of them so the caller can re-scan what was just unwrapped
+      function unwrap(el) {
+        const first = el.firstChild;
+        while (el.firstChild) {
+          el.parentNode.insertBefore(el.firstChild, el);
+        }
+        el.remove();
+        return first;
+      }
+
+      // Walk the tree: drop script-like tags, unwrap other disallowed
+      // tags (keeping their children) and strip every attribute except
+      // a span's colour
       function cleanNode(node) {
-        const children = Array.from(node.childNodes);
-        for (const child of children) {
-          if (child.nodeType === Node.ELEMENT_NODE) {
-            if (!ALLOWED_TAGS.has(child.tagName)) {
-              // Unwrap: replace element with its children
-              while (child.firstChild) {
-                node.insertBefore(child.firstChild, child);
-              }
-              node.removeChild(child);
-            } else {
-              // For SPAN, only keep color style attribute
-              if (child.tagName === 'SPAN') {
-                const color = child.style.color;
-                // Remove all attributes
-                while (child.attributes.length > 0) {
-                  child.removeAttribute(child.attributes[0].name);
-                }
-                if (color) {
-                  child.style.color = color;
-                } else {
-                  // Span with no color — unwrap it
-                  while (child.firstChild) {
-                    node.insertBefore(child.firstChild, child);
-                  }
-                  node.removeChild(child);
-                  continue;
-                }
-              }
-              cleanNode(child);
-            }
+        let child = node.firstChild;
+        while (child) {
+          const next = child.nextSibling;
+          if (child.nodeType !== Node.ELEMENT_NODE) {
+            child = next;
+            continue;
           }
+          if (DROP_TAGS.has(child.tagName.toUpperCase())) {
+            child.remove();
+            child = next;
+            continue;
+          }
+          if (!ALLOWED_TAGS.has(child.tagName)) {
+            child = unwrap(child) || next;
+            continue;
+          }
+          const color = child.tagName === 'SPAN' ? child.style.color : '';
+          while (child.attributes.length > 0) {
+            child.removeAttribute(child.attributes[0].name);
+          }
+          if (child.tagName === 'SPAN') {
+            if (!color) {
+              child = unwrap(child) || next;
+              continue;
+            }
+            child.style.color = color;
+          }
+          cleanNode(child);
+          child = next;
         }
       }
       cleanNode(div);
+      newlinesToBr(div);
       return div.innerHTML;
+    }
+
+    /**
+     * Replace literal newlines inside text nodes with <br> elements.
+     * A pre-wrap contenteditable inserts "\n" on Shift+Enter, and SVG text
+     * would collapse it to a space, so stored rich HTML must use <br>.
+     */
+    function newlinesToBr(root) {
+      const doc = root.ownerDocument;
+      const walker = doc.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      const nodes = [];
+      let n;
+      while ((n = walker.nextNode())) {
+        if (n.textContent.includes('\n')) nodes.push(n);
+      }
+      nodes.forEach(node => {
+        const frag = doc.createDocumentFragment();
+        node.textContent.split('\n').forEach((part, i) => {
+          if (i > 0) frag.appendChild(doc.createElement('br'));
+          if (part) frag.appendChild(doc.createTextNode(part));
+        });
+        node.replaceWith(frag);
+      });
     }
 
     /**
@@ -329,16 +411,16 @@ const Utils = (() => {
      * Returns array of lines, each line is array of {text, bold, italic, underline, color}.
      */
     function parseHtmlToRuns(html) {
-      const div = document.createElement('div');
-      div.innerHTML = html;
+      const div = parseInert(html);
       const lines = [[]];
 
       function walk(node, style) {
         if (node.nodeType === Node.TEXT_NODE) {
-          const text = node.textContent;
-          if (text) {
-            lines[lines.length - 1].push({ text, ...style });
-          }
+          // Older saves may hold a raw newline inside rich HTML
+          (node.textContent || '').split('\n').forEach((part, i) => {
+            if (i > 0) lines.push([]);
+            if (part) lines[lines.length - 1].push({ text: part, ...style });
+          });
           return;
         }
         if (node.nodeType !== Node.ELEMENT_NODE) return;
@@ -481,8 +563,7 @@ const Utils = (() => {
      */
     function stripDefaultColorSpans(html, defaultColor) {
       if (!defaultColor) return html;
-      const div = document.createElement('div');
-      div.innerHTML = html;
+      const div = parseInert(html);
       const normDefault = normalizeColor(defaultColor);
       div.querySelectorAll('span').forEach(span => {
         const spanColor = span.style.color;

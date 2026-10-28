@@ -564,6 +564,14 @@ html, body {
   border-color: var(--accent);
 }
 
+.props-textarea {
+  height: auto;
+  min-height: 64px;
+  padding: 6px 8px;
+  line-height: 1.35;
+  resize: vertical;
+}
+
 .props-input[type="color"] {
   padding: 2px;
   cursor: pointer;
