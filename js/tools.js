@@ -29,7 +29,34 @@ const Tools = (() => {
     diagram = diag;
     containerEl = container;
     setupEvents();
+    diagram.on('shape:removed', pruneSelection);
+    diagram.on('shape:added', pruneSelection);
+    diagram.on('connector:removed', pruneSelection);
+    diagram.on('diagram:cleared', pruneSelection);
+    diagram.on('diagram:loaded', pruneSelection);
     setTool('select');
+  }
+
+  // Re-resolve the selection by id after the model changes underneath it
+  // (undo/redo, new diagram, load), so Delete/Move never act on stale
+  // objects. Runs once per microtask so batch deletes coalesce.
+  let _pruneQueued = false;
+  function pruneSelection() {
+    if (_pruneQueued) return;
+    _pruneQueued = true;
+    queueMicrotask(() => {
+      _pruneQueued = false;
+      const live = selectedShapes
+        .map(s => diagram.getShape(s.id))
+        .filter(Boolean);
+      const conn = selectedConnector
+        ? diagram.getConnector(selectedConnector.id)
+        : null;
+      const same = live.length === selectedShapes.length &&
+        live.every((s, i) => s === selectedShapes[i]) &&
+        conn === selectedConnector;
+      if (!same) setSelection(live, conn);
+    });
   }
 
   function setOnSelectionChanged(fn) { onSelectionChanged = fn; }
@@ -37,6 +64,11 @@ const Tools = (() => {
 
   function getSelectedShapes() { return selectedShapes; }
   function getSelectedConnector() { return selectedConnector; }
+
+  function boundsEqual(a, b) {
+    return ['x', 'y', 'width', 'height', 'rotation']
+      .every(k => (a[k] || 0) === (b[k] || 0));
+  }
 
   function computeSelectionDistances(shapes) {
     if (!shapes || shapes.length === 0) return [];
@@ -1103,24 +1135,31 @@ const Tools = (() => {
 
       if (this._rotating && selectedShapes.length === 1) {
         const shape = selectedShapes[0];
-        // Use record (not execute) since drag already applied the rotation
-        History.record(new History.ResizeShapeCommand(
-          shape.id,
-          { ...this._startBounds },
-          { x: shape.x, y: shape.y, width: shape.width, height: shape.height, rotation: shape.rotation }
-        ));
+        const endBounds = {
+          x: shape.x, y: shape.y, width: shape.width, height: shape.height,
+          rotation: shape.rotation || 0
+        };
+        // Use record (not execute) since drag already applied the rotation;
+        // a plain click on the handle changes nothing and records nothing
+        if (!boundsEqual(this._startBounds, endBounds)) {
+          History.record(new History.ResizeShapeCommand(
+            shape.id, { ...this._startBounds }, endBounds));
+        }
         this._rotating = false;
         return;
       }
 
       if (this._resizing && selectedShapes.length === 1) {
         const shape = selectedShapes[0];
-        // Use record (not execute) since drag already applied the resize
-        History.record(new History.ResizeShapeCommand(
-          shape.id,
-          this._startBounds,
-          { x: shape.x, y: shape.y, width: shape.width, height: shape.height }
-        ));
+        const endBounds = {
+          x: shape.x, y: shape.y, width: shape.width, height: shape.height
+        };
+        // Use record (not execute) since drag already applied the resize;
+        // a plain click on the handle changes nothing and records nothing
+        if (!boundsEqual(this._startBounds, endBounds)) {
+          History.record(new History.ResizeShapeCommand(
+            shape.id, this._startBounds, endBounds));
+        }
         this._resizing = false;
         // Re-fetch and show distances after resize
         selectedShapes = selectedShapes.map(s => diagram.getShape(s.id)).filter(Boolean);
@@ -1744,8 +1783,11 @@ const Tools = (() => {
     const finish = () => {
       const newName = textarea.value;
       if (newName !== (lane.name || '')) {
-        lanes[laneIdx].name = newName;
-        diagram.updateShapeDeep(shape.id, { data: { lanes: lanes } });
+        const oldData = Utils.deepClone(shape.data);
+        const newLanes = lanes.map((l, i) =>
+          i === laneIdx ? { ...l, name: newName } : l);
+        History.execute(new History.ChangeShapeDataCommand(
+          shape.id, oldData, { ...oldData, lanes: newLanes }));
       }
       textarea.remove();
     };
